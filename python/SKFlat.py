@@ -84,9 +84,9 @@ SampleHOSTNAME = HOSTNAME
 
 ## Check joblog email
 
-if SKFlatLogEmail=='':
-  print '[SKFlat.py] Put your email address in setup.sh'
-  exit()
+#if SKFlatLogEmail=='':
+#  print '[SKFlat.py] Put your email address in setup.sh'
+#  exit() #JH : I don't want this
 SendLogToWeb = True
 if SKFlatLogWebDir=='':
   SendLogToWeb = False
@@ -476,6 +476,7 @@ void {2}(){{
     if IsDATA:
       out.write('  m.IsDATA = true;\n')
       out.write('  m.DataStream = "'+InputSample+'";\n')
+      #out.write('  m.DataPeriods = "'+InputSample+'";\n') #JH
     else:
       out.write('  m.MCSample = "'+InputSample+'";\n');
       out.write('  m.IsDATA = false;\n')
@@ -561,11 +562,19 @@ root -l -b -q run.C 1>stdout.log 2>stderr.log
 
   if IsKISTI or IsTAMSA:
 
+    commandsfilename = args.Analyzer+'_'+args.Era+'_'+InputSample
+    if IsDATA:
+      commandsfilename += '_'+DataPeriod
+    for flag in Userflags:
+      commandsfilename += '__'+flag
+
     cwd = os.getcwd()
     os.chdir(base_rundir)
     if not args.no_exec:
       condorOptions = ''
-      if args.BatchName!="":
+      if args.BatchName=="auto":
+        condorOptions = ' -batch-name '+commandsfilename #JH
+      elif args.BatchName!="":
         condorOptions = ' -batch-name '+args.BatchName
       os.system('condor_submit submit.jds '+condorOptions)
     os.chdir(cwd)
@@ -902,35 +911,35 @@ try:
 except KeyboardInterrupt:
   print('interrupted!')
 
-## Send Email now
+## Send Email now #JH : I don't want this
 
-from SendEmail import *
-JobFinishEmail = '''#### Job Info ####
-HOST = {3}
-JobID = {6}
-Analyzer = {0}
-Era = {7}
-Skim = {5}
-# of Jobs = {4}
-InputSample = {1}
-{8}
-Output sent to : {2}
-'''.format(args.Analyzer,InputSamples,FinalOutputPath,HOSTNAME,NJobs,args.Skim,str_RandomNumber,args.Era,GetXSECTable(InputSamples,XsecForEachSample))
-JobFinishEmail += '''##################
-Job started at {0}
-Job finished at {1}
-'''.format(string_JobStartTime,string_ThisTime)
-
-if IsKNU:
-  JobFinishEmail += 'Queue = '+args.Queue+'\n'
-
-EmailTitle = '['+HOSTNAME+']'+' Summary of JobID '+str_RandomNumber
-if GotError:
-  JobFinishEmail = "#### ERROR OCCURED ####\n"+JobFinishEmail
-  JobFinishEmail = ErrorLog+"\n------------------------------------------------\n"+JobFinishEmail
-  EmailTitle = '[ERROR] Summary of JobID '+str_RandomNumber
-
-if IsKNU:
-  SendEmailbyGMail(USER,SKFlatLogEmail,EmailTitle,JobFinishEmail)
-else:
-  SendEmail(USER,SKFlatLogEmail,EmailTitle,JobFinishEmail)
+#from SendEmail import *
+#JobFinishEmail = '''#### Job Info ####
+#HOST = {3}
+#JobID = {6}
+#Analyzer = {0}
+#Era = {7}
+#Skim = {5}
+## of Jobs = {4}
+#InputSample = {1}
+#{8}
+#Output sent to : {2}
+#'''.format(args.Analyzer,InputSamples,FinalOutputPath,HOSTNAME,NJobs,args.Skim,str_RandomNumber,args.Era,GetXSECTable(InputSamples,XsecForEachSample))
+#JobFinishEmail += '''##################
+#Job started at {0}
+#Job finished at {1}
+#'''.format(string_JobStartTime,string_ThisTime)
+#
+#if IsKNU:
+#  JobFinishEmail += 'Queue = '+args.Queue+'\n'
+#
+#EmailTitle = '['+HOSTNAME+']'+' Summary of JobID '+str_RandomNumber
+#if GotError:
+#  JobFinishEmail = "#### ERROR OCCURED ####\n"+JobFinishEmail
+#  JobFinishEmail = ErrorLog+"\n------------------------------------------------\n"+JobFinishEmail
+#  EmailTitle = '[ERROR] Summary of JobID '+str_RandomNumber
+#
+#if IsKNU:
+#  SendEmailbyGMail(USER,SKFlatLogEmail,EmailTitle,JobFinishEmail)
+#else:
+#  SendEmail(USER,SKFlatLogEmail,EmailTitle,JobFinishEmail)

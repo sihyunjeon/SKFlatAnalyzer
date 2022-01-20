@@ -18,6 +18,9 @@ Muon::Muon() : Lepton() {
   j_lowptMVA = -999.;
   j_softMVA = -999.;
   j_trackerLayers = 0;
+  j_validmuonhits = 0;
+  j_matchedstations = 0;
+  j_pixelHits = 0;
 }
 
 Muon::~Muon(){
@@ -107,6 +110,18 @@ bool Muon::PassID(TString ID) const {
   //==== Customized
   if(ID=="TEST") return Pass_TESTID();
 
+  //==== EXO-17-028
+  if(ID=="HNVeto2016") return Pass_HNVeto2016();
+  if(ID=="HNLoose2016") return Pass_HNLoose2016();
+  if(ID=="HNTight2016") return Pass_HNTight2016();
+
+  //==== Run2
+  if(ID=="ISRVeto") return Pass_ISRVeto(0.6);
+  if(ID=="HNLooseV1") return Pass_HNLoose(0.4, 0.2, 0.1, 10.); // RelIso, d0, dz, SIP
+  if(ID=="HNTightV1") return Pass_HNTight(0.07, 0.05, 0.1, 3.); // RelIso, d0, dz, SIP
+  if(ID=="SSWW_loose") return SSWW_loose();
+  if(ID=="SSWW_tight") return SSWW_tight();
+
   //==== No cut
   if(ID=="NOCUT") return true;
 
@@ -133,9 +148,107 @@ bool Muon::Pass_TESTID() const {
   return true;
 }
 
+//==== EXO-17-028 ID
+bool Muon::Pass_HNVeto2016() const{
+  if(!( isPOGLoose() )) return false;
+  if(!( fabs(dXY())<0.2 && fabs(dZ())<0.5) ) return false;
+  if(!( RelIso()<0.6 ))  return false;
+  if(!( Chi2()<50. )) return false;
+  return true;
+}
+
+bool Muon::Pass_HNLoose2016() const{
+  if(!( isPOGLoose() )) return false;
+  if(!( fabs(dXY())<0.2 && fabs(dZ())<0.1 && fabs(IP3D()/IP3Derr())<3.) ) return false;
+  if(!( RelIso()<0.4 ))  return false;
+  if(!( Chi2()<50. )) return false;
+  return true;
+}
+
+bool Muon::Pass_HNTight2016() const{
+  if(!( isPOGTight() )) return false;
+  if(!( fabs(dXY())<0.005 && fabs(dZ())<0.04 && fabs(IP3D()/IP3Derr())<3.) ) return false;
+  if(!( RelIso()<0.07 ))  return false;
+  if(!( Chi2()<10. )) return false;
+  return true;
+}
+
+//==== Run2 ID
+
+bool Muon::Pass_ISRVeto(double relisoCut) const {
+  if(!( isPOGLoose() )) return false;
+  if(!( RelIso()<relisoCut )) return false;
+  return true;
+}
+
+bool Muon::Pass_HNLoose(double relisoCut, double dxyCut, double dzCut, double sipCut) const {
+  // Individual cuts of the POG cut-based tight ID
+  if(!( isPOGLoose() )) return false;
+  if(!( IsType(GlobalMuon) )) return false;
+  if(!( Chi2()<10. )) return false;
+  if(!( ValidMuonHits()>0 )) return false;
+  if(!( MatchedStations()>1 )) return false;
+  if(!( fabs(dXY())<dxyCut && fabs(dZ())<dzCut) ) return false;
+  if(!( PixelHits()>0 )) return false;
+  if(!( TrackerLayers()>5 )) return false;
+  //if(!( isPOGTight() )) return false;
+  //if(!( fabs(dXY())<dxyCut && fabs(dZ())<dzCut) ) return false;
+  // RelPFIso
+  if(!( RelIso()<relisoCut )) return false;
+  if(!( fabs(IP3D()/IP3Derr())<sipCut )) return false;
+  return true;
+}
+
+bool Muon::Pass_HNTight(double relisoCut, double dxyCut, double dzCut, double sipCut) const {
+  if(!( isPOGTight() )) return false;
+  if(!( RelIso()<relisoCut )) return false;
+  if(!( fabs(dXY())<dxyCut && fabs(dZ())<dzCut) ) return false;
+  if(!( fabs(IP3D()/IP3Derr())<sipCut )) return false;
+  return true;
+}
+
+bool Muon::SSWW_loose() const{
+  if(!( isPOGTight() )) return false;
+  if(!( RelIso()<0.4 )) return false;
+  if(this->Pt()<20.){
+    if(!( fabs(dXY())<0.01 )) return false;
+  }
+  else if(this->Pt()>=20.){
+    if(!( fabs(dXY())<0.02 )) return false;
+  }
+  if(!( fabs(dZ())<0.1 )) return false;
+  return true;
+}
+
+bool Muon::SSWW_tight() const{ 
+  if(!( isPOGTight() )) return false;
+  if(!( RelIso()<0.15 )) return false;
+  if(this->Pt()<20.){
+    if(!( fabs(dXY())<0.01 )) return false;
+  }
+  else if(this->Pt()>=20.){
+    if(!( fabs(dXY())<0.02 )) return false;
+  }
+  if(!( fabs(dZ())<0.1 )) return false;
+  return true;
+}
+
 void Muon::SetTrackerLayers(int n){
   j_trackerLayers = n;
 }
+
+void Muon::SetValidMuonHits(int n){
+  j_validmuonhits = n;
+}
+
+void Muon::SetMatchedStations(int n){
+  j_matchedstations = n;
+}
+
+void Muon::SetPixelHits(int n){
+  j_pixelHits = n;
+}
+
 
 bool Muon::PassFilter(TString filter) const{
   if( filter=="hltDiMu9Ele9CaloIdLTrackIdLMuonlegL3Filtered9" ) return j_filterbits&(ULong64_t(1)<<0);

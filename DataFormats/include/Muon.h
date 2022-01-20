@@ -103,9 +103,27 @@ public:
   bool Pass_POGTightWithTightIso() const;
   bool Pass_POGHighPtWithLooseTrkIso() const;
   bool Pass_TESTID() const;
+
+  //==== EXO-17-028 ID
+  bool Pass_HNVeto2016() const;
+  bool Pass_HNLoose2016() const;
+  bool Pass_HNTight2016() const;
+
+  //==== Run2 ID
+  bool Pass_ISRVeto(double relisoCut) const;
+  bool Pass_HNLoose(double relisoCut, double dxyCut, double dzCut, double sipCut) const;
+  bool Pass_HNTight(double relisoCut, double dxyCut, double dzCut, double sipCut) const;
+  bool SSWW_loose() const;
+  bool SSWW_tight() const;
   
   void SetTrackerLayers(int n);
   inline int TrackerLayers() const { return j_trackerLayers; }
+  void SetValidMuonHits(int n);
+  inline int ValidMuonHits() const { return j_validmuonhits; }
+  void SetMatchedStations(int n);
+  inline int MatchedStations() const { return j_matchedstations; }
+  void SetPixelHits(int n);
+  inline int PixelHits() const { return j_pixelHits; }
 
   void SetFilterBits(ULong64_t filterbits){ j_filterbits=filterbits; }
   void SetPathBits(ULong64_t pathbits){ j_pathbits=pathbits; }
@@ -123,7 +141,7 @@ private:
   Particle j_TuneP4;
   double j_TunePPtError;
   double j_MVA, j_lowptMVA, j_softMVA;
-  int j_trackerLayers;
+  int j_validmuonhits, j_matchedstations, j_pixelHits, j_trackerLayers;
 
   ULong64_t j_filterbits;
   ULong64_t j_pathbits;

@@ -45,15 +45,15 @@ void MCCorrection::ReadHistograms(){
       TFile *file = new TFile(IDpath+"/Electron/"+d);
       
       if(f=="TH2F"){
-	histDir->cd();
-	map_hist_Electron[a+"_"+b+"_"+c] = (TH2F *)file->Get(e)->Clone();
+        histDir->cd();
+        map_hist_Electron[a+"_"+b+"_"+c] = (TH2F *)file->Get(e)->Clone();
       }
       else if(f=="TGraphAsymmErrors"){
-	histDir->cd();
-	map_graph_Electron[a+"_"+b+"_"+c] = (TGraphAsymmErrors *)file->Get(e)->Clone();
+        histDir->cd();
+        map_graph_Electron[a+"_"+b+"_"+c] = (TGraphAsymmErrors *)file->Get(e)->Clone();
       }
       else{
-	cout << "[MCCorrection::MCCorrection] Wrong class type : " << elline << endl;
+        cout << "[MCCorrection::MCCorrection] Wrong class type : " << elline << endl;
       }
       file->Close();
       delete file;
@@ -1291,7 +1291,19 @@ bool MCCorrection::IsBTagged_2a(JetTagging::Parameters jtp, const Jet& jet, stri
   unsigned int evNum_uint   = static_cast <unsigned int> (event);
   unsigned int jet0eta = uint32_t(fabs(jet.Eta())/0.01);
   int m_nomVar=1;
-  std::uint32_t seed = jet0eta + m_nomVar + (lumiNum_uint<<10) + (runNum_uint<<20) + evNum_uint;
+  std::uint32_t seed = jet0eta + m_nomVar; //JH : below definition changes everytime
+  //std::uint32_t seed = jet0eta + m_nomVar + (lumiNum_uint<<10) + (runNum_uint<<20) + evNum_uint;
+  //cout << "jet_eta/0.01 :" << jet0eta << endl; //JH
+  //cout << "run : " << run << endl;
+  //cout << "runNum_uint : " << runNum_uint << endl;
+  //cout << "runNum_uint<<20 " << runNum_uint<<20 << endl;
+  //cout << "lumi : " << lumi << endl;
+  //cout << "lumiNum_uint : " << lumiNum_uint << endl;
+  //cout << "lumiNum<<10 " << lumiNum_uint<<10 << endl;
+  //cout << "event : " << event << endl;
+  //cout << "evNum_uint : " << evNum_uint << endl;
+  //cout << "seed : " << seed << endl;
+  //cout << "==================================" << endl;
 
   TRandom3 rand_(seed);
 

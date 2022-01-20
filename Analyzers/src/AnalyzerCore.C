@@ -124,6 +124,10 @@ std::vector<Muon> AnalyzerCore::GetAllMuons(){
     mu.SetIso(muon_PfChargedHadronIsoR04->at(i),muon_PfNeutralHadronIsoR04->at(i),muon_PfGammaIsoR04->at(i),muon_PFSumPUIsoR04->at(i),muon_trkiso->at(i));
     mu.SetTrackerLayers(muon_trackerLayers->at(i));
 
+    mu.SetMatchedStations(muon_matchedstations->at(i));
+    mu.SetPixelHits(muon_pixelHits->at(i));
+    mu.SetValidMuonHits(muon_validmuonhits->at(i)); //JH
+
     //==== Should be set after Eta is set
     mu.SetMiniIso(
       muon_PfChargedHadronMiniIso->at(i), 
@@ -719,6 +723,20 @@ std::vector<Jet> AnalyzerCore::SelectJets(const std::vector<Jet>& jets, TString 
 
 }
 
+std::vector<Jet> AnalyzerCore::SelectJetsPileupMVA(const std::vector<Jet>& jets, TString wp){
+
+  std::vector<Jet> out;
+  for(unsigned int i=0; i<jets.size(); i++){
+    if(!( jets.at(i).PassPileupMVA(wp, GetEra()) )){
+      //cout << "Fail Pileup ID working point : " << wp << ", era : " << GetEra() << endl;
+      continue;
+    }
+    out.push_back( jets.at(i) );
+  }
+  return out;
+
+}
+
 std::vector<FatJet> AnalyzerCore::SelectFatJets(const std::vector<FatJet>& jets, TString id, double ptmin, double fetamax){
 
   std::vector<FatJet> out;
@@ -1108,6 +1126,81 @@ Particle AnalyzerCore::UpdateMET(const Particle& METv, const std::vector<Muon>& 
 
 }
 
+Particle AnalyzerCore::UpdateMETMuon(const Particle& METv, const std::vector<Muon>& muons){
+
+  double met_x = METv.Px();
+  double met_y = METv.Py();
+
+  double px_orig(0.), py_orig(0.), px_corrected(0.), py_corrected(0.);
+  for(unsigned int i=0; i<muons.size(); i++){
+
+    px_orig += muons.at(i).MiniAODPt()*TMath::Cos(muons.at(i).Phi());
+    py_orig += muons.at(i).MiniAODPt()*TMath::Sin(muons.at(i).Phi());
+
+    px_corrected += muons.at(i).Px();
+    py_corrected += muons.at(i).Py();
+
+  }
+
+  met_x = met_x + px_orig - px_corrected;
+  met_y = met_y + py_orig - py_corrected;
+
+  Particle METout;
+  METout.SetPxPyPzE(met_x,met_y,0,sqrt(met_x*met_x+met_y*met_y));
+  return METout;
+
+}
+
+Particle AnalyzerCore::UpdateMETElectron(const Particle& METv, const std::vector<Electron>& electrons){
+
+  double met_x = METv.Px();
+  double met_y = METv.Py();
+
+  double px_orig(0.), py_orig(0.), px_corrected(0.), py_corrected(0.);
+  for(unsigned int i=0; i<electrons.size(); i++){
+
+    px_orig += electrons.at(i).UncorrPt()*TMath::Cos(electrons.at(i).Phi());
+    py_orig += electrons.at(i).UncorrPt()*TMath::Sin(electrons.at(i).Phi());
+
+    px_corrected += electrons.at(i).Px();
+    py_corrected += electrons.at(i).Py();
+
+  }
+
+  met_x = met_x + px_orig - px_corrected;
+  met_y = met_y + py_orig - py_corrected;
+
+  Particle METout;
+  METout.SetPxPyPzE(met_x,met_y,0,sqrt(met_x*met_x+met_y*met_y));
+  return METout;
+
+}
+
+Particle AnalyzerCore::UpdateMETElectronCF(const Particle& METv, const std::vector<Electron>& electrons1, const std::vector<Electron>& electrons2){
+
+  double met_x = METv.Px();
+  double met_y = METv.Py();
+
+  double px_orig(0.), py_orig(0.), px_corrected(0.), py_corrected(0.);
+  for(unsigned int i=0; i<electrons1.size(); i++){
+
+    px_orig += electrons1.at(i).Px();
+    py_orig += electrons1.at(i).Py();
+
+    px_corrected += electrons2.at(i).Px();
+    py_corrected += electrons2.at(i).Py();
+
+  }
+
+  met_x = met_x + px_orig - px_corrected;
+  met_y = met_y + py_orig - py_corrected;
+
+  Particle METout;
+  METout.SetPxPyPzE(met_x,met_y,0,sqrt(met_x*met_x+met_y*met_y));
+  return METout;
+
+}
+
 std::vector<Muon> AnalyzerCore::MuonApplyPtCut(const std::vector<Muon>& muons, double ptcut){
 
   std::vector<Muon> out;
@@ -1186,6 +1279,26 @@ std::vector<Jet> AnalyzerCore::JetsAwayFromFatJet(const std::vector<Jet>& jets, 
       }
     }
     if(!Overlap) out.push_back( jets.at(i) );
+
+  }
+
+  return out;
+
+}
+
+std::vector<FatJet> AnalyzerCore::FatJetsAwayFromJet(const std::vector<FatJet>& fatjets, const std::vector<Jet>& jets, double mindr){
+
+  std::vector<FatJet> out;
+  for(unsigned int i=0; i<fatjets.size(); i++){
+
+    bool Overlap = false;
+    for(unsigned int j=0; j<jets.size(); j++){
+      if( ( fatjets.at(i) ).DeltaR( jets.at(j) ) < mindr ){
+        Overlap = true;
+        break;
+      }
+    }
+    if(!Overlap) out.push_back( fatjets.at(i) );
 
   }
 
@@ -1286,6 +1399,339 @@ Particle AnalyzerCore::AddFatJetAndLepton(const FatJet& fatjet, const Lepton& le
   else{
     return fatjet+lep;
   }
+
+}
+
+//=========================================================
+//==== Electron Charge Flip
+
+std::vector<Electron> AnalyzerCore::ShiftElectronEnergy(const std::vector<Electron>& electrons, AnalyzerParameter param, bool applyshift){
+
+  std::vector<Electron> out;
+
+  for(unsigned int i=0; i<electrons.size(); i++){
+    Electron this_electron = electrons.at(i);
+    if(!param.Electron_Tight_ID.Contains("HNTight")){ out.push_back(this_electron); continue; }
+    if(!applyshift){ out.push_back(this_electron); continue; }
+
+    double shiftrate = 1.;
+//    if(electrons.size() == 1) TODO : add shift rate
+    if(electrons.size() == 2){
+      if(param.Electron_Tight_ID == "HNTight") shiftrate = 0.987;       // 1.3%
+      else if(param.Electron_Tight_ID == "HNTightV2") shiftrate = 0.99; // 1.0%
+      else shiftrate = 0.988;                                           // 1.2%
+    }
+
+    this_electron.SetPtEtaPhiM( electrons.at(i).Pt()*shiftrate, electrons.at(i).Eta(), electrons.at(i).Phi(), electrons.at(i).M() ); // M = 0.511e-03
+    out.push_back(this_electron);
+  }
+
+  return out;
+
+}
+
+double AnalyzerCore::GetCFrates(TString id, double pt, double eta){
+
+  eta = fabs(eta);
+  double x = 1./pt;
+  double a, b, c;
+  double rate;
+
+  if(DataYear==2016){
+    if(id == "HNTightV1"){
+      if(eta < 0.8){
+        if(x < 0.003){ a = -5.36862e+00; b = -1.11415e+03; rate = TMath::Exp(a + b*x); }
+        else if(x>=0.003 && x<0.013){ a = 8.08592e-07; b = 1.42417e-03; c = -1.78244e-05; rate = a/(x+b)+c; }
+        else{ a = 5.2938e-05; b = -0.00105457; rate = a + b*x; }
+      }
+      else if(eta>=0.8 && eta<1.479){
+        if(x < 0.003){ a = -4.21012e+00; b = -7.62790e+02; rate = TMath::Exp(a + b*x); }
+        else if(x>=0.003 && x<0.014){ a = 5.11499e-06; b = 3.33130e-04; c = 2.38459e-05; rate = a/(x+b)+c; }
+        else{ a = 0.000497532; b = -0.0109166; rate = a + b*x; }
+      }
+      else{
+        //if(x < 0.01){ a = 0.0127778; b = -0.744197; }
+        //else if(x>=0.01 && x<0.0205){ a = 0.00725863; b = -0.18864; }
+        //else{ a = 0.00417112; b = -0.0371866; }
+        a = 3.90494e-05; b = 6.00814e-04; c = 3.38818e-04; rate = a/(x+b)+c;
+      }
+    }
+  }
+  else if(DataYear==2017){
+    if(id == "HNTightV1"){
+      if(eta < 0.8){
+        if(x < 0.002){ a = -5.51192e+00; b = -1.30329e+03; rate = TMath::Exp(a + b*x); }
+        else if(x>=0.002 && x<0.016){ a = 2.25880e-07; b = -1.24821e-03; c = 5.86034e-06; rate = a/(x+b)+c; }
+        else{ a = 2.90937e-05; b = -0.000565804; rate = a + b*x; }
+      }
+      else if(eta>=0.8 && eta<1.479){
+        if(x < 0.002){ a = -3.89174e+00; b = -1.31915e+03; rate = TMath::Exp(a + b*x); }
+        else if(x>=0.002 && x<0.033){ a = 2.02602e-06; b = -6.43873e-04; c = -7.49608e-06; rate = a/(x+b)+c; }
+        else{ a = 0.000131226; b = -0.00245131; rate = a + b*x; }
+      }
+      else{
+        //if(x < 0.01){ a = 0.0127778; b = -0.744197; }
+        //else if(x>=0.01 && x<0.0205){ a = 0.00725863; b = -0.18864; }
+        //else{ a = 0.00417112; b = -0.0371866; }
+        a = 1.97099e-05; b = 4.12182e-04; c = 4.66663e-05; rate = a/(x+b)+c;
+      }
+    }
+  }
+  else if(DataYear==2018){
+    if(id == "HNTightV1"){
+      if(eta < 0.8){
+        if(x < 0.002){ a = -5.54403e+00; b = -1.36409e+03; rate = TMath::Exp(a + b*x); }
+        else if(x>=0.002 && x<0.008){ a = 3.14164e-07; b = -9.31246e-04; c = -1.06387e-05; rate = a/(x+b)+c; }
+        else{ a = 3.7463e-05; b = -0.000733036; rate = a + b*x; }
+      }
+      else if(eta>=0.8 && eta<1.479){
+        if(x < 0.002){ a = -4.12209e+00; b = -1.18386e+03; rate = TMath::Exp(a + b*x); }
+        else if(x>=0.002 && x<0.013){ a = 2.00453e-06; b = -7.98888e-04; c = 1.55959e-05; rate = a/(x+b)+c; }
+        else{ a = 0.000213673; b = -0.00443169; rate = a + b*x; }
+      }
+      else{
+        //if(x < 0.01){ a = 0.0127778; b = -0.744197; }
+        //else if(x>=0.01 && x<0.0205){ a = 0.00725863; b = -0.18864; }
+        //else{ a = 0.00417112; b = -0.0371866; }
+        a = 2.21433e-05; b = 5.64423e-04; c = -3.17389e-06; rate = a/(x+b)+c;
+      }
+    }
+  }
+
+  if(rate < 0.) rate = 0.;
+  return rate;
+
+}
+
+double AnalyzerCore::GetCFweight(vector<Lepton *> lepptrs, AnalyzerParameter param, bool applySF, int syst){
+  if(!param.Electron_Tight_ID.Contains("HNTight")) return 0.;
+  if(lepptrs.size() > 2) return 0.;
+
+  std::vector<Electron> el;
+  for(unsigned int i=0; i<lepptrs.size(); i++){
+    if(lepptrs.at(i)->LeptonFlavour() == Lepton::ELECTRON){
+      Electron *el_tmp = (Electron *)lepptrs.at(i);
+      el.push_back(*el_tmp);
+    }
+  }
+  if(el.size()==2 && el.at(0).Charge()*el.at(1).Charge()>0) return 0.;
+
+  std::vector<double> CFrate, CFweight, sf;
+  double cfweight = 0.;
+  for(unsigned int i=0; i<el.size(); i++){
+    CFrate.push_back(GetCFrates(param.Electron_Tight_ID, el.at(i).Pt(), el.at(i).scEta()));
+    CFweight.push_back(CFrate.at(i)/(1.-CFrate.at(i)));
+
+    if(applySF){
+      if(DataYear==2016){
+        if(fabs(el.at(i).scEta()) < 1.479){
+          if(param.Electron_Tight_ID == "HNTightV1") sf.push_back(0.68164 + syst*0.);
+        }
+        else{
+          if(param.Electron_Tight_ID == "HNTightV1") sf.push_back(0.83324 + syst*0.);
+        }
+      }
+      if(DataYear==2017){
+        if(fabs(el.at(i).scEta()) < 1.479){
+          if(param.Electron_Tight_ID == "HNTightV1") sf.push_back(0.97395 + syst*0.);
+        }
+        else{
+          if(param.Electron_Tight_ID == "HNTightV1") sf.push_back(1.0706 + syst*0.);
+        }
+      }
+      if(DataYear==2018){
+        if(fabs(el.at(i).scEta()) < 1.479){
+          if(param.Electron_Tight_ID == "HNTightV1") sf.push_back(0.85626 + syst*0.);
+        }
+        else{
+          if(param.Electron_Tight_ID == "HNTightV1") sf.push_back(1.09372 + syst*0.);
+        }
+      }
+    }
+    else sf.push_back(1.);
+
+    cfweight += sf.at(i)*CFweight.at(i);
+  }
+
+  return cfweight;
+
+}
+
+double AnalyzerCore::GetCFweight(vector<Electron> eles, TString id, bool applySF, int syst){ //JH : to use in ChargeFlip.C (here, leptons are not a pointer)
+
+  std::vector<double> CFrate, CFweight, sf;
+  double cfweight = 0.;
+  for(unsigned int i=0; i<eles.size(); i++){
+    CFrate.push_back(GetCFrates(id, eles.at(i).Pt(), eles.at(i).scEta()));
+    CFweight.push_back(CFrate.at(i)/(1.-CFrate.at(i)));
+
+    if(applySF){
+      if(DataYear==2016){
+        if(fabs(eles.at(i).scEta()) < 1.479){
+          if(id == "HNTightV1") sf.push_back(0.8925 + syst*0.);
+        }
+        else{
+          if(id == "HNTightV1") sf.push_back(1.0313 + syst*0.);
+        }
+      }
+      if(DataYear==2017){
+        if(fabs(eles.at(i).scEta()) < 1.479){
+          if(id == "HNTightV1") sf.push_back(1.2176 + syst*0.);
+        }
+        else{
+          if(id == "HNTightV1") sf.push_back(1.4560 + syst*0.);
+        }
+      }
+      if(DataYear==2018){
+        if(fabs(eles.at(i).scEta()) < 1.479){
+          //if(id == "HNTightV1") sf.push_back(1.2203 + syst*0.);
+          if(id == "HNTightV1") sf.push_back(1.2518 + syst*0.); //HEM
+        }
+        else{
+          //if(id == "HNTightV1") sf.push_back(1.3862 + syst*0.);
+          if(id == "HNTightV1") sf.push_back(1.3890 + syst*0.); //HEM
+        }
+      }
+      else sf.push_back(1.);
+    }
+    else sf.push_back(1.);
+
+    cfweight += sf.at(i)*CFweight.at(i);
+  }
+
+  return cfweight;
+
+}
+
+double AnalyzerCore::GetCFweight(vector<Electron> eles, TString id, bool applySF, TString BBfit, TString EEfit){
+
+  std::vector<double> CFrate, CFweight, sf;
+  double cfweight = 0.;
+  for(unsigned int i=0; i<eles.size(); i++){
+    CFrate.push_back(GetCFrates(id, eles.at(i).Pt(), eles.at(i).scEta()));
+    CFweight.push_back(CFrate.at(i)/(1.-CFrate.at(i)));
+
+    if(applySF){
+      if(DataYear==2016){
+        if(fabs(eles.at(i).scEta()) < 1.479){
+          if(id == "HNTightV1"){
+            if(BBfit == "BW_expo") sf.push_back(1.08674);
+            else if(BBfit == "gaus_pol3") sf.push_back(0.68164);
+          }
+        }
+        else{
+          if(id == "HNTightV1"){
+            if(EEfit == "gaus_pol3") sf.push_back(0.83324);
+          }
+        }
+      }
+      if(DataYear==2017){
+        if(fabs(eles.at(i).scEta()) < 1.479){
+          if(id == "HNTightV1"){
+            if(BBfit == "BW_expo") sf.push_back(1.66013);
+            else if(BBfit == "gaus_pol3") sf.push_back(0.97395);
+          }
+        }
+        else{
+          if(id == "HNTightV1"){
+            if(EEfit == "BW_expo") sf.push_back(1.58026);
+            else if(EEfit == "gaus_pol3") sf.push_back(1.0706);
+          }
+        }
+      }
+      if(DataYear==2018){
+        if(fabs(eles.at(i).scEta()) < 1.479){
+          if(id == "HNTightV1"){
+            if(BBfit == "gaus_pol3") sf.push_back(0.85626);
+          }
+        }
+        else{
+          if(id == "HNTightV1"){
+
+            if(EEfit == "gaus_pol3") sf.push_back(1.09372);
+          }
+        }
+      }
+    }
+    else sf.push_back(1.);
+
+    cfweight += sf.at(i)*CFweight.at(i);
+  }
+
+  return cfweight;
+
+}
+
+double AnalyzerCore::GetHalfSampleWeight(const Electron& electron, TString id){
+
+  double eta = fabs(electron.scEta());
+  double x = 1./electron.Pt();
+  double a, b, c;
+  double rate;
+
+  if(DataYear==2016){
+    if(id == "HNTightV1"){
+      if(eta < 0.8){
+        if(x < 0.002){ a = -5.52822e+00; b = -1.02304e+03; rate = TMath::Exp(a + b*x); }
+        else if(x>=0.002 && x<0.015){ a = 2.79547e-07; b = -1.49827e-03; c = 1.95177e-05; rate = a/(x+b)+c; }
+        else{ a = 5.2566e-05; b = -0.00107042; rate = a + b*x; }
+      }
+      else if(eta>=0.8 && eta<1.479){
+        if(x < 0.003){ a = -4.15195e+00; b = -7.53902e+02; rate = TMath::Exp(a + b*x); }
+        else if(x>=0.003 && x<0.018){ a = 5.10557e-06; b = 2.36736e-04; c = 4.25695e-05; rate = a/(x+b)+c; }
+        else{ a = 0.000499542; b = -0.0106989; rate = a + b*x; }
+      }
+      else{
+        //if(x < 0.01){ a = 0.0127778; b = -0.744197; }
+        //else if(x>=0.01 && x<0.0205){ a = 0.00725863; b = -0.18864; }
+        //else{ a = 0.00417112; b = -0.0371866; }
+        a = 3.92685e-05; b = 4.82016e-04; c = 3.68027e-04; rate = a/(x+b)+c;
+      }
+    }
+  }
+  else if(DataYear==2017){
+    if(id == "HNTightV1"){
+      if(eta < 0.8){
+        if(x < 0.003){ a = -5.60206e+00; b = -1.07893e+03; rate = TMath::Exp(a + b*x); }
+        else if(x>=0.003 && x<0.020){ a = 2.36156e-07; b = -1.40897e-03; c = 4.62718e-06; rate = a/(x+b)+c; }
+        else{ a = 2.82303e-05; b = -0.000546111; rate = a + b*x; }
+      }
+      else if(eta>=0.8 && eta<1.479){
+        if(x < 0.002){ a = -3.93076e+00; b = -1.28449e+03; rate = TMath::Exp(a + b*x); }
+        else if(x>=0.002 && x<0.017){ a = 1.90284e-06; b = -8.62397e-04; c = -1.12695e-06; rate = a/(x+b)+c; }
+        else{ a = 0.000172466; b = -0.00358503; rate = a + b*x; }
+      }
+      else{
+        //if(x < 0.01){ a = 0.0127778; b = -0.744197; }
+        //else if(x>=0.01 && x<0.0205){ a = 0.00725863; b = -0.18864; }
+        //else{ a = 0.00417112; b = -0.0371866; }
+        a = 2.13362e-05; b = 5.19032e-04; c = -1.17259e-05; rate = a/(x+b)+c;
+      }
+    }
+  }
+  else if(DataYear==2018){
+    if(id == "HNTightV1"){
+      if(eta < 0.8){
+        if(x < 0.003){ a = -5.82253e+00; b = -9.78077e+02; rate = TMath::Exp(a + b*x); }
+        else if(x>=0.003 && x<0.021){ a = 1.71219e-07; b = -1.68484e-03; c = 1.29969e-05; rate = a/(x+b)+c; }
+        else{ a = 4.03842e-05; b = -0.000897667; rate = a + b*x; }
+      }
+      else if(eta>=0.8 && eta<1.479){
+        if(x < 0.002){ a = -4.15717e+00; b = -1.14465e+03; rate = TMath::Exp(a + b*x); }
+        else if(x>=0.002 && x<0.024){ a = 2.09134e-06; b = -7.97474e-04; c = 1.23281e-05; rate = a/(x+b)+c; }
+        else{ a = 0.000182993; b = -0.00330714; rate = a + b*x; }
+      }
+      else{
+        //if(x < 0.01){ a = 0.0127778; b = -0.744197; }
+        //else if(x>=0.01 && x<0.0205){ a = 0.00725863; b = -0.18864; }
+        //else{ a = 0.00417112; b = -0.0371866; }
+        a = 2.36021e-05; b = 6.68482e-04; c = -4.55490e-05; rate = a/(x+b)+c;
+      }
+    }
+  }
+
+  if(rate < 0.) rate = 0.;
+  return rate;
 
 }
 

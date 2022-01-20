@@ -38,6 +38,7 @@ public:
   inline bool Pass_tightLepVetoJetID() const { return j_tightLepVetoJetID; }
 
   bool PassID(TString ID) const;
+  bool Pass_HNTight(double tau21Cut) const;
 
   double GetTaggerResult(JetTagging::Tagger tg) const;
 

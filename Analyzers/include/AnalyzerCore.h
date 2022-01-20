@@ -97,6 +97,7 @@ public:
   std::vector<Muon> SelectMuons(const std::vector<Muon>& muons, TString id, double ptmin, double fetamax);
 
   std::vector<Jet> SelectJets(const std::vector<Jet>& jets, TString id, double ptmin, double fetamax);
+  std::vector<Jet> SelectJetsPileupMVA(const std::vector<Jet>& jets, TString wp);
 
   std::vector<FatJet> SelectFatJets(const std::vector<FatJet>& jets, TString id, double ptmin, double fetamax);
 
@@ -167,6 +168,9 @@ public:
   std::vector<Muon> MuonUsePtCone(const std::vector<Muon>& muons);
   Muon MuonUsePtCone(const Muon& muon);
   Particle UpdateMET(const Particle& METv, const std::vector<Muon>& muons);
+  Particle UpdateMETMuon(const Particle& METv, const std::vector<Muon>& muons);
+  Particle UpdateMETElectron(const Particle& METv, const std::vector<Electron>& electrons);
+  Particle UpdateMETElectronCF(const Particle& METv, const std::vector<Electron>& electrons1, const std::vector<Electron>& electrons2);
   std::vector<Muon> MuonApplyPtCut(const std::vector<Muon>& muons, double ptcut);
   std::vector<Electron> ElectronPromptOnly(const std::vector<Electron>& electrons, const std::vector<Gen>& gens);
   std::vector<Electron> ElectronUsePtCone(const std::vector<Electron>& electrons);
@@ -174,9 +178,18 @@ public:
   std::vector<Electron> ElectronApplyPtCut(const std::vector<Electron>& electrons, double ptcut);
   std::vector<Jet> JetsAwayFromFatJet(const std::vector<Jet>& jets, const std::vector<FatJet>& fatjets, double mindr=1.0);
   std::vector<Jet> JetsVetoLeptonInside(const std::vector<Jet>& jets, const std::vector<Electron>& els, const std::vector<Muon>& mus, double dR=0.4);
+  std::vector<FatJet> FatJetsAwayFromJet(const std::vector<FatJet>& fatjets, const std::vector<Jet>& jets, double mindr=1.0);
   std::vector<FatJet> FatJetsVetoLeptonInside(const std::vector<FatJet>& jets, const std::vector<Electron>& els, const std::vector<Muon>& mus, double dR=0.8);
   std::vector<Jet> JetsAwayFromPhoton(const std::vector<Jet>& jets, const std::vector<Photon>& photons, double mindr);
   Particle AddFatJetAndLepton(const FatJet& fatjet, const Lepton& lep);
+
+  //==== Electron Charge Flip
+  std::vector<Electron> ShiftElectronEnergy(const std::vector<Electron>& beforeshift, AnalyzerParameter param, bool applyshift);
+  double GetCFrates(TString id, double pt, double eta);
+  double GetCFweight(vector<Lepton *> lepptrs, AnalyzerParameter param, bool applySF, int syst);
+  double GetCFweight(vector<Electron> eles, TString id, bool applySF, int syst);
+  double GetCFweight(vector<Electron> eles, TString id, bool applySF, TString BBfit, TString EEfit);
+  double GetHalfSampleWeight(const Electron& electron, TString id);
 
   //==== GenMatching
 
@@ -215,17 +228,17 @@ public:
                 int n_binx, double *xbins,
                 int n_biny, double *ybins);
   void FillHist(TString histname,
-		double value_x, double value_y, double value_z,
-		double weight,
-		int n_binx, double x_min, double x_max,
-		int n_biny, double y_min, double y_max,
-		int n_binz, double z_min, double z_max);
+    double value_x, double value_y, double value_z,
+    double weight,
+    int n_binx, double x_min, double x_max,
+    int n_biny, double y_min, double y_max,
+    int n_binz, double z_min, double z_max);
   void FillHist(TString histname,
-		double value_x, double value_y, double value_z,
-		double weight,
-		int n_binx, const double *xbins,
-		int n_biny, const double *ybins,
-		int n_binz, const double *zbins);
+    double value_x, double value_y, double value_z,
+    double weight,
+    int n_binx, const double *xbins,
+    int n_biny, const double *ybins,
+    int n_binz, const double *zbins);
 
   //==== JSFillHist : 1D
   std::map< TString, std::map<TString, TH1D*> > JSmaphist_TH1D;

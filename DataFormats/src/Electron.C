@@ -163,6 +163,21 @@ bool Electron::PassID(TString ID) const{
   if(ID=="SUSYLoose") return Pass_SUSYLoose();
   if(ID=="NOCUT") return true;
   if(ID=="TEST") return Pass_TESTID();
+  //==== EXO-17-028
+  if(ID=="HNVeto2016") return Pass_HNVeto2016();
+  if(ID=="HNLoose2016") return Pass_HNLoose2016();
+  if(ID=="HNTight2016") return Pass_HNTight2016();
+  //==== Run2
+  if(ID=="ISRVeto") return Pass_ISRVeto(0.6);
+  if(ID=="HNLooseV1") return Pass_HNLoose(0.6, 0.05, 0.1, 4., true);
+  if(ID=="HNTightV1") return Pass_HNTight(0.05, 0.1, 4., true);
+
+  if(ID=="SSWW_loose2016") return SSWW_loose2016();
+  if(ID=="SSWW_tight2016") return SSWW_tight2016();
+  if(ID=="SSWW_loose") return SSWW_loose();
+  if(ID=="SSWW_tight") return SSWW_tight();
+  //
+
 
   cout << "[Electron::PassID] No id : " << ID << endl;
   exit(ENODATA);
@@ -253,7 +268,248 @@ bool Electron::Pass_TESTID() const{
   return true;
 }
 
+//==== EXO-17-028
+bool Electron::Pass_HNVeto2016() const{
+  if( fabs(scEta()) <= 0.8 ){
+    if(! (MVANoIso()>-0.1) ) return false;
+  }
+  else if( fabs(scEta()) > 0.8 && fabs(scEta()) <= 1.479 ){
+    if(! (MVANoIso()>0.1) ) return false;
+  }
+  else{
+    if(! (MVANoIso()>-0.1) ) return false;
+  }
+  if(! (fabs(dXY())<0.2 && fabs(dZ())<0.5) ) return false;
+  if(! (RelIso()<0.6) ) return false;
 
+  return true;
+}
+
+bool Electron::Pass_HNLoose2016() const{
+  if( fabs(scEta()) <= 0.8 ){
+    if(! (MVANoIso()>-0.1) ) return false;
+  }
+  else if( fabs(scEta()) > 0.8 && fabs(scEta()) <= 1.479 ){
+    if(! (MVANoIso()>0.1) ) return false;
+  }
+  else{
+    if(! (MVANoIso()>-0.1) ) return false;
+  }
+  if(! (fabs(dXY())<0.2 && fabs(dZ())<0.1 && fabs(IP3D()/IP3Derr())<10.) ) return false;
+  if(! (RelIso()<0.6) ) return false;
+  if(! (PassConversionVeto()) ) return false;
+  if(! (IsGsfCtfScPixChargeConsistent()) ) return false;
+
+  // Trigger emulation
+  if(! (dr03TkSumPt()/UncorrPt() < 0.18) ) return false;
+  if( fabs(scEta()) <= 1.479 ){
+    if(! (Full5x5_sigmaIetaIeta() < 0.012) ) return false;
+    if(! (fabs(dEtaSeed()) < 0.0095) ) return false;
+    if(! (fabs(dPhiIn()) < 0.065) ) return false;
+    if(! (HoverE() < 0.09) ) return false;
+    if(! (ecalPFClusterIso()/UncorrPt() < 0.37) ) return false;
+    if(! (hcalPFClusterIso()/UncorrPt() < 0.25) ) return false;
+  }
+  else{
+    if(! (Full5x5_sigmaIetaIeta() < 0.033) ) return false;
+    if(! (HoverE() < 0.09) ) return false;
+    if(! (ecalPFClusterIso()/UncorrPt() < 0.45) ) return false;
+    if(! (hcalPFClusterIso()/UncorrPt() < 0.28) ) return false;
+  }
+
+  return true;
+}
+
+bool Electron::Pass_HNTight2016() const{
+  if( fabs(scEta()) <= 0.8 ){
+    if(! (MVANoIso()>0.9) ) return false;
+  }
+  else if( fabs(scEta()) > 0.8 && fabs(scEta()) <= 1.479 ){
+    if(! (MVANoIso()>0.825) ) return false;
+  }
+  else{
+    if(! (MVANoIso()>0.5) ) return false;
+  }
+  if(! (fabs(dXY())<0.01 && fabs(dZ())<0.04 && fabs(IP3D()/IP3Derr())<4.) ) return false;
+  if(! (RelIso()<0.08) ) return false;
+  if(! (PassConversionVeto()) ) return false;
+  if(! (IsGsfCtfScPixChargeConsistent()) ) return false;
+
+  // Trigger emulation
+  if(! (dr03TkSumPt()/UncorrPt() < 0.18) ) return false;
+  if( fabs(scEta()) <= 1.479 ){
+    if(! (Full5x5_sigmaIetaIeta() < 0.012) ) return false;
+    if(! (fabs(dEtaSeed()) < 0.0095) ) return false;
+    if(! (fabs(dPhiIn()) < 0.065) ) return false;
+    if(! (HoverE() < 0.09) ) return false;
+    if(! (ecalPFClusterIso()/UncorrPt() < 0.37) ) return false;
+    if(! (hcalPFClusterIso()/UncorrPt() < 0.25) ) return false;
+  }
+  else{
+    if(! (Full5x5_sigmaIetaIeta() < 0.033) ) return false;
+    if(! (HoverE() < 0.09) ) return false;
+    if(! (ecalPFClusterIso()/UncorrPt() < 0.45) ) return false;
+    if(! (hcalPFClusterIso()/UncorrPt() < 0.28) ) return false;
+  }
+
+  return true;
+}
+
+//==== Run2
+
+bool Electron::Pass_TriggerEmulation() const{
+  // Trigger emulation (See https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSLeptonSF#ID_IP_ISO_AN1)
+  // Cuts (IdL, IdM) in single electron triggers
+  // No Iso cuts in the trigger with IdM
+
+  if(! (ecalPFClusterIso()/UncorrPt() < 0.45) ) return false;    // < 0.5
+  if(! (hcalPFClusterIso()/UncorrPt() < 0.25) ) return false;    // < 0.3
+  if(! (dr03TkSumPt()/UncorrPt() < 0.2) ) return false;          // < 0.2
+
+  if( fabs(scEta()) <= 1.479 ){
+    if(! (Full5x5_sigmaIetaIeta() < 0.011) ) return false;       // < 0.013, 0.011
+    if(! (fabs(dEtaSeed()) < 0.005) ) return false;              // < 0.01 , 0.006
+    if(! (fabs(dPhiIn()) < 0.04) ) return false;                 // < 0.07 , 0.15
+    if(! (HoverE() < 0.08) ) return false;                       // < 0.13 , 0.12 
+    if(! (fabs(InvEminusInvP()) < 0.01) ) return false;          // < 9999., 0.05
+  }
+  else{
+    if(! (Full5x5_sigmaIetaIeta() < 0.031) ) return false;       // < 0.035, 0.031
+    if(! (fabs(dEtaSeed()) < 0.007) ) return false;              // < 0.015, 0.0085
+    if(! (fabs(dPhiIn()) < 0.04) ) return false;                 // < 0.1  , 0.05
+    if(! (HoverE() < 0.08) ) return false;                       // < 0.13 , 0.1
+    if(! (fabs(InvEminusInvP()) < 0.01) ) return false;          // < 9999., 0.05
+  }
+
+  return true;
+}
+
+bool Electron::Pass_ISRVeto(double relisoCut) const{
+  if(! (Pass_CutBasedVetoNoIso()) ) return false;
+  if(! (RelIso()<relisoCut) ) return false;
+  return true;
+}
+
+bool Electron::Pass_HNLoose(double relisoCut, double dxyCut, double dzCut, double sipCut, bool isPOGIP) const{
+  if(! (Pass_CutBasedLooseNoIso()) ) return false;
+  if(! (RelIso()<relisoCut) ) return false;
+  if( fabs(scEta()) <= 1.479 ){
+    if(! (fabs(dXY())<dxyCut && fabs(dZ())<dzCut) ) return false;
+  }
+  else{
+    if(isPOGIP){
+      if(! (fabs(dXY())<0.1 && fabs(dZ())<0.2) ) return false;
+    }
+    else{
+      if(! (fabs(dXY())<dxyCut && fabs(dZ())<dzCut) ) return false;
+    }
+  }
+  if(! (fabs(IP3D()/IP3Derr())<sipCut) ) return false;
+  if(! (IsGsfCtfScPixChargeConsistent()) ) return false;
+  if(! (Pass_TriggerEmulation()) ) return false;
+  return true;
+}
+
+bool Electron::Pass_HNTight(double dxyCut, double dzCut, double sipCut, bool isPOGIP) const{
+  if(! (passTightID()) ) return false;
+  //if(! (RelIso()<relisoCut) ) return false;
+  if( fabs(scEta()) <= 1.479 ){
+    if(! (fabs(dXY())<dxyCut && fabs(dZ())<dzCut) ) return false;
+  }
+  else{
+    if(isPOGIP){
+      if(! (fabs(dXY())<0.1 && fabs(dZ())<0.2) ) return false;
+    }
+    else{
+      if(! (fabs(dXY())<dxyCut && fabs(dZ())<dzCut) ) return false;
+    }
+  }
+  if(! (fabs(IP3D()/IP3Derr())<sipCut) ) return false;
+  if(! (IsGsfCtfScPixChargeConsistent()) ) return false;
+  if(! (Pass_TriggerEmulation()) ) return false;
+  return true;
+}
+
+bool Electron::SSWW_loose2016() const{
+
+  if( fabs(scEta()) <= 1.479 ){
+    if(! (Full5x5_sigmaIetaIeta() < 0.011) ) return false;
+    if(! (fabs(dEtaSeed()) < 0.004) ) return false;
+    if(! (fabs(dPhiIn()) < 0.02) ) return false;
+    if(! (HoverE() < 0.06) ) return false;
+    if(! (fabs(InvEminusInvP()) < 0.013) ) return false;
+    if(! (ecalPFClusterIso()/UncorrPt() < 0.16) ) return false;
+    if(! (hcalPFClusterIso()/UncorrPt() < 0.12) ) return false;
+    if(! (dr03TkSumPt()/UncorrPt() < 0.08) ) return false;
+    if(! (fabs(dXY()) < 0.05) ) return false;
+    if(! (fabs(dZ()) < 0.1) ) return false;
+  }
+  else{
+    if(! (Full5x5_sigmaIetaIeta() < 0.031) ) return false;
+    if(! (HoverE() < 0.065) ) return false;
+    if(! (fabs(InvEminusInvP()) < 0.013) ) return false;
+    if(! (ecalPFClusterIso()/UncorrPt() < 0.12) ) return false;
+    if(! (hcalPFClusterIso()/UncorrPt() < 0.12) ) return false;
+    if(! (dr03TkSumPt()/UncorrPt() < 0.08) ) return false;
+    if(! (fabs(dXY()) < 0.1) ) return false;
+    if(! (fabs(dZ()) < 0.2) ) return false;
+  } // JH : we don't have gsf chi2() and ndof() in SKFlat
+
+  if(! (NMissingHits()<=1) ) return false;
+
+  return true;
+}
+
+bool Electron::SSWW_tight2016() const{ //JH : this tight ID is not a subset of the SSWW 2016 loose ID. see https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2#HLT_safe_selection_for_first_hal
+  if(! (passTightID()) ) return false;
+  if(! (SSWW_loose2016()) ) return false;
+  if(! (NMissingHits()<=1) ) return false;
+  if(! (IsGsfCtfScPixChargeConsistent()) ) return false;
+
+  if( fabs(scEta()) <= 1.479 ){
+    if(! (fabs(dXY()) < 0.05) ) return false;
+    if(! (fabs(dZ()) < 0.1) ) return false;
+  }
+  else{
+    if(! (fabs(dXY()) < 0.1) ) return false;
+    if(! (fabs(dZ()) < 0.2) ) return false;
+  }
+
+  return true;
+}
+
+bool Electron::SSWW_loose() const{
+  if(! (passMediumID()) ) return false;
+
+  if( fabs(scEta()) <= 1.479 ){
+    if(! (fabs(dXY()) < 0.05) ) return false;
+    if(! (fabs(dZ()) < 0.1) ) return false;
+  }
+  else{
+    if(! (Full5x5_sigmaIetaIeta() < 0.03) ) return false;
+    if(! (fabs(InvEminusInvP()) < 0.014) ) return false;
+    if(! (fabs(dXY()) < 0.1) ) return false;
+    if(! (fabs(dZ()) < 0.2) ) return false;
+  }
+
+  return true;
+}
+
+bool Electron::SSWW_tight() const{
+  if(! (passMVAID_noIso_WP90()) ) return false;
+  if(! (IsGsfCtfScPixChargeConsistent()) ) return false;
+
+  if( fabs(scEta()) <= 1.479 ){
+    if(! (RelIso() < 0.0571) ) return false;
+  }
+  else{
+    if(! (RelIso() < 0.05880) ) return false;
+  }
+
+  return true;
+}
+
+//
 
 bool Electron::Pass_CutBasedLooseNoIso() const{
 
