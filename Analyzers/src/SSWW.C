@@ -285,8 +285,8 @@ void SSWW::executeEventFromParameter(AnalyzerParameter param){
   // Period-dependent trigger weight (only for 2016 MC, HN ID)
   if(!IsDATA){
     if(DataYear==2016&&param.Muon_Tight_ID.Contains("HNTight")){
-      if(ev.PassTrigger(MuonTriggers)) dimu_trig_weight += 27267.591;
-      if(ev.PassTrigger(MuonTriggersH)) dimu_trig_weight += 8650.628;
+      if(ev.PassTrigger(MuonTriggers)) dimu_trig_weight += 27589.556; //PL : 27267.591;
+      if(ev.PassTrigger(MuonTriggersH)) dimu_trig_weight += 8740.119; //PL : 8650.628;
       trigger_lumi = dimu_trig_weight;
     }
     else{
