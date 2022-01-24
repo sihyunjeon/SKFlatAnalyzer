@@ -17,5 +17,6 @@
 #pragma link C++ class MeasureJetTaggingEfficiency+;
 #pragma link C++ class SkimTree_Dilepton+;
 #pragma link C++ class SSWW+;
+#pragma link C++ class Fake+;
 
 #endif

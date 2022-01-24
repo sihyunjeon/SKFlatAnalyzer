@@ -12,7 +12,8 @@ HasLooseLepton(false)
 void FakeBackgroundEstimator::ReadHistograms(){
 
   TString datapath = getenv("DATA_DIR");
-  datapath = datapath+"/"+GetEra()+"/FakeRate/";
+  //datapath = datapath+"/"+GetEra()+"/FakeRate/";
+  datapath = datapath+"/"+Form("%d",GetYear())+"/FakeRate/"; //JH : I will conbine 2016 fake rate
 
   TDirectory* origDir = gDirectory;
 
@@ -108,10 +109,11 @@ double FakeBackgroundEstimator::GetMuonFakeRate(TString ID, TString key, double 
 
   eta = fabs(eta);
 
-  if(pt>=200) pt = 199;
+  //if(pt>=200) pt = 199;
+  if(pt>=60) pt = 59; //JH : I measured up to 60 GeV
   if(eta>=2.5) eta = 2.49;
   //==== HOTFIX FIXME
-  if(eta<0.8 && pt>=150) pt = 149.;
+  //if(eta<0.8 && pt>=150) pt = 149.;
 
   std::map< TString, TH2D* >::const_iterator mapit;
   mapit = map_hist_Muon.find(ID+"_"+key);

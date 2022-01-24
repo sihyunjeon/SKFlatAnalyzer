@@ -2,8 +2,8 @@ R__LOAD_LIBRARY(/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/lhapdf/6.2.3/lib/l
 
 void test(TString era, TString isdata, TString stream){ // test("2016preVFP","data","DM")
 
-  //Fake m;
-  SSWW m;
+  Fake m;
+  //SSWW m;
   //Signal m;
   //Control m;
 
@@ -24,32 +24,32 @@ void test(TString era, TString isdata, TString stream){ // test("2016preVFP","da
   else if(isdata == "mc") m.IsDATA = false;
   m.SetEra(era);
   m.Userflags = {
-    //"FR", //Fake
-    //"Norm", //Fake
+    "FR", //Fake
+    "Norm", //Fake
     //"RunFake", //SSWW, Signal, Control
     //"FR_ex", //Signal, Control
-    "jcln_inv", //SSWW
-    "fatjet_veto", //SSWW
+    //"jcln_inv", //SSWW
+    //"fatjet_veto", //SSWW
   };
   if(era=="2016preVFP" && isdata=="data" && stream=="DM"){
     m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_15.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_16.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_17.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_18.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_19.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_20.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_21.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_22.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_23.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_24.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_25.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_26.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_27.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_28.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_29.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_30.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_31.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_32.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_16.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_17.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_18.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_19.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_20.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_21.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_22.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_23.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_24.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_25.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_26.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_27.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_28.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_29.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_30.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_31.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_32.root");
   }
   else if(era=="2016preVFP" && isdata=="mc" && stream=="DY"){
     m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/210915_033646/0000/SKFlatNtuple_2016preVFP_MC_1.root");

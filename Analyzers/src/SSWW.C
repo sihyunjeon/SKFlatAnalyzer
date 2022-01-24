@@ -181,7 +181,7 @@ void SSWW::executeEvent(){
     }
 
     // Jet ID
-    param.Jet_ID = "HNTight"; //JH : pass POG tight + pass loose PU ID
+    param.Jet_ID = "HNTight"; //JH : pass only POG tight in UL
     //param.FatJet_ID = "HNTight";
     if(DataYear==2016) param.FatJet_ID = "HNTight0p55";
     else param.FatJet_ID = "HNTight0p45"; //JH : TODO
