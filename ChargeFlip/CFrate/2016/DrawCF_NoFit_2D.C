@@ -1,0 +1,121 @@
+{
+TString filename = "/data6/Users/jihkim/SKFlatOutput/Run2Legacy_v4/ChargeFlip/2016/CFrate__/ChargeFlip_All.root";
+//TString filename = "/data6/Users/jihkim/SKFlatOutput/Run2Legacy_v4/ChargeFlip/2016/CFrate__/ChargeFlip_DYJets_MG.root";
+//TString filename = "/data6/Users/jihkim/SKFlatOutput/Run2Legacy_v4/ChargeFlip/2016/CFrate__/ChargeFlip_SkimTree_Dilepton_DYJets.root";
+//TString filename = "/data6/Users/jihkim/SKFlatOutput/Run2Legacy_v4/ChargeFlip/2016/CFrate__/ChargeFlip_SkimTree_Dilepton_TTLL_powheg.root";
+//TString filename = "/data6/Users/jihkim/SKFlatOutput/Run2Legacy_v4/ChargeFlip/2016/CFrate__/ChargeFlip_TTLJ_powheg.root";
+//TString filename = "/data6/Users/jihkim/SKFlatOutput/Run2Legacy_v4/ChargeFlip/2016/CFrate__/ChargeFlip_SkimTree_Dilepton_DYJets_M.root";
+//TString filename = "/data6/Users/jihkim/SKFlatOutput/Run2Legacy_v4/ChargeFlip/2016/CFrate__/ChargeFlip_SkimTree_Dilepton_DYJets_Pt.root";
+//TString filename = "/data6/Users/jihkim/SKFlatOutput/Run2Legacy_v4/ChargeFlip/2016/CFrate__/ChargeFlip_DYJets_MG_HT.root";
+TFile* f1 = new TFile(filename);
+
+TString samplename = filename(filename.Last('/')+12,filename.Length());
+samplename.ReplaceAll(".root","");
+
+//gSystem->Exec("mkdir -p "+samplename);
+
+vector<TString> User_ID;
+//User_ID.push_back("HEEP_dZ_CF");
+//User_ID.push_back("HNMVATight");
+User_ID.push_back("HNTightV1");
+
+for(unsigned int i=0; i<User_ID.size(); i++){
+
+  TH2D* h1 = (TH2D*)f1->Get(User_ID.at(i)+"/CFrate_2D/Denom");
+  TH2D* h2 = (TH2D*)f1->Get(User_ID.at(i)+"/CFrate_2D/Num");
+  
+  // Let's use vector instead of array, to remove zero bins and nan bins //
+  
+  vector<double> X_1, EX_1;
+  for (int i=0; i<40; i++) {
+    X_1.push_back((2*i+1)*(0.04/80.)); EX_1.push_back(0.04/80.); 
+  }
+  vector<double> Y_1, EY_1;
+  for (int i=0; i<50; i++) {
+    Y_1.push_back(-2.5+(2*i+1)*(5./100.)); EY_1.push_back(5./100.); 
+  }
+  double Z_1[40][50];
+  double EZ_1[40][50];
+  for (int i=0; i<40; i++) {
+    for (int j=0; j<50; j++){
+      //if((h1->GetBinContent(i+1,j+1) != 0) && (h2->GetBinContent(i+1,j+1) != 0)){
+      if(h1->GetBinContent(i+1,j+1) != 0){
+        Z_1[i][j] = h2->GetBinContent(i+1,j+1)/h1->GetBinContent(i+1,j+1);
+        EZ_1[i][j] = Z_1[i][j]*(sqrt(pow(h2->GetBinError(i+1,j+1)/h2->GetBinContent(i+1,j+1),2)+pow(h1->GetBinError(i+1,j+1)/h1->GetBinContent(i+1,j+1),2)));
+      }
+    }
+  }
+
+/*  
+  for (int i=0; i<X_1.size();) {
+    if ( (Y_1.at(i) == 0) || (isnan(Y_1.at(i)) != 0) ) {
+      X_1.erase(X_1.begin()+i);
+      EX_1.erase(EX_1.begin()+i);
+      Y_1.erase(Y_1.begin()+i);
+      EY_1.erase(EY_1.begin()+i);
+    }
+    else i++;
+  }
+  for (int i=0; i<X_2.size();) {
+    if ( (Y_2.at(i) == 0) || (isnan(Y_2.at(i)) != 0) ) {
+      X_2.erase(X_2.begin()+i);
+      EX_2.erase(EX_2.begin()+i);
+      Y_2.erase(Y_2.begin()+i);
+      EY_2.erase(EY_2.begin()+i);
+    }
+    else i++;
+  }
+  for (int i=0; i<X_3.size();) {
+    if ( (Y_3.at(i) == 0) || (isnan(Y_3.at(i)) != 0) ) {
+      X_3.erase(X_3.begin()+i);
+      EX_3.erase(EX_3.begin()+i);
+      Y_3.erase(Y_3.begin()+i);
+      EY_3.erase(EY_3.begin()+i);
+    }
+    else i++;
+  }
+*/
+
+
+  // Draw the plots //
+  
+  //TCanvas* c1 = new TCanvas("c1","ChargeFlip_2D ("+User_ID.at(i)+")",200,200,900,800);
+  TCanvas* c1 = new TCanvas("c1","ChargeFlip_2D",200,200,900,800);
+  
+  c1->cd();
+  //c1->SetLogy();
+ 
+  TH2D* gr1 = new TH2D("CFrate_2D","",40,0.,0.04,50,-2.5,2.5);
+  for (int i=0; i<40; i++){
+    for (int j=0; j<50; j++){
+      gr1->SetBinContent(i+1,j+1,Z_1[i][j]);
+      gr1->SetBinError(i+1,j+1,EZ_1[i][j]);
+    }
+  }
+
+  gr1->SetStats(0);
+  //gr1->Draw("COLZ");
+  gr1->Draw("LEGO");
+
+  //TGraphErrors* gr1 = new TGraphErrors(X_1.size(),&X_1[0],&Y_1[0],&EX_1[0],&EY_1[0]);
+  //gr1->SetMarkerStyle(20);
+  ////gr1->SetMarkerSize(0.8);
+  ////gr1->SetMarkerColor(kMagenta+2);
+  //gr1->SetLineColor(15);
+  //gr1->SetTitle("ChargeFlip_|#eta|<0.8 ("+User_ID.at(i)+")");
+  //gr1->SetMinimum(0.);
+  //gr1->Draw("ZAP"); //Z : do not draw small horizontal/vertical lines the end of the error bars
+  //gr1->GetXaxis()->SetRangeUser(0.,0.04);
+  //gr1->GetXaxis()->SetTitle("#scale[0.8]{1/p_{T} (GeV^{-1})}");
+  //gr1->GetXaxis()->SetTickLength(0.025);
+  //gr1->GetXaxis()->SetLabelSize(0.025);
+  //gr1->GetYaxis()->SetLabelSize(0.025);
+  
+  
+  //c1->SaveAs(samplename+"/"+User_ID.at(i)+"_NoFit_EtaRegion1.png");
+
+  //c1->SaveAs(samplename+"/"+User_ID.at(i)+"_NoFit_EtaRegion1_logY.png");
+
+}
+
+}
