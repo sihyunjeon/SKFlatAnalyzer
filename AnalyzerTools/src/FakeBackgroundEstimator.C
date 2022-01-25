@@ -130,8 +130,6 @@ double FakeBackgroundEstimator::GetMuonFakeRate(TString ID, TString key, double 
   value = (mapit->second)->GetBinContent(this_bin);
   error = (mapit->second)->GetBinError(this_bin);
 
-  //cout << "[FakeBackgroundEstimator::FakeBackgroundEstimator] value = " << value << endl;
-
   return value+double(sys)*error;
 
 }
@@ -169,6 +167,12 @@ double FakeBackgroundEstimator::GetWeight(vector<Lepton *> lepptrs, AnalyzerPara
       this_weight *= -1.*this_fr/(1.-this_fr);
 
       FRs.push_back(this_fr);
+
+      //JH : debug//
+      //cout << i << "th muon;" << endl;
+      //cout << "pt, ptcone, abs(eta) : " << mu->Pt() << ", " << mu->PtCone() << ", " << fabs(mu->Eta()) << endl;
+      //cout << "what I'm using : " << this_pt << endl;
+      //cout << "fake rate : " << this_fr << endl;
     }
 
 

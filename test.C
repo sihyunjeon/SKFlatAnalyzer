@@ -2,10 +2,10 @@ R__LOAD_LIBRARY(/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/lhapdf/6.2.3/lib/l
 
 void test(TString era, TString isdata, TString stream){ // test("2016preVFP","data","DM")
 
-  Fake m;
+  //Fake m;
   //SSWW m;
   //Signal m;
-  //Control m;
+  Control m;
 
   m.SetTreeName("recoTree/SKFlat");
 
@@ -24,9 +24,9 @@ void test(TString era, TString isdata, TString stream){ // test("2016preVFP","da
   else if(isdata == "mc") m.IsDATA = false;
   m.SetEra(era);
   m.Userflags = {
-    "FR", //Fake
-    "Norm", //Fake
-    //"RunFake", //SSWW, Signal, Control
+    //"FR", //Fake
+    //"Norm", //Fake
+    "RunFake", //SSWW, Signal, Control
     //"FR_ex", //Signal, Control
     //"jcln_inv", //SSWW
     //"fatjet_veto", //SSWW

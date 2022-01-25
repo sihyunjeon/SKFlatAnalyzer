@@ -18,5 +18,7 @@
 #pragma link C++ class SkimTree_Dilepton+;
 #pragma link C++ class SSWW+;
 #pragma link C++ class Fake+;
+#pragma link C++ class Control+;
+#pragma link C++ class Signal+;
 
 #endif

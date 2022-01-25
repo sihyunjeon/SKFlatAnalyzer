@@ -5,28 +5,50 @@
 #python python/SKFlat.py -a SSWW -e 2016a -i SSWWTypeI_NLO_SF_M1500 -n 50 --userflags jcln_inv,fatjet_veto --batchname auto &
 
 
-### SSWW selection ###
+### SSWW selections (CR, SR) ###
 #! 2016a !#
 #python python/SKFlat.py -a SSWW -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto --batchname auto &
 #python python/SKFlat.py -a SSWW -e 2016a -l submitList/SSWW_2016_HNMultiLep.txt -n 50 --skim SkimTree_HNMultiLep --userflags jcln_inv,fatjet_veto --batchname auto &
+python python/SKFlat.py -a SSWW -e 2016a -i WZTo3LNu_mllmin4p0_powheg -n 50 --skim SkimTree_HNMultiLep --userflags jcln_inv,fatjet_veto --batchname auto &
 
 #! 2016b !#
 #python python/SKFlat.py -a SSWW -e 2016b -l submitList/2016b_DoubleMuon_FtoG.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto --batchname auto &
 #python python/SKFlat.py -a SSWW -e 2016b -l submitList/2016b_DoubleMuon_H.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto,PeriodH --batchname auto &
 #python python/SKFlat.py -a SSWW -e 2016b -l submitList/SSWW_2016_HNMultiLep.txt -n 50 --skim SkimTree_HNMultiLep --userflags jcln_inv,fatjet_veto --batchname auto &
+python python/SKFlat.py -a SSWW -e 2016b -i WZTo3LNu_mllmin4p0_powheg -n 50 --skim SkimTree_HNMultiLep --userflags jcln_inv,fatjet_veto --batchname auto &
 
 
-### fake measurement ###
+### Control Regions ###
+##!! 2016 !!##
+
+#! data !#
+#python python/SKFlat.py -a Control -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
+#python python/SKFlat.py -a Control -e 2016b -l submitList/2016b_DoubleMuon_FtoG.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
+#python python/SKFlat.py -a Control -e 2016b -l submitList/2016b_DoubleMuon_H.txt -n 50 --skim SkimTree_Dilepton --userflags PeriodH --batchname auto &
+
+#! fake background !#
+#python python/SKFlat.py -a Control -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
+#python python/SKFlat.py -a Control -e 2016b -l submitList/2016b_DoubleMuon_FtoG.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
+#python python/SKFlat.py -a Control -e 2016b -l submitList/2016b_DoubleMuon_H.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake,PeriodH --batchname auto &
+
+#! SM background !#
+#python python/SKFlat.py -a Control -e 2016a -l submitList/Control_2016_HNMultiLep.txt -n 80 --skim SkimTree_HNMultiLep --batchname auto &
+#python python/SKFlat.py -a Control -e 2016b -l submitList/Control_2016_HNMultiLep.txt -n 80 --skim SkimTree_HNMultiLep --batchname auto &
+#python python/SKFlat.py -a Control -e 2016a -i WZTo3LNu_mllmin4p0_powheg -n 80 --skim SkimTree_HNMultiLep --batchname auto &
+#python python/SKFlat.py -a Control -e 2016b -i WZTo3LNu_mllmin4p0_powheg -n 80 --skim SkimTree_HNMultiLep --batchname auto &
+
+
+
+### Fake measurement ###
 #! 2016a !#
 #python python/SKFlat.py -a Fake -e 2016a -l submitList/2016a_DoubleMuon.txt --userflags FR,Norm -n 50 --batchname auto &
 #python python/SKFlat.py -a Fake -e 2016a -l submitList/2016a_DoubleEG.txt --userflags FR,Norm -n 50 --batchname auto &
 #python python/SKFlat.py -a Fake -e 2016a -l submitList/Fake_Norm_MC_2016.txt --userflags FR,Norm -n 50 --batchname auto &
 
 #! 2016b !#
-python python/SKFlat.py -a Fake -e 2016b -l submitList/2016b_DoubleMuon.txt --userflags FR,Norm -n 50 --batchname auto &
-python python/SKFlat.py -a Fake -e 2016b -l submitList/2016b_DoubleEG.txt --userflags FR,Norm -n 50 --batchname auto &
-python python/SKFlat.py -a Fake -e 2016b -l submitList/Fake_Norm_MC_2016.txt --userflags FR,Norm -n 50 --batchname auto &
-
+#python python/SKFlat.py -a Fake -e 2016b -l submitList/2016b_DoubleMuon.txt --userflags FR,Norm -n 50 --batchname auto &
+#python python/SKFlat.py -a Fake -e 2016b -l submitList/2016b_DoubleEG.txt --userflags FR,Norm -n 50 --batchname auto &
+#python python/SKFlat.py -a Fake -e 2016b -l submitList/Fake_Norm_MC_2016.txt --userflags FR,Norm -n 50 --batchname auto &
 
 
 

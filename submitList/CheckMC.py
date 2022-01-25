@@ -1,7 +1,7 @@
 import commands as cmd
 
 #with open("SSWW_2016_HNMultiLep.txt") as f:
-with open("Fake_Norm_MC_2016.txt") as f:
+with open("Control_2016_HNMultiLep.txt") as f:
   lines = f.readlines()
 
 #with open("SSWW_2016_NoSkim.txt") as f:

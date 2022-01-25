@@ -12,19 +12,26 @@ void SSWW::initializeAnalyzer(){
   RunFake = HasFlag("RunFake");
   RunCF = HasFlag("RunCF");
 
-  MuonTightIDs = {"SSWW_tight","HNTightV1"};
-  MuonLooseIDs = {"SSWW_loose","HNLooseV1"};
-  MuonVetoIDs  = {"ISRVeto","ISRVeto"};
-  if(DataYear==2016){
-    ElectronTightIDs = {"SSWW_tight2016","HNTightV1"};
-    ElectronLooseIDs = {"SSWW_loose2016","HNLooseV1"};
-  }
-  else{
-    ElectronTightIDs = {"SSWW_tight","HNTightV1"};
-    ElectronLooseIDs = {"SSWW_loose","HNLooseV1"};
-  }
-  ElectronVetoIDs  = {"SSWW_loose","ISRVeto"};
-  FakeRateIDs = {"SSWW","HN"}; //JH : NOTE This is used in fakeEst->ReadHistograms() in m.initializeAnalyzerTools() 
+  //MuonTightIDs = {"SSWW_tight","HNTightV1"};
+  //MuonLooseIDs = {"SSWW_loose","HNLooseV1"};
+  //MuonVetoIDs  = {"ISRVeto","ISRVeto"};
+  //if(DataYear==2016){
+  //  ElectronTightIDs = {"SSWW_tight2016","HNTightV1"};
+  //  ElectronLooseIDs = {"SSWW_loose2016","HNLooseV1"};
+  //}
+  //else{
+  //  ElectronTightIDs = {"SSWW_tight","HNTightV1"};
+  //  ElectronLooseIDs = {"SSWW_loose","HNLooseV1"};
+  //}
+  //ElectronVetoIDs  = {"SSWW_loose","ISRVeto"};
+  //FakeRateIDs = {"SSWW","HN"}; //JH : NOTE This is used in fakeEst->ReadHistograms() in m.initializeAnalyzerTools() 
+  MuonTightIDs = {"HNTightV1"};
+  MuonLooseIDs = {"HNLooseV1"};
+  MuonVetoIDs  = {"ISRVeto"};
+  ElectronTightIDs = {"HNTightV1"};
+  ElectronLooseIDs = {"HNLooseV1"};
+  ElectronVetoIDs  = {"ISRVeto"};
+  FakeRateIDs = {"HN"}; //JH : NOTE This is used in fakeEst->ReadHistograms() in m.initializeAnalyzerTools() 
 
   //==== At this point, sample informations (e.g., IsDATA, DataStream, MCSample, or DataYear) are all set
   //==== You can define sample-dependent or year-dependent variables here
@@ -284,8 +291,8 @@ void SSWW::executeEventFromParameter(AnalyzerParameter param){
 
   // Period-dependent trigger weight (only for 2016 MC, HN ID)
   if(!IsDATA){
-    if(DataYear==2016&&param.Muon_Tight_ID.Contains("HNTight")){
-      if(ev.PassTrigger(MuonTriggers)) dimu_trig_weight += 27589.556; //PL : 27267.591;
+    if(DataEra=="2016postVFP"&&param.Muon_Tight_ID.Contains("HNTight")){
+      if(ev.PassTrigger(MuonTriggers)) dimu_trig_weight += 8072.032; //PL : 27267.591;
       if(ev.PassTrigger(MuonTriggersH)) dimu_trig_weight += 8740.119; //PL : 8650.628;
       trigger_lumi = dimu_trig_weight;
     }
@@ -400,7 +407,6 @@ void SSWW::executeEventFromParameter(AnalyzerParameter param){
 
 //  FillHist("Njet_"+IDsuffix, jets_nolepveto.size(), weight, 8, 0., 8.);
 
-
   // Jet, FatJet selection to avoid double counting due to jets matched geometrically with a lepton
   vector<Jet> jets;
   vector<Jet> jets_lepveto;
@@ -410,7 +416,6 @@ void SSWW::executeEventFromParameter(AnalyzerParameter param){
   jets_lepveto.clear();
   fatjets.clear();
   fatjets_lepveto.clear();
-  int lepton_count1 = 0, lepton_count2 = 0, fatjet_count = 0, jet_count = 0; 
 
   // Fatjet selection in CATanalyzer (see the links)
   // https://github.com/jedori0228/LQanalyzer/blob/CatAnalyzer_13TeV_v8-0-7.36_HNAnalyzer/CATConfig/SelectionConfig/user_fatjets.sel
@@ -423,9 +428,9 @@ void SSWW::executeEventFromParameter(AnalyzerParameter param){
       jets = JetsAwayFromFatJet(jets_lepveto, fatjets);
     }
     else if(MuonID.Contains("HN")){
-      fatjets = FatJetsVetoLeptonInside(fatjets_nolepveto, electrons_veto, muons_veto);
-      jets_lepveto = JetsVetoLeptonInside(jets_nolepveto, electrons_veto, muons_veto);
-      jets = JetsAwayFromFatJet(jets_lepveto, fatjets);
+      fatjets = FatJetsVetoLeptonInside(fatjets_nolepveto, electrons_veto, muons_veto); // 0.8
+      jets_lepveto = JetsVetoLeptonInside(jets_nolepveto, electrons_veto, muons_veto); // 0.4
+      jets = JetsAwayFromFatJet(jets_lepveto, fatjets); // 1.0
     }
   }
   else{
@@ -441,6 +446,7 @@ void SSWW::executeEventFromParameter(AnalyzerParameter param){
     }
   }
 
+  //int lepton_count1 = 0, lepton_count2 = 0, fatjet_count = 0, jet_count = 0; 
   //if(HasFlag("jcln_inv")){
   //  for(unsigned int i=0; i<this_AllFatJets.size(); i++){
   //    lepton_count1 = 0;
