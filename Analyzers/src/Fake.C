@@ -732,7 +732,6 @@ void Fake::executeEventFromParameter(AnalyzerParameter param, Long64_t Nentry){
             if(mu1.PtCone()<20.) FillHist("Muon/"+regionsFake.at(it_rg)+"/Muon_Loose_Pt_PtCone0To20_"+IDsuffix, mu1.Pt(), weight, 1000, 0., 1000.);
             else if(20.<=mu1.PtCone()&&mu1.PtCone()<30.) FillHist("Muon/"+regionsFake.at(it_rg)+"/Muon_Loose_Pt_PtCone20To30_"+IDsuffix, mu1.Pt(), weight, 1000, 0., 1000.);
             else if(30.<=mu1.PtCone()&&mu1.PtCone()<9999.) FillHist("Muon/"+regionsFake.at(it_rg)+"/Muon_Loose_Pt_PtCone30ToInf_"+IDsuffix, mu1.Pt(), weight, 1000, 0., 1000.);
-            if(mu1.PtCone() < 20.) FillHist("Muon/"+regionsFake.at(it_rg)+"/Muon_Loose_Pt_PtCone0To20_"+IDsuffix, mu1.Pt(), weight, 1000, 0., 1000.);
             FillHist("Muon/"+regionsFake.at(it_rg)+"/Muon_Loose_Eta_"+IDsuffix, mu1.Eta(), weight, 60, -3., 3.);
             if(muons_tight.size() > 0){
               if( (muons_loose.at(0).Pt() != muons_tight.at(0).Pt()) || (muons_loose.at(0).Eta() != muons_tight.at(0).Eta()) ){
@@ -778,8 +777,14 @@ void Fake::executeEventFromParameter(AnalyzerParameter param, Long64_t Nentry){
               if(!IsDATA) weight = weight_common*ev.GetTriggerLumi(ElectronTrigger12);
             }
             else if(35. <= ele1.PtCone() && ele1.PtCone() < 45.){
-              if(!( ev.PassTrigger(ElectronTrigger17) )) continue;
-              if(!IsDATA) weight = weight_common*ev.GetTriggerLumi(ElectronTrigger17);
+              if(DataYear==2016){
+                if(!( ev.PassTrigger(ElectronTrigger17) )) continue;
+                if(!IsDATA) weight = weight_common*ev.GetTriggerLumi(ElectronTrigger17);
+              }
+              else{
+                if(!( ev.PassTrigger(ElectronTrigger12) )) continue;
+                if(!IsDATA) weight = weight_common*ev.GetTriggerLumi(ElectronTrigger12);
+              }
             }
             else if(45. <= ele1.PtCone() && ele1.PtCone() < 9999.){
               if(!( ev.PassTrigger(ElectronTrigger23) )) continue;

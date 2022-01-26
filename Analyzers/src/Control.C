@@ -87,7 +87,7 @@ void Control::initializeAnalyzer(){
     ElectronPtCut1 = 25., ElectronPtCut2 = 15.;
     EMuPtCut1 = 25., EMuPtCut2 = 15.;
 
-    ElectronTightIDs.pop_back(); ElectronTightIDs.push_back("HEEP2018_dZ"); //JH 
+    //ElectronTightIDs.pop_back(); ElectronTightIDs.push_back("HEEP2018_dZ"); //JH 
   }
 
 //  cout << "[Control::initializeAnalyzer] IsoMuTriggerName = " << IsoMuTriggerName << endl;

@@ -9,11 +9,14 @@ TString SKFlatVersion = "Run2UltraLegacy_v2";
 TString flag = "FR__Norm__";
 TString analyzer = "Fake";
 TString file_path = "";
-TString PDname = "DoubleMuon";
-//vector<TString> year = {"2016", "2017", "2018"};
-vector<TString> year = {"2016"};
-//vector<TString> luminosity = {"36.3", "41.5", "59.8"};
-vector<TString> luminosity = {"36.3"};
+TString PDname = "";
+map<TString, double> map_SF;
+vector<TString> year = {"2016", "2017", "2018"};
+//vector<TString> year = {"2017", "2018"};
+//vector<TString> year = {"2016"};
+vector<TString> luminosity = {"36.3", "41.5", "59.8"};
+//vector<TString> luminosity = {"41.5", "59.8"};
+//vector<TString> luminosity = {"36.3"};
 //vector<TString> ZGname = {"ZGTo2LG", "ZGToLLG_01J", "ZGToLLG_01J"};
 //vector<TString> WGname = {"WGToLNuG", "WGToLNuG_01J", "WGToLNuG_01J"};
 
@@ -41,7 +44,26 @@ void GetFR(){
     //if(channel.Contains("Electron")){
     //  if(it_y == 2) PDname = "EGamma";
     //  else PDname = "DoubleEG";
-    //} // TODO : make prompt_subtraction get channel as an argument. so that the code can run with ele, mu each
+    //} // TODO : make the code get channel as an argument. so that the code can run with ele, mu each
+
+    if(year.at(it_y)=="2016"){
+      PDname = "DoubleMuon";
+      map_SF["Mu3"] = 0.750631;
+      map_SF["Mu8"] = 1.32587;
+      map_SF["Mu17"] = 0.985587;
+    }
+    else if(year.at(it_y)=="2017"){
+      PDname = "Muon";
+      map_SF["Mu3"] = 1.1826;
+      map_SF["Mu8"] = 1.37279;
+      map_SF["Mu17"] = 1.03397;
+    }
+    else if(year.at(it_y)=="2018"){
+      PDname = "Muon";
+      map_SF["Mu3"] = 1.949;
+      map_SF["Mu8"] = 1.06809;
+      map_SF["Mu17"] = 0.932986;
+    }
 
     //=========================================
     //==== Set input ROOT files
@@ -117,20 +139,20 @@ void GetFR(){
       h_MC_LooseMuPtCone_Norm[it_mc][it_y] = (TH1D*)h_MC_LooseMuPtCone[it_mc][it_y]->Clone();
       h_MC_TightMuPtCone_Norm[it_mc][it_y] = (TH1D*)h_MC_TightMuPtCone[it_mc][it_y]->Clone();
       for(int j=1; j<=20; j++){
-        this_content_loose = h_MC_LooseMuPtCone[it_mc][it_y]->GetBinContent(j)*0.750631;
-        this_content_tight = h_MC_TightMuPtCone[it_mc][it_y]->GetBinContent(j)*0.750631;
+        this_content_loose = h_MC_LooseMuPtCone[it_mc][it_y]->GetBinContent(j)*map_SF["Mu3"];
+        this_content_tight = h_MC_TightMuPtCone[it_mc][it_y]->GetBinContent(j)*map_SF["Mu3"];
         h_MC_LooseMuPtCone_Norm[it_mc][it_y]->SetBinContent(j, this_content_loose);
         h_MC_TightMuPtCone_Norm[it_mc][it_y]->SetBinContent(j, this_content_tight);
       }
       for(int j=21; j<=30; j++){
-        this_content_loose = h_MC_LooseMuPtCone[it_mc][it_y]->GetBinContent(j)*1.32587;
-        this_content_tight = h_MC_TightMuPtCone[it_mc][it_y]->GetBinContent(j)*1.32587;
+        this_content_loose = h_MC_LooseMuPtCone[it_mc][it_y]->GetBinContent(j)*map_SF["Mu8"];
+        this_content_tight = h_MC_TightMuPtCone[it_mc][it_y]->GetBinContent(j)*map_SF["Mu8"];
         h_MC_LooseMuPtCone_Norm[it_mc][it_y]->SetBinContent(j, this_content_loose);
         h_MC_TightMuPtCone_Norm[it_mc][it_y]->SetBinContent(j, this_content_tight);
       }
       for(int j=31; j<=1000; j++){
-        this_content_loose = h_MC_LooseMuPtCone[it_mc][it_y]->GetBinContent(j)*0.985587;
-        this_content_tight = h_MC_TightMuPtCone[it_mc][it_y]->GetBinContent(j)*0.985587;
+        this_content_loose = h_MC_LooseMuPtCone[it_mc][it_y]->GetBinContent(j)*map_SF["Mu17"];
+        this_content_tight = h_MC_TightMuPtCone[it_mc][it_y]->GetBinContent(j)*map_SF["Mu17"];
         h_MC_LooseMuPtCone_Norm[it_mc][it_y]->SetBinContent(j, this_content_loose);
         h_MC_TightMuPtCone_Norm[it_mc][it_y]->SetBinContent(j, this_content_tight);
       }
@@ -138,24 +160,24 @@ void GetFR(){
       h_Data_TightMuPtCone_Subt[it_y]->Add(h_MC_TightMuPtCone_Norm[it_mc][it_y],-1);
     }
 
-    //for(int j=10; j<=30; j++){
-    //  cout << "=============================" << endl;
-    //  cout << "before : " << h_Data_LooseMuPtCone[it_y]->GetBinContent(j) << endl;
-    //  cout << "1st MC : " << h_MC_LooseMuPtCone[0][it_y]->GetBinContent(j) << endl;
-    //  cout << "1st MC_Norm : " << h_MC_LooseMuPtCone_Norm[0][it_y]->GetBinContent(j) << endl;
-    //  //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[1][it_y]->GetBinContent(j) << endl;
-    //  //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[2][it_y]->GetBinContent(j) << endl;
-    //  //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[3][it_y]->GetBinContent(j) << endl;
-    //  //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[4][it_y]->GetBinContent(j) << endl;
-    //  //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[5][it_y]->GetBinContent(j) << endl;
-    //  //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[6][it_y]->GetBinContent(j) << endl;
-    //  //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[7][it_y]->GetBinContent(j) << endl;
-    //  //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[8][it_y]->GetBinContent(j) << endl;
-    //  //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[9][it_y]->GetBinContent(j) << endl;
-    //  //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[10][it_y]->GetBinContent(j) << endl;
-    //  //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[11][it_y]->GetBinContent(j) << endl;
-    //  cout << "after : " <<  h_Data_LooseMuPtCone_Subt[it_y]->GetBinContent(j) << endl;
-    //}
+    for(int j=10; j<=30; j++){
+      cout << "=============================" << endl;
+      cout << "before : " << h_Data_LooseMuPtCone[it_y]->GetBinContent(j) << endl;
+      cout << "1st MC : " << h_MC_LooseMuPtCone[0][it_y]->GetBinContent(j) << endl;
+      cout << "1st MC_Norm : " << h_MC_LooseMuPtCone_Norm[0][it_y]->GetBinContent(j) << endl;
+      //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[1][it_y]->GetBinContent(j) << endl;
+      //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[2][it_y]->GetBinContent(j) << endl;
+      //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[3][it_y]->GetBinContent(j) << endl;
+      //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[4][it_y]->GetBinContent(j) << endl;
+      //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[5][it_y]->GetBinContent(j) << endl;
+      //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[6][it_y]->GetBinContent(j) << endl;
+      //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[7][it_y]->GetBinContent(j) << endl;
+      //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[8][it_y]->GetBinContent(j) << endl;
+      //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[9][it_y]->GetBinContent(j) << endl;
+      //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[10][it_y]->GetBinContent(j) << endl;
+      //cout << "MC_Norm : " << h_MC_LooseMuPtCone_Norm[11][it_y]->GetBinContent(j) << endl;
+      cout << "after : " <<  h_Data_LooseMuPtCone_Subt[it_y]->GetBinContent(j) << endl;
+    }
 
     TCanvas *c1 = new TCanvas();
 
@@ -197,24 +219,24 @@ void GetFR(){
       h_MC_TightMu_Norm[it_mc][it_y] = (TH2D*)h_MC_TightMu_Norm_tmp[it_mc][it_y];
       for(int i=1; i<=2; i++){
         for(int j=1; j<=5; j++){
-          this_content_loose = h_MC_LooseMu[it_mc][it_y]->GetBinContent(i,j)*0.750631;
-          this_content_tight = h_MC_TightMu[it_mc][it_y]->GetBinContent(i,j)*0.750631;
+          this_content_loose = h_MC_LooseMu[it_mc][it_y]->GetBinContent(i,j)*map_SF["Mu3"];
+          this_content_tight = h_MC_TightMu[it_mc][it_y]->GetBinContent(i,j)*map_SF["Mu3"];
           h_MC_LooseMu_Norm[it_mc][it_y]->SetBinContent(i, j, this_content_loose);
           h_MC_TightMu_Norm[it_mc][it_y]->SetBinContent(i, j, this_content_tight);
         }
       }
       for(int i=3; i<=4; i++){
         for(int j=1; j<=5; j++){
-          this_content_loose = h_MC_LooseMu[it_mc][it_y]->GetBinContent(i,j)*1.32587;
-          this_content_tight = h_MC_TightMu[it_mc][it_y]->GetBinContent(i,j)*1.32587;
+          this_content_loose = h_MC_LooseMu[it_mc][it_y]->GetBinContent(i,j)*map_SF["Mu8"];
+          this_content_tight = h_MC_TightMu[it_mc][it_y]->GetBinContent(i,j)*map_SF["Mu8"];
           h_MC_LooseMu_Norm[it_mc][it_y]->SetBinContent(i, j, this_content_loose);
           h_MC_TightMu_Norm[it_mc][it_y]->SetBinContent(i, j, this_content_tight);
         }
       }
       for(int i=5; i<=10; i++){
         for(int j=1; j<=5; j++){
-          this_content_loose = h_MC_LooseMu[it_mc][it_y]->GetBinContent(i,j)*0.985587;
-          this_content_tight = h_MC_TightMu[it_mc][it_y]->GetBinContent(i,j)*0.985587;
+          this_content_loose = h_MC_LooseMu[it_mc][it_y]->GetBinContent(i,j)*map_SF["Mu17"];
+          this_content_tight = h_MC_TightMu[it_mc][it_y]->GetBinContent(i,j)*map_SF["Mu17"];
           h_MC_LooseMu_Norm[it_mc][it_y]->SetBinContent(i, j, this_content_loose);
           h_MC_TightMu_Norm[it_mc][it_y]->SetBinContent(i, j, this_content_tight);
         }
@@ -243,7 +265,7 @@ void GetFR(){
     h_Data_TightMu_Subt[it_y]->Divide(h_Data_LooseMu_Subt[it_y]);
 
     // Save 2D histo
-    TFile *f_out = new TFile("Muon_HN_FakeRates_HNTightV1_2016.root","RECREATE");
+    TFile *f_out = new TFile("Muon_HN_FakeRates_HNTightV1_"+year.at(it_y)+".root","RECREATE");
     h_Data_TightMu_Subt[it_y]->Write("FR_2D");
 
   }  // year

@@ -5,6 +5,7 @@
 #python python/SKFlat.py -a SSWW -e 2016a -i SSWWTypeI_NLO_SF_M1500 -n 50 --userflags jcln_inv,fatjet_veto --batchname auto &
 
 
+
 ### SSWW selections (CR, SR) ###
 #! 2016a !#
 #python python/SKFlat.py -a SSWW -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto --batchname auto &
@@ -14,6 +15,7 @@
 #python python/SKFlat.py -a SSWW -e 2016b -l submitList/2016b_DoubleMuon_FtoG.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto --batchname auto &
 #python python/SKFlat.py -a SSWW -e 2016b -l submitList/2016b_DoubleMuon_H.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto,PeriodH --batchname auto &
 #python python/SKFlat.py -a SSWW -e 2016b -l submitList/SSWW_2016_HNMultiLep.txt -n 50 --skim SkimTree_HNMultiLep --userflags jcln_inv,fatjet_veto --batchname auto &
+
 
 
 ### SM Control Regions ###
@@ -33,10 +35,23 @@
 #python python/SKFlat.py -a Control -e 2016a -l submitList/Control_2016_HNMultiLep.txt -n 80 --skim SkimTree_HNMultiLep --batchname auto &
 #python python/SKFlat.py -a Control -e 2016b -l submitList/Control_2016_HNMultiLep.txt -n 80 --skim SkimTree_HNMultiLep --batchname auto &
 
+##!! 2017 !!##
+#python python/SKFlat.py -a Control -e 2017 -l submitList/2017_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
+#python python/SKFlat.py -a Control -e 2017 -l submitList/2017_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
+#python python/SKFlat.py -a Control -e 2017 -l submitList/Control_2017_HNMultiLep.txt -n 80 --batchname auto &
+#JH : Don't use HNMultiLep if to see DY, TT CR
+
+##!! 2018 !!##
+python python/SKFlat.py -a Control -e 2018 -l submitList/2018_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
+python python/SKFlat.py -a Control -e 2018 -l submitList/2018_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
+python python/SKFlat.py -a Control -e 2018 -l submitList/Control_2018_HNMultiLep.txt -n 80 --batchname auto &
+#JH : Don't use HNMultiLep if to see DY, TT CR
+
+
 
 ### Control Regions ###
-##!! 2016 !!##
 
+##!! 2016 !!##
 #! data !#
 #python python/SKFlat.py -a Signal -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
 #python python/SKFlat.py -a Signal -e 2016b -l submitList/2016b_DoubleMuon_FtoG.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
@@ -51,6 +66,23 @@
 #python python/SKFlat.py -a Signal -e 2016a -l submitList/Signal_2016_HNMultiLep.txt -n 80 --skim SkimTree_HNMultiLep --batchname auto &
 #python python/SKFlat.py -a Signal -e 2016b -l submitList/Signal_2016_HNMultiLep.txt -n 80 --skim SkimTree_HNMultiLep --batchname auto &
 
+##!! 2017 !!##
+#! data !#
+#python python/SKFlat.py -a Signal -e 2017 -l submitList/2017_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
+#! fake background !#
+#python python/SKFlat.py -a Signal -e 2017 -l submitList/2017_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
+#! SM background !#
+#python python/SKFlat.py -a Signal -e 2017 -l submitList/Signal_2017_HNMultiLep.txt -n 80 --skim SkimTree_HNMultiLep --batchname auto &
+
+##!! 2018 !!##
+#! data !#
+#python python/SKFlat.py -a Signal -e 2018 -l submitList/2018_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
+#! fake background !#
+#python python/SKFlat.py -a Signal -e 2018 -l submitList/2018_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
+#! SM background !#
+#python python/SKFlat.py -a Signal -e 2018 -l submitList/Signal_2018_HNMultiLep.txt -n 80 --skim SkimTree_HNMultiLep --batchname auto &
+
+
 
 ### Fake measurement ###
 #! 2016a !#
@@ -64,14 +96,16 @@
 #python python/SKFlat.py -a Fake -e 2016b -l submitList/Fake_Norm_MC_2016.txt --userflags FR,Norm -n 50 --batchname auto &
 
 #! 2017 !#
-#python python/SKFlat.py -a Fake -e 2017 -l submitList/2016b_DoubleMuon.txt --userflags FR,Norm -n 50 --batchname auto &
-#python python/SKFlat.py -a Fake -e 2017 -l submitList/2016b_DoubleEG.txt --userflags FR,Norm -n 50 --batchname auto &
-#python python/SKFlat.py -a Fake -e 2017 -l submitList/Fake_Norm_MC_2016.txt --userflags FR,Norm -n 50 --batchname auto &
+#python python/SKFlat.py -a Fake -e 2017 -l submitList/2017_SingleMuon.txt --userflags FR,Norm -n 50 --batchname auto &
+#python python/SKFlat.py -a Fake -e 2017 -l submitList/2017_DoubleMuon.txt --userflags FR,Norm -n 50 --batchname auto &
+#python python/SKFlat.py -a Fake -e 2017 -l submitList/2017_DoubleEG.txt --userflags FR,Norm -n 50 --batchname auto &
+#python python/SKFlat.py -a Fake -e 2017 -l submitList/Fake_Norm_MC_2017.txt --userflags FR,Norm -n 50 --batchname auto &
 
 #! 2018 !#
-#python python/SKFlat.py -a Fake -e 2018 -l submitList/2016b_DoubleMuon.txt --userflags FR,Norm -n 50 --batchname auto &
-#python python/SKFlat.py -a Fake -e 2018 -l submitList/2016b_DoubleEG.txt --userflags FR,Norm -n 50 --batchname auto &
-#python python/SKFlat.py -a Fake -e 2018 -l submitList/Fake_Norm_MC_2016.txt --userflags FR,Norm -n 50 --batchname auto &
+#python python/SKFlat.py -a Fake -e 2018 -l submitList/2018_SingleMuon.txt --userflags FR,Norm -n 50 --batchname auto &
+#python python/SKFlat.py -a Fake -e 2018 -l submitList/2018_DoubleMuon.txt --userflags FR,Norm -n 50 --batchname auto &
+#python python/SKFlat.py -a Fake -e 2018 -l submitList/2018_DoubleEG.txt --userflags FR,Norm -n 50 --batchname auto &
+#python python/SKFlat.py -a Fake -e 2018 -l submitList/Fake_Norm_MC_2018.txt --userflags FR,Norm -n 50 --batchname auto &
 
 
 #######################################################################################################################################################
