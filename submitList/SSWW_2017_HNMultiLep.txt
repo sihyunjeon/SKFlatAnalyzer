@@ -1,7 +1,7 @@
 WZTo3LNu_mll0p1_powheg
 WZTo3LNu_mllmin4p0_powheg
 ZZTo4L_m_1toInf_powheg
-#ZZTo4L_powheg
+ZZTo4L_powheg
 WGToLNuG
 ZGTo2LG_01J
 TTG
@@ -23,11 +23,11 @@ WGJJToLNu
 WZJJToLNu
 WWG
 tZq
-#GluGluHToTauTau_M125
+GluGluHToTauTau_M125
 GluGluHToWWTo2L2Nu
 GluGluToZZto4mu
 GluGluToZZto2e2mu
 GluGluToZZto4e
-#TG
-#WWTo2L2Nu_DS
-#VBF_HToZZTo4L
+TG
+WWTo2L2Nu_DS
+VBF_HToZZTo4L
