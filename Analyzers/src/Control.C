@@ -657,9 +657,12 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
           //}
           //if(param.Muon_Tight_ID.Contains("HNTight")){
           //  muon_recosf = 1.;
-          //  muon_idsf   = mcCorr->MuonID_SF_HNtypeI(param.Muon_Tight_ID, muons.at(i).Eta(), muons.at(i).MiniAODPt(), 0);;
+          //  muon_idsf   = mcCorr->MuonID_SF_HNtypeI(param.Muon_Tight_ID, muons.at(i).Eta(), muons.at(i).MiniAODPt(), 0);
           //  muon_isosf  = 1.;
           //}
+          muon_recosf = 1.;
+          muon_idsf   = mcCorr->MuonID_SF(param.Muon_Tight_ID, muons.at(i).Eta(), muons.at(i).MiniAODPt(), 0); //JH
+          muon_isosf  = 1.;
           weight *= muon_recosf*muon_idsf*muon_isosf;
         }
         //if(param.Muon_Tight_ID.Contains("HighPt")) muon_trigsf = mcCorr->MuonTrigger_SF("POGHighPtLooseTrkIso", "Mu50", muons, 0);
@@ -890,7 +893,10 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
           //  muon_idsf     = mcCorr->MuonID_SF_HNtypeI(param.Muon_Tight_ID, muons.at(i).Eta(), muons.at(i).MiniAODPt(), 0);
           //  muon_isosf    = 1.;
           //}
-          weight *= muon_recosf*muon_idsf*muon_isosf;
+          muon_recosf = 1.;
+          muon_idsf     = mcCorr->MuonID_SF(param.Muon_Tight_ID, muons.at(i).Eta(), muons.at(i).MiniAODPt(), 0);
+          muon_isosf    = 1.;
+          weight *= muon_recosf*muon_idsf*muon_isosf; //JH
         }
         //if(param.Muon_Tight_ID.Contains("HighPt")) muon_trigsf = mcCorr->MuonTrigger_SF("POGHighPtLooseTrkIso", "Mu50", muons, 0);
         //else muon_trigsf = mcCorr->DiMuonTrigger_SF("Lead17_POGTight", "Tail8_POGTight", muons);
@@ -1219,7 +1225,10 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
           //  muon_idsf     = mcCorr->MuonID_SF_HNtypeI(param.Muon_Tight_ID, muons.at(i).Eta(), muons.at(i).MiniAODPt(), 0);
           //  muon_isosf    = 1.;
           //}
-          weight *= muon_recosf*muon_idsf*muon_isosf;
+          muon_recosf = 1.;
+          muon_idsf     = mcCorr->MuonID_SF(param.Muon_Tight_ID, muons.at(i).Eta(), muons.at(i).MiniAODPt(), 0);
+          muon_isosf    = 1.;
+          weight *= muon_recosf*muon_idsf*muon_isosf; //JH
         }
         //if(param.Muon_Tight_ID.Contains("HighPt")) muon_trigsf = mcCorr->MuonTrigger_SF("POGHighPtLooseTrkIso", "Mu50", muons, 0);
         //else muon_trigsf = mcCorr->DiMuonTrigger_SF("Lead17_POGTight", "Tail8_POGTight", muons);

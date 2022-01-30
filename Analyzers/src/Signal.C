@@ -669,7 +669,7 @@ void Signal::executeEventFromParameter(AnalyzerParameter param){
           }
           else{
             muon_recosf = 1.;
-            muon_idsf   = 1.;
+            muon_idsf   = mcCorr->MuonID_SF(param.Muon_Tight_ID, muons.at(i).Eta(), muons.at(i).MiniAODPt(), 0); //JH
             muon_isosf  = 1.;
           }
           weight *= muon_recosf*muon_idsf*muon_isosf; //JH : FIXME no muon id, iso SF applied

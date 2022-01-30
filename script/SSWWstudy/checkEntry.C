@@ -47,13 +47,15 @@ void checkEntry(TString region){
   string fileline;
   ifstream in("fileList_checkEntry2.txt");
   map<TString, int> map_bin;
-  map_bin["SR/M1500_1"] = 17;
-  map_bin["SR_inv"]     = 16;
-  map_bin["btag"]       = 14;
-  map_bin["WZ"]         = 17;
-  map_bin["WZb"]        = 17;
-  map_bin["highSR1"]    = 13;
-  map_bin["highSR2"]    = 11;
+  map_bin["SR/M1500_1"]    = 17;
+  map_bin["SR_inv"]        = 16;
+  map_bin["btag"]          = 14;
+  map_bin["WZ"]            = 17;
+  map_bin["WZb"]           = 17;
+  map_bin["highSR1"]       = 13;
+  map_bin["highSR1/M1500"] = 14;
+  map_bin["highSR2"]       = 11;
+  map_bin["highSR2/M1500"] = 12;
 
   // Line loop
   while(getline(in, fileline)){

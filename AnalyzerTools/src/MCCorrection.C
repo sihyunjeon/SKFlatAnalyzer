@@ -250,17 +250,24 @@ double MCCorrection::MuonID_SF(TString ID, double eta, double pt, int sys){
   double value = 1.;
   double error = 0.;
 
-  if(DataYear!=2016){
-    eta = fabs(eta);
-  }
+  //if(DataYear!=2016){
+  //  eta = fabs(eta);
+  //}
+  eta = fabs(eta); //JH
 
-  if(ID=="NUM_TightID_DEN_genTracks" || ID=="NUM_HighPtID_DEN_genTracks"){
+  //if(ID=="NUM_TightID_DEN_genTracks" || ID=="NUM_HighPtID_DEN_genTracks"){
+  //  //==== boundaries
+  //  if(pt<20.) pt = 20.;
+  //  if(pt>=120.) pt = 119.;
+  //  if(eta>=2.4) eta = 2.39;
+  //  if(eta<-2.4) eta = -2.4;
+  //}
+  if(ID=="HNTightV1"){
     //==== boundaries
     if(pt<20.) pt = 20.;
-    if(pt>=120.) pt = 119.;
+    if(pt>=500.) pt = 499.;
     if(eta>=2.4) eta = 2.39;
-    if(eta<-2.4) eta = -2.4;
-  }
+  } //JH
 
   TH2F *this_hist = map_hist_Muon["ID_SF_"+ID];
   if(!this_hist){
@@ -273,12 +280,13 @@ double MCCorrection::MuonID_SF(TString ID, double eta, double pt, int sys){
 
   int this_bin(-999);
 
-  if(DataYear==2016){
-    this_bin = this_hist->FindBin(eta,pt);
-  }
-  else{
-    this_bin = this_hist->FindBin(pt,eta);
-  }
+  //if(DataYear==2016){
+  //  this_bin = this_hist->FindBin(eta,pt);
+  //}
+  //else{
+  //  this_bin = this_hist->FindBin(pt,eta);
+  //}
+  this_bin = this_hist->FindBin(eta,pt); //JH
 
   value = this_hist->GetBinContent(this_bin);
   error = this_hist->GetBinError(this_bin);

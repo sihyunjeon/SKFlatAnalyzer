@@ -840,7 +840,7 @@ void SSWW::executeEventFromParameter(AnalyzerParameter param){
               FillHist(regionsSSWW.at(it_rg)+"/M1500_1/HToverPt1_"+IDsuffix, HT/muons.at(0).Pt(), weight, 10, 0., 10.);
             }
             if(HT/muons.at(0).Pt()<2.){
-              // SR Cutflow 17 : M1500 optimization 1
+              // SR Cutflow 17 : M1500 optimization 2
               FillHist(regionsSSWW.at(it_rg)+"/M1500_2/Number_Events_"+IDsuffix, 16.5, weight, cutflow_bin, 0., cutflow_max);
               FillHist(regionsSSWW.at(it_rg)+"/M1500_2/Number_Events_unweighted_"+IDsuffix, 16.5, 1., cutflow_bin, 0., cutflow_max);
               FillHist(regionsSSWW.at(it_rg)+"/M1500_2/Number_Jets_"+IDsuffix, jets.size(), weight, 10, 0., 10.);
