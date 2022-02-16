@@ -702,7 +702,10 @@ void SSWW::executeEventFromParameter(AnalyzerParameter param){
   for(unsigned int it_rg=0; it_rg<regionsSSWW.size(); it_rg++){
 
     if(electrons_loose.size() > 0) continue;
-    if(RunFake) weight *= fakeEst->GetWeight(leptons, param);
+    if(RunFake){
+      weight = 1.;
+      weight *= fakeEst->GetWeight(leptons, param);
+    }
     // Cutflow 4 : loose electron veto
     FillHist(regionsSSWW.at(it_rg)+"/Number_Events_"+IDsuffix, 3.5, weight, cutflow_bin, 0., cutflow_max);
     FillHist(regionsSSWW.at(it_rg)+"/Number_Events_unweighted_"+IDsuffix, 3.5, 1., cutflow_bin, 0., cutflow_max);
@@ -1137,7 +1140,10 @@ void SSWW::executeEventFromParameter(AnalyzerParameter param){
   for(unsigned int it_rg=0; it_rg<regionsTypeI.size(); it_rg++){
 
     if(! (muons.size()==2 && electrons.size()==0 && muons.at(0).Charge()*muons.at(1).Charge()==1) ) continue;
-    if(RunFake) weight *= fakeEst->GetWeight(leptons, param);
+    if(RunFake){
+      weight = 1.;
+      weight *= fakeEst->GetWeight(leptons, param);
+    }
     // Cutflow 4 : 2 same-sign tight muons
     FillHist(regionsTypeI.at(it_rg)+"/Number_Events_"+IDsuffix, 3.5, weight, cutflow_bin, 0., cutflow_max);
     FillHist(regionsTypeI.at(it_rg)+"/Number_Events_unweighted_"+IDsuffix, 3.5, 1., cutflow_bin, 0., cutflow_max);
