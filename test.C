@@ -3,9 +3,10 @@ R__LOAD_LIBRARY(/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/lhapdf/6.2.3/lib/l
 void test(TString era, TString isdata, TString stream){ // test("2016preVFP","data","DM")
 
   //Fake m;
-  //SSWW m;
+  SSWW m;
   //Signal m;
-  Control m;
+  //Control m;
+  //Test m;
 
   m.SetTreeName("recoTree/SKFlat");
 
@@ -28,8 +29,10 @@ void test(TString era, TString isdata, TString stream){ // test("2016preVFP","da
     //"Norm", //Fake
     //"RunFake", //SSWW, Signal, Control
     //"FR_ex", //Signal, Control
-    //"jcln_inv", //SSWW
-    //"fatjet_veto", //SSWW
+    "jcln_inv", //SSWW
+    "fatjet_veto", //SSWW
+    //"Central", //SSWW
+    "TightEleVeto", //SSWW
   };
   if(era=="2016preVFP" && isdata=="data" && stream=="DM"){
     m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_15.root");

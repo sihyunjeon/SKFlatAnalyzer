@@ -399,7 +399,9 @@ void SSWW::executeEventFromParameter(AnalyzerParameter param){
   vector<Electron> electrons = SelectElectrons(this_AllElectrons, ElectronID, 10., 2.5);
   vector<Electron> electrons_loose = SelectElectrons(this_AllElectrons, param.Electron_Loose_ID, 10., 2.5); //JH : lepton selection done
   vector<Electron> electrons_veto = SelectElectrons(this_AllElectrons, param.Electron_Veto_ID, 10., 2.5); //JH : lepton selection done
-  vector<Jet> jets_nolepveto = SelectJetsPileupMVA(SelectJets(this_AllJets, param.Jet_ID, 15., 4.7), "loose");
+  vector<Jet> jets_nolepveto;
+  if(HasFlag("CentralJet")) jets_nolepveto = SelectJetsPileupMVA(SelectJets(this_AllJets, param.Jet_ID, 20., 2.7), "loose");
+  else jets_nolepveto = SelectJetsPileupMVA(SelectJets(this_AllJets, param.Jet_ID, 20., 4.7), "loose");
   vector<Jet> jets_bcand;
   if(MuonID.Contains("SSWW")) jets_bcand = SelectJets(this_AllJets, param.Jet_ID, 20., 2.4); //JH : to reject bjets
   else if(MuonID.Contains("HN")) jets_bcand = SelectJetsPileupMVA(SelectJets(this_AllJets, param.Jet_ID, 20., 2.7), "loose"); //JH : to reject bjets
@@ -693,15 +695,20 @@ void SSWW::executeEventFromParameter(AnalyzerParameter param){
 
   //=====================================================================================
   //=====================================================================================
-  //==== SSWW reproduction (SR, Inverted SR, b-tagged CR, WZ CR, WZb CR)
+  //==== SSWW regions (SR, Inverted SR, b-tagged CR, WZ CR, WZb CR)
   //=====================================================================================
   //=====================================================================================
 
-  // jet pt>15, |eta|<4.7, tight lepton cleaned with dR<0.3, pass loose PU, 2a-bjet pt>20, |eta|<2.4, electron pt>10, |eta|<2.5, muon pt>10, |eta|<2.4 
+  // jet pt>20, |eta|<4.7, tight lepton cleaned with dR<0.3, pass loose PU, 2a-bjet pt>20, |eta|<2.4, electron pt>10, |eta|<2.5, muon pt>10, |eta|<2.4 
 
   for(unsigned int it_rg=0; it_rg<regionsSSWW.size(); it_rg++){
 
-    if(electrons_loose.size() > 0) continue;
+    if(HasFlag("TightEleVeto")){
+      if(electrons.size() > 0) continue;
+    }
+    else{
+      if(electrons_loose.size() > 0) continue;
+    }
     if(RunFake){
       weight = 1.;
       weight *= fakeEst->GetWeight(leptons, param);
@@ -1183,7 +1190,12 @@ void SSWW::executeEventFromParameter(AnalyzerParameter param){
       double dEta = fabs(jets.at(0).Eta()-jets.at(1).Eta());
       double max_zep = std::max(fabs(muons.at(0).Eta()-avgEta),fabs(muons.at(1).Eta()-avgEta))/dEta;
 
-      if( (electrons_loose.size()==0)&&(muons.at(0).Pt()>30. && muons.at(1).Pt()>30.)&&(DiLep.M()>20.)&&(max_zep<0.75)&&(jets.at(1).Pt()>30.)&&(dEta>2.5)&&(DiJet.M()>750.)&&(Nbjet_medium==0) ) continue;
+      if(HasFlag("TightEleVeto")){
+        if( (electrons.size()==0)&&(muons.at(0).Pt()>30. && muons.at(1).Pt()>30.)&&(DiLep.M()>20.)&&(max_zep<0.75)&&(jets.at(1).Pt()>30.)&&(dEta>2.5)&&(DiJet.M()>750.)&&(Nbjet_medium==0) ) continue;
+      }
+      else{
+        if( (electrons_loose.size()==0)&&(muons.at(0).Pt()>30. && muons.at(1).Pt()>30.)&&(DiLep.M()>20.)&&(max_zep<0.75)&&(jets.at(1).Pt()>30.)&&(dEta>2.5)&&(DiJet.M()>750.)&&(Nbjet_medium==0) ) continue;
+      }
       // Cutflow 10 : SSWW signal failure
       FillHist(regionsTypeI.at(it_rg)+"/Number_Events_"+IDsuffix, 9.5, weight, cutflow_bin, 0., cutflow_max);
       FillHist(regionsTypeI.at(it_rg)+"/Number_Events_unweighted_"+IDsuffix, 9.5, 1., cutflow_bin, 0., cutflow_max);

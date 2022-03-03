@@ -20,5 +20,6 @@
 #pragma link C++ class Fake+;
 #pragma link C++ class Control+;
 #pragma link C++ class Signal+;
+#pragma link C++ class Test+;
 
 #endif
