@@ -21,5 +21,6 @@
 #pragma link C++ class Control+;
 #pragma link C++ class Signal+;
 #pragma link C++ class Test+;
+#pragma link C++ class ChargeFlip+;
 
 #endif
