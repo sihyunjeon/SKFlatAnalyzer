@@ -31,8 +31,9 @@ void test(TString era, TString isdata, TString stream){ // test("2016preVFP","da
     //"FR_ex", //Signal, Control
     "jcln_inv", //SSWW
     "fatjet_veto", //SSWW
-    //"Central", //SSWW
-    "TightEleVeto", //SSWW
+    "CentralJet", //SSWW
+    //"Pass_VBF", //SSWW
+    //"TightEleVeto", //SSWW
   };
   if(era=="2016preVFP" && isdata=="data" && stream=="DM"){
     m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/DATA_SkimTree_Dilepton/DoubleMuon/periodB_ver2/2021_09_02_200740/SKFlatNtuple_2016preVFP_DATA_15.root");

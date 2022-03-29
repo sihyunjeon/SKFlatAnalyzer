@@ -9,6 +9,9 @@ from TimeTools import *
 import random
 import subprocess
 
+# new function added by jalmond: used to make skimmed samples using input event lists 
+from EventComparison import *
+
 ## Arguments
 
 parser = argparse.ArgumentParser(description='SKFlat Command')
@@ -21,10 +24,14 @@ parser.add_argument('-o', dest='Outputdir', default="")
 parser.add_argument('-q', dest='Queue', default="fastq")
 parser.add_argument('-e', dest='Era', default="2017",help="2016preVFP(2016a), 2016postVFP(2016b), 2017, 2018")
 parser.add_argument('-y', dest='Year', default="",help="deprecated. use -e")
+parser.add_argument('-t', dest='timestamp', default="") # added by jalmond, allows the calling of SKFLat.py from within itself and keep same timestamp
+parser.add_argument('-log', dest='logentry', default="-1") # added by jalmond, allows the nevents between log output to be modified from default for specific jobs
 parser.add_argument('--skim', dest='Skim', default="", help="ex) SkimTree_Dilepton")
 parser.add_argument('--no_exec', action='store_true')
 parser.add_argument('--FastSim', action='store_true')
+parser.add_argument('--EventComparison', action='store_true') # added by jalmond, when called PrintEvent function outputs log files + EventLists are checked for differences
 parser.add_argument('--userflags', dest='Userflags', default="")
+parser.add_argument('--eventlists', dest='EventLists', default="") # added by jalmond, allows eventlists to be input for checking specific events
 parser.add_argument('--nmax', dest='NMax', default=0, type=int, help="maximum running jobs")
 parser.add_argument('--reduction', dest='Reduction', default=1, type=float)
 parser.add_argument('--memory', dest='Memory', default=0, type=float)
@@ -43,6 +50,14 @@ Userflags = []
 if args.Userflags != "":
   Userflags = (args.Userflags).split(',')
 
+## add event list string into an array
+EventLists = []
+if args.EventLists != "":
+  EventLists = (args.EventLists).split(',')
+
+## TimeStampDir is a new string that is a merged timestamp from all input lists
+TimeStampDir=GetTimeStampFromList(EventLists)
+
 ## Add Abosolute path for outputdir
 if args.Outputdir!='':
   if args.Outputdir[0]!='/':
@@ -53,6 +68,18 @@ if args.Outputdir!='':
 # 1) dir/file name style
 JobStartTime = datetime.datetime.now()
 timestamp =  JobStartTime.strftime('%Y_%m_%d_%H%M%S')
+
+## if timestamp is set as input use this instead of current time stamp
+if args.timestamp != "":
+  timestamp = args.timestamp
+
+## ev_comp_dir is new directory for
+ev_comp_dir = os.environ["SKFlatEvCompDir"]+timestamp
+if args.EventComparison:
+  ## make SKFlatEvCompDir if does not exists
+  os.system("mkdir -p " + os.environ["SKFlatEvCompDir"])
+  os.system("mkdir -p " + ev_comp_dir)
+
 # 2) log style
 JobStartTime = datetime.datetime.now()
 string_JobStartTime =  JobStartTime.strftime('%Y-%m-%d %H:%M:%S')
@@ -61,7 +88,7 @@ string_ThisTime = ""
 ## Environment Variables
 
 USER = os.environ['USER']
-if os.path.exists('python/UserInfo_'+USER+'.py'):
+if os.path.exists(os.environ['SKFlat_WD']+'/python/UserInfo_'+USER+'.py'):
   exec('from UserInfo_'+USER+' import *')
 else:
   print("No UserInfo file")
@@ -69,6 +96,8 @@ else:
 SKFlatLogEmail = UserInfo['SKFlatLogEmail']
 SKFlatLogWebDir = UserInfo['SKFlatLogWebDir']
 LogEvery = UserInfo['LogEvery']
+if args.logentry != '-1':
+  LogEvery = '1'
 
 SCRAM_ARCH = os.environ['SCRAM_ARCH']
 cmsswrel = os.environ['cmsswrel']
@@ -210,6 +239,199 @@ SampleFinishedForEachSample = []
 PostJobFinishedForEachSample = []
 BaseDirForEachSample = []
 XsecForEachSample = []
+
+if len(EventLists) > 1:
+  # check that the lists are different
+  # if lists are the same then no need to run
+  if CheckListsAreSame(EventLists):
+    print ('EventLists: lists are identical no events will be processed')
+    exit()
+
+if len(EventLists) > 0 and len(InputSamples) > 1:
+  print 'When running with --eventlist option can only run on one sample, you are running on multiple samples... exiting'
+  exit()
+
+## if EventLists is input and not skim code then check if skim exists. If no skim exists run skim code and then rerun the same job using same timestamp
+
+if len(EventLists) > 0 and not args.Analyzer == 'SkimTree_EventSkim':
+
+  # create directory for event skimmed samples
+  event_skim_dir='/gv0/Users/'+USER+'/SKFlat/'
+  os.system('mkdir -p ' + event_skim_dir)
+  event_skim_dir='/gv0/Users/'+USER+'/SKFlat/'+TimeStampDir+'/'
+  os.system('mkdir -p ' + event_skim_dir)
+  if args.EventComparison:
+    event_skim_dir='/gv0/Users/'+USER+'/SKFlat/'+TimeStampDir+'/EventComparison/'
+    os.system('mkdir -p ' + event_skim_dir)
+
+  # check if skim exists
+  MadeSkims  = False
+  SkimList   = []
+  rerunList  = []
+  output_skim= []
+  GetInfo    = ''
+
+  # loop over InputSamples (which contains just 1 sample but code already has it as a list so wont change)
+  for InputSample in InputSamples:
+
+    _skimoutdir = ''
+    this_dasname= ''
+    DataPeriod  = ''
+    IsDATA      = False
+
+    if ":" in InputSample:
+      IsDATA = True
+      tmp    = InputSample
+      InputSample = tmp.split(":")[0]
+
+    if not IsDATA and args.Analyzer!="GetEffLumi":
+      if not os.path.exists(SAMPLE_DATA_DIR+'/CommonSampleInfo/'+InputSample+'.txt'):
+        print("No "+SAMPLE_DATA_DIR+'/CommonSampleInfo/'+InputSample+'.txt')
+        exit(2)
+      lines_SamplePath = open(SAMPLE_DATA_DIR+'/CommonSampleInfo/'+InputSample+'.txt').readlines()
+      for line in lines_SamplePath:
+        if line[0]=="#":
+          continue
+        words = line.split()
+        if len(words) == 0:
+          continue
+        if InputSample==words[0]:
+          this_dasname = words[1]
+          break
+
+    ## GetInfoFromList returns a string with SR names in
+    GetInfo=GetInfoFromList(EventLists,InputSample)
+
+    ## update skim dir with a unique tag from input lists
+    event_skim_dir=event_skim_dir+GetInfo+'/'
+    os.system('mkdir -p ' + event_skim_dir)
+
+    if IsDATA:
+      _skimoutdir += "DATA_SkimTree_EventSkim/"+InputSample+"/period"+DataPeriod+"/"
+    else:
+      _skimoutdir += "MC_SkimTree_EventSkim/" +this_dasname+"/"
+
+    # check that the event lists inputted are correct lists for this sample
+    for EventList in EventLists:
+      if '.txt' in EventList:
+        if not InputSample in  EventList:
+          print '-'*50
+          print 'Error in EventLists, since wrong input sample is listed. Please fix...'
+          print '-'*50
+          exit()
+
+    # check if skimmed sample exists
+    if not  os.path.exists(event_skim_dir + SKFlatV+'/'+str(args.Era) +'/'+ _skimoutdir):
+      print '-'*50
+      print ('Skim dir ' + event_skim_dir + SKFlatV+'/'+str(args.Era) +'/'+ _skimoutdir + ' does not exist.... running skflat skim code')
+      print '-'*50
+      print '-'*50
+
+      event_list_dir=GetAllFilesFromDir(args.EventLists,InputSample)
+
+      if args.EventComparison:
+        SkimList.append('SKFlat.py -a SkimTree_EventSkim -i '+InputSample+'  -n 100  --nmax 300 -e '+str(args.Era) + '  --EventComparison  -o '+event_skim_dir + '  --eventlists '+event_list_dir + ' -t '+timestamp )
+        rerunList.append('SKFlat.py -a '+args.Analyzer+' -i '+InputSample+'  -n 1  --nmax 100 -e '+str(args.Era) + ' --EventComparison  --eventlists '+event_list_dir + ' --skim=SkimTree_EventSkim -t '+timestamp + ' -log 1')
+      else:
+        SkimList.append('SKFlat.py -a SkimTree_EventSkim -i '+InputSample+'  -n 100  --nmax 300 -e '+str(args.Era) + ' -o '+event_skim_dir + '  --eventlists '+event_list_dir + ' -t '+timestamp )
+        rerunList.append('SKFlat.py -a '+args.Analyzer+' -i '+InputSample+'  -n 1  --nmax 100 -e '+str(args.Era) + ' --eventlists '+event_list_dir + ' --skim=SkimTree_EventSkim -t '+timestamp + ' -log 1')
+
+      output_skim.append(event_skim_dir+SKFlatV+'/'+str(args.Era) +'/'+ _skimoutdir+"/"+ timestamp+"/")
+
+    else:
+      MadeSkims=True
+      print 'Skim is already made for ' + InputSample + '  --eventlists '+args.EventLists
+
+  if not MadeSkims:
+    for r in  range(0,len(SkimList)):
+      run_command = SkimList[r]
+      if r < len(SkimList)-1:
+        run_command +="&"
+      print '#'*50
+      print run_command
+      print '#'*50
+      os.system(run_command)
+
+    for r in  range(0,len(output_skim)):
+
+      outskim_path=output_skim[r]
+
+      _skimoutfilename = ""
+      if "DATA" in outskim_path:
+        _skimoutfilename = "MERGED_SKFlatNtuple_"+args.Era+"_DATA.root"
+      else:
+        _skimoutfilename = "MERGED_SKFlatNtuple_"+args.Era+"_MC.root"
+
+      print ('Merging output of nocut skim...')
+      os.system('hadd ' + outskim_path+'/'+_skimoutfilename+' ' + outskim_path + '/S*')
+      os.system('rm ' + outskim_path + '/S*')
+      os.system('bash bin/UpdateSampleForSNULatest.sh ' + event_skim_dir + SKFlatV+'/'+str(args.Era) +'/'+ _skimoutdir )
+
+    run_on_skim_now=True
+    if run_on_skim_now:
+
+      # rerun job now skims are made
+      run_command = rerunList[0]
+      print '#'*50
+      print run_command
+      print '#'*50
+      print '-'*50
+      print ('Rerunning now skims are made with --skim=SkimTree_EventSkim and njobs=1 to debug')
+      print '-'*50
+      os.system(run_command)
+    else:
+      print '-'*50
+      print ('Rerun now skims are made with --skim=SkimTree_EventSkim and njobs=1 to debug')
+      print rerunList[0]
+      print '-'*50
+
+    exit()
+
+    ## if skims are made for event lists and now running code, check that skim is being used
+
+  if not args.Skim == 'SkimTree_EventSkim':
+    print 'Need to run with --skim=SkimTree_EventSkim option since using EventLists as input'
+    exit()
+
+## now check that skimmed jobs with SkimTree_EventSkim have correct input list
+if len(EventLists) > 0 and args.Analyzer == 'SkimTree_EventSkim':
+
+  for InputSample in InputSamples:
+
+    if ":" in InputSample:
+      tmp    = InputSample
+      InputSample = tmp.split(":")[0]
+
+  for EventList in EventLists:
+    if '.txt' in EventList:
+      if not InputSample in  EventList:
+        print '-'*50
+        print 'Error in EventLists, since wrong input sample is listed. Please fix...'
+        print '-'*50
+        exit()
+
+for InputSample in InputSamples:
+
+  IsDATA = False
+  DataPeriod = ""
+  if ":" in InputSample:
+    IsDATA = True
+    tmp = InputSample
+    InputSample = tmp.split(":")[0]
+    DataPeriod = tmp.split(":")[1]
+
+  tmpfilepath = SAMPLE_DATA_DIR+'/For'+SampleHOSTNAME+'/'+SkimString+InputSample+'.txt'
+  if IsDATA:
+    tmpfilepath = SAMPLE_DATA_DIR+'/For'+SampleHOSTNAME+'/'+SkimString+InputSample+'_'+DataPeriod+'.txt'
+
+  if not os.path.exists(tmpfilepath):
+    print (tmpfilepath + ' is missing: ==> skipping ')
+    print('removing' + InputSample+ ' from list')
+    InputSamples.remove(InputSample)
+
+if len(InputSamples) == 0:
+  sys.exit()
+
 for InputSample in InputSamples:
 
   NJobs = args.NJobs
@@ -311,6 +533,8 @@ for InputSample in InputSamples:
       if line[0]=="#":
         continue
       words = line.split()
+      if len(words) == 0:
+        continue
       if InputSample==words[0]:
         this_dasname = words[1]
         this_xsec = words[2]
@@ -476,12 +700,16 @@ void {2}(){{
     if IsDATA:
       out.write('  m.IsDATA = true;\n')
       out.write('  m.DataStream = "'+InputSample+'";\n')
+      if args.EventComparison:
+        out.write('  m.timestamp = "'+timestamp+'";\n')
       #out.write('  m.DataPeriods = "'+InputSample+'";\n') #JH
     else:
       out.write('  m.MCSample = "'+InputSample+'";\n');
       out.write('  m.IsDATA = false;\n')
       out.write('  m.xsec = '+str(this_xsec)+';\n')
       out.write('  m.sumW = '+str(this_sumw)+';\n')
+      if args.EventComparison:
+        out.write('  m.timestamp = "'+timestamp+'";\n')
 
       if args.FastSim:
         out.write('  m.IsFastSim = true;\n')
@@ -490,11 +718,20 @@ void {2}(){{
 
     out.write('  m.SetEra("'+str(args.Era)+'");\n')
 
+    if len(EventLists) > 0:
+      out.write('  m.EventList = {\n')
+      for _list in EventLists:
+        out.write('    "'+_list+'",\n')
+      out.write('  };\n')
+
     if len(Userflags)>0:
       out.write('  m.Userflags = {\n')
       for flag in Userflags:
         out.write('    "'+flag+'",\n')
       out.write('  };\n')
+
+    for it_dir in set([os.path.dirname(lines_files[it_file].strip('\n')) for it_file in FileRanges[it_job]]):
+      out.write('  system("ls {}");\n'.format(it_dir))
 
     for it_file in FileRanges[it_job]:
       thisfilename = lines_files[it_file].strip('\n')
@@ -627,6 +864,11 @@ if IsKNU:
   print '- Queue = '+args.Queue
 print '- RunDir = '+base_rundir
 print '- output will be send to : '+FinalOutputPath
+if args.EventComparison:
+  print '- EventComparisonDir = '+ev_comp_dir
+if len(EventLists) > 0:
+  print '- EventLists =',
+  print EventLists
 print '##################################################'
 
 ##########################
@@ -943,3 +1185,6 @@ except KeyboardInterrupt:
 #  SendEmailbyGMail(USER,SKFlatLogEmail,EmailTitle,JobFinishEmail)
 #else:
 #  SendEmail(USER,SKFlatLogEmail,EmailTitle,JobFinishEmail)
+
+if args.EventComparison:
+  StringCounter(ev_comp_dir)

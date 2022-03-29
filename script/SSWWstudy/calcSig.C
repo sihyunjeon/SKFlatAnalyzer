@@ -106,7 +106,7 @@ void calcSig(TString signal, TString mass){ //calcSig("SSWWTypeI_NLO_SF_M1500","
   cout << "total MC in highSR2, with "; cout.width(6); cout << mass; cout << "optimization      : " << MC_highSR2_opt << endl;
 
   /////////////////////////////////////Fake////////////////////////////////////////////
-  TFile *f_Fake = new TFile("/data6/Users/jihkim/SKFlatOutput/Run2Legacy_v4/SSWW/2016/jcln_inv__fatjet_veto__RunFake__/DATA/SSWW_SkimTree_Dilepton_DoubleMuon.root");
+  TFile *f_Fake = new TFile("/data6/Users/jihkim/SKFlatOutput/Run2UltraLegacy_v2/SSWW/2016/jcln_inv__fatjet_veto__RunFake__/DATA/SSWW_SkimTree_Dilepton_DoubleMuon.root");
   TH1D *h_Fake_SR, *h_Fake_SR_opt, *h_Fake_SR_inv, *h_Fake_highSR1, *h_Fake_highSR1_opt, *h_Fake_highSR1_1jet, *h_Fake_highSR1_1jet_opt, *h_Fake_highSR2, *h_Fake_highSR2_opt;
   h_Fake_SR = (TH1D*)f_Fake->Get("SR/HToverPt1_HN");
   h_Fake_SR_opt = (TH1D*)f_Fake->Get("SR/M1500_1/HToverPt1_HN"); //JH : FIXME M1500 --> opt
