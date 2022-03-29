@@ -39,7 +39,11 @@
 #python python/SKFlat.py -a SSWW -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF,RunFake --batchname auto &
 #python python/SKFlat.py -a SSWW -e 2016a -l submitList/SSWW_2016_HNMultiLep.txt -n 50 --skim SkimTree_HNMultiLep --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF --batchname auto &
 #python python/SKFlat.py -a SSWW -e 2016a -l submitList/signals_test.txt -n 50 --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF --batchname auto &
-python python/SKFlat.py -a SSWW -e 2016a -l submitList/signals_test.txt -n 50 --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF,Pt10 --batchname auto &
+
+python python/SKFlat.py -a SSWW -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF,Pt10 --batchname auto &
+python python/SKFlat.py -a SSWW -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF,Pt10,RunFake --batchname auto &
+python python/SKFlat.py -a SSWW -e 2016a -l submitList/SSWW_2016_HNMultiLep.txt -n 50 --skim SkimTree_HNMultiLep --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF,Pt10 --batchname auto &
+#python python/SKFlat.py -a SSWW -e 2016a -l submitList/signals_test.txt -n 50 --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF,Pt10 --batchname auto &
 
 #python python/SKFlat.py -a SSWW -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto,TightEleVeto --batchname auto &
 #python python/SKFlat.py -a SSWW -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto,TightEleVeto,RunFake --batchname auto &
@@ -71,7 +75,13 @@ python python/SKFlat.py -a SSWW -e 2016a -l submitList/signals_test.txt -n 50 --
 #python python/SKFlat.py -a SSWW -e 2016b -l submitList/2016b_DoubleMuon_H.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF,RunFake,PeriodH --batchname auto &
 #python python/SKFlat.py -a SSWW -e 2016b -l submitList/SSWW_2016_HNMultiLep.txt -n 50 --skim SkimTree_HNMultiLep --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF --batchname auto &
 #python python/SKFlat.py -a SSWW -e 2016b -l submitList/signals_test.txt -n 50 --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF --batchname auto &
-python python/SKFlat.py -a SSWW -e 2016b -l submitList/signals_test.txt -n 50 --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF,Pt10 --batchname auto &
+
+python python/SKFlat.py -a SSWW -e 2016b -l submitList/2016b_DoubleMuon_FtoG.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF,Pt10 --batchname auto &
+python python/SKFlat.py -a SSWW -e 2016b -l submitList/2016b_DoubleMuon_H.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF,Pt10,PeriodH --batchname auto &
+python python/SKFlat.py -a SSWW -e 2016b -l submitList/2016b_DoubleMuon_FtoG.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF,Pt10,RunFake --batchname auto &
+python python/SKFlat.py -a SSWW -e 2016b -l submitList/2016b_DoubleMuon_H.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF,Pt10,RunFake,PeriodH --batchname auto &
+python python/SKFlat.py -a SSWW -e 2016b -l submitList/SSWW_2016_HNMultiLep.txt -n 50 --skim SkimTree_HNMultiLep --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF,Pt10 --batchname auto &
+#python python/SKFlat.py -a SSWW -e 2016b -l submitList/signals_test.txt -n 50 --userflags jcln_inv,fatjet_veto,CentralJet,Pass_VBF,Pt10 --batchname auto &
 
 #python python/SKFlat.py -a SSWW -e 2016b -l submitList/2016b_DoubleMuon_FtoG.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto,TightEleVeto --batchname auto &
 #python python/SKFlat.py -a SSWW -e 2016b -l submitList/2016b_DoubleMuon_H.txt -n 50 --skim SkimTree_Dilepton --userflags jcln_inv,fatjet_veto,TightEleVeto,PeriodH --batchname auto &
