@@ -27,10 +27,12 @@ void SSWW::initializeAnalyzer(){
   //FakeRateIDs = {"SSWW","HN"}; //JH : NOTE This is used in fakeEst->ReadHistograms() in m.initializeAnalyzerTools() 
   MuonTightIDs = {"HNTightV1"};
   MuonLooseIDs = {"HNLooseV1"};
-  MuonVetoIDs  = {"ISRVeto"};
+  //MuonVetoIDs  = {"ISRVeto"};
+  MuonVetoIDs  = {"HNVeto2016"};
   ElectronTightIDs = {"HNTightV1"};
   ElectronLooseIDs = {"HNLooseV1"};
-  ElectronVetoIDs  = {"ISRVeto"};
+  //ElectronVetoIDs  = {"ISRVeto"};
+  ElectronVetoIDs  = {"HNVeto"};
   FakeRateIDs = {"HN"}; //JH : NOTE This is used in fakeEst->ReadHistograms() in m.initializeAnalyzerTools() 
 
   //==== At this point, sample informations (e.g., IsDATA, DataStream, MCSample, or DataYear) are all set
@@ -404,7 +406,7 @@ void SSWW::executeEventFromParameter(AnalyzerParameter param){
   else jets_nolepveto = SelectJetsPileupMVA(SelectJets(this_AllJets, param.Jet_ID, 20., 4.7), "loose");
   vector<Jet> jets_bcand;
   if(MuonID.Contains("SSWW")) jets_bcand = SelectJets(this_AllJets, param.Jet_ID, 20., 2.4); //JH : to reject bjets
-  else if(MuonID.Contains("HN")) jets_bcand = SelectJetsPileupMVA(SelectJets(this_AllJets, param.Jet_ID, 20., 2.7), "loose"); //JH : to reject bjets
+  else if(MuonID.Contains("HN")) jets_bcand = SelectJets(this_AllJets, param.Jet_ID, 20., 2.4); //JH : to reject bjets
   vector<FatJet> fatjets_nolepveto = SelectFatJets(this_AllFatJets, param.FatJet_ID, 200., 2.7);
 
 //  FillHist("Njet_"+IDsuffix, jets_nolepveto.size(), weight, 8, 0., 8.);
@@ -577,8 +579,9 @@ void SSWW::executeEventFromParameter(AnalyzerParameter param){
   //===================================
 
   Particle METv = ev.GetMETVector();
+  METv = UpdateMETSmearedJet(METv, jets);
   METv = UpdateMETMuon(METv, muons);
-  METv = UpdateMETElectron(METv, electrons);
+  //METv = UpdateMETElectron(METv, electrons); //JH : electron pt in MiniAOD is already corrected (John)
   double MET = METv.Pt(); // JH : MET propagated
 
   double Mt = 0.;
@@ -1221,8 +1224,8 @@ void SSWW::executeEventFromParameter(AnalyzerParameter param){
       l1jj = *leptons.at(0) + jets.at(j1) + jets.at(j2);
       l2jj = *leptons.at(1) + jets.at(j1) + jets.at(j2);
 
-      if(! (WCand.M() < 150.) ) continue;
-      // Cutflow 12 : m(WCand) < 150 GeV 
+      if(! (30. < WCand.M() && WCand.M() < 150.) ) continue;
+      // Cutflow 12 : 30 < m(WCand) < 150 GeV 
       FillHist(regionsTypeI.at(it_rg)+"/Number_Events_"+IDsuffix, 11.5, weight, cutflow_bin, 0., cutflow_max);
       FillHist(regionsTypeI.at(it_rg)+"/Number_Events_unweighted_"+IDsuffix, 11.5, 1., cutflow_bin, 0., cutflow_max);
 
@@ -1371,7 +1374,7 @@ void SSWW::executeEventFromParameter(AnalyzerParameter param){
         FillHist(regionsTypeI.at(it_rg)+"/M100/l1jj_Mass_"+IDsuffix, l1jj.M(), weight, 2000, 0., 2000.);
         FillHist(regionsTypeI.at(it_rg)+"/M100/l2jj_Mass_"+IDsuffix, l2jj.M(), weight, 2000, 0., 2000.);
       }
-      if(leptons.at(0)->Pt()>25. && leptons.at(1)->Pt()>15. && lljj.M()>110. && ((55.<l1jj.M()&&l1jj.M()<115.)||(55.<l2jj.M()&&l2jj.M()<115.)) && MET2ST<9.){
+      if(jets.at(0).Pt()>25. && leptons.at(0)->Pt()>25. && leptons.at(1)->Pt()>15. && lljj.M()>110. && ((55.<l1jj.M()&&l1jj.M()<115.)||(55.<l2jj.M()&&l2jj.M()<115.)) && MET2ST<9.){
         // Cutflow 14 : M100 optimization from arxiv 1806.10905
         FillHist(regionsTypeI.at(it_rg)+"/M100_new/Number_Events_"+IDsuffix, 13.5, weight, cutflow_bin, 0., cutflow_max);
         FillHist(regionsTypeI.at(it_rg)+"/M100_new/Number_Events_unweighted_"+IDsuffix, 13.5, 1., cutflow_bin, 0., cutflow_max);

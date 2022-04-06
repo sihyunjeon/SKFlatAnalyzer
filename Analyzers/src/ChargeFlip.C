@@ -7,6 +7,9 @@ ChargeFlip::ChargeFlip(){
 void ChargeFlip::initializeAnalyzer(){
 
   if(DataYear==2016){
+    EleVetoIDs = {
+      "ISRVeto",
+    };
     EleIDs = { 
       //"HEEP_dZ_CF",
       "HNTightV1",
@@ -20,6 +23,9 @@ void ChargeFlip::initializeAnalyzer(){
     lep1ptcut = 15.;
   }
   else if(DataYear==2017){
+    EleVetoIDs = {
+      "ISRVeto",
+    };
     EleIDs = {
       //"HEEP_dZ_CF",
       "HNTightV1",
@@ -33,6 +39,9 @@ void ChargeFlip::initializeAnalyzer(){
     lep1ptcut = 15.;
   }
   else if(DataYear==2018){
+    EleVetoIDs = {
+      "ISRVeto",
+    };
     EleIDs = {
       //"HEEP2018_dZ_CF",
       "HNTightV1",
@@ -47,6 +56,9 @@ void ChargeFlip::initializeAnalyzer(){
     lep1ptcut = 15.;
   }
 
+  std::vector<JetTagging::Parameters> jtps;
+  jtps.push_back( JetTagging::Parameters(JetTagging::DeepCSV, JetTagging::Medium, JetTagging::incl, JetTagging::comb) );
+  mcCorr->SetJetTaggingParameters(jtps);
 }
 
 ChargeFlip::~ChargeFlip(){
@@ -73,6 +85,8 @@ void ChargeFlip::executeEvent(Long64_t Nentry){
     param.Name = EleID;
 
     param.Electron_Tight_ID = EleID;
+
+    param.Electron_Veto_ID = EleVetoIDs.at(i);
  
     if(HasFlag("250")){
       param.Electron_Tight_ID = EleID+"_250";
@@ -147,7 +161,7 @@ void ChargeFlip::executeEventFromParameter(AnalyzerParameter param, Long64_t Nen
 
   if(!IsDATA){
 
-    /* CF ID selection */
+    // CF ID selection //
 
     if(param.Electron_Tight_ID.Contains("HEEP")) eles = SelectElectrons(AllEles, param.Electron_Tight_ID, 50., 2.5);
     else eles = SelectElectrons(AllEles, param.Electron_Tight_ID, 25., 2.5);
@@ -158,7 +172,7 @@ void ChargeFlip::executeEventFromParameter(AnalyzerParameter param, Long64_t Nen
     
     if(HasFlag("CFrate")){
 
-      /* Measure CF rate using MC */
+      // Measure CF rate using MC //
 
       for(unsigned int i=0; i<eles.size(); i++){
         Gen truth_lep = GetGenMatchedLepton(eles.at(i), gens);
@@ -230,7 +244,7 @@ void ChargeFlip::executeEventFromParameter(AnalyzerParameter param, Long64_t Nen
 
     //if(HasFlag("CFrateValidation")){ // to answer Unki's ask to see how CFrate vary with different dR matching
 
-    //  /* Select events with only two tight same-sign electrons */
+    //  // Select events with only two tight same-sign electrons //
     //  if(eles.size()==2&&eles.at(0).Charge()*eles.at(1).Charge()>0){
 
     //    for(int i=0; i<4; i++){
@@ -251,7 +265,7 @@ void ChargeFlip::executeEventFromParameter(AnalyzerParameter param, Long64_t Nen
 
     if(HasFlag("ClosureTest")){
 
-      /* MC Closure test start */
+      // MC Closure test start //
      
       if(!PassMETFilter()) return;
       Particle METv = ev.GetMETVector();
@@ -275,7 +289,7 @@ void ChargeFlip::executeEventFromParameter(AnalyzerParameter param, Long64_t Nen
       //  }
       //}
   
-      /* Now require only prompt electrons in SS events */
+      // Now require only prompt electrons in SS events //
 
       if(eles_prmpt.size() == 2){
 
@@ -298,8 +312,8 @@ void ChargeFlip::executeEventFromParameter(AnalyzerParameter param, Long64_t Nen
   
       //
   
-      /* There's disagreement between OS_CFweighted and SS(where NO requirement on its promptness?). */
-      /* Now, Let's shift the electrons' energy */
+      // There's disagreement between OS_CFweighted and SS(where NO requirement on its promptness?). //
+      // Now, Let's shift the electrons' energy //
       
       if(eles_prmpt.size() != 2) return;
   
@@ -333,20 +347,20 @@ void ChargeFlip::executeEventFromParameter(AnalyzerParameter param, Long64_t Nen
 
     if(HasFlag("HalfSampleTest")){
 
-      /* Start the Half Sample Test : Even -> observed, Odd -> predicted */
+      // Start the Half Sample Test : Even -> observed, Odd -> predicted //
 
-      /* Call the needed particles */
+      // Call the needed particles //
 
       if(!PassMETFilter()) return;
       Particle METv = ev.GetMETVector();
  
-      muons = SelectMuons(AllMuons, "HNTightV1", 5., 2.4); // to calculate HT
+      muons = SelectMuons(AllMuons, "HNTightV1", 10., 2.4); // to calculate HT
       muons_veto = SelectMuons(AllMuons, "ISRVeto", 5., 2.4);
       eles_veto = SelectElectrons(AllEles, "ISRVeto", 10., 2.5);
       jets_nolepveto = SelectJetsPileupMVA(SelectJets(AllJets, "HNTight", 20., 2.7), "loose");
       jets = JetsVetoLeptonInside(jets_nolepveto, eles_veto, muons_veto);
 
-      /* Calculate the needed variables */
+      // Calculate the needed variables //
 
       double MET = METv.Pt(); //MET
 
@@ -489,18 +503,19 @@ void ChargeFlip::executeEventFromParameter(AnalyzerParameter param, Long64_t Nen
 
   }
 
-  /* Scale Factor measurement */
+  // Scale Factor measurement //
 
-  else{
+  else{ //if IsDATA;
     
-    if(HasFlag("ScaleFactor")){
+    /*
+    if(HasFlag("ScaleFactor_Old")){
 
       if(!PassMETFilter()) return;
       if(! (ev.PassTrigger(EleTriggerName) )) return;
       
       Particle METv = ev.GetMETVector();
   
-      /* CF SF ID selection */
+      // CF SF ID selection //
   
       eles = SelectElectrons(AllEles, param.Electron_Tight_ID, MinPt, 2.5);
 
@@ -539,7 +554,7 @@ void ChargeFlip::executeEventFromParameter(AnalyzerParameter param, Long64_t Nen
   
       }
   
-      /* Now let's shift the electrons' energy X% */
+      // Now let's shift the electrons' energy X% //
       
       vector<Electron> eles_shifted = eles; // copy the vector
       double X;
@@ -618,231 +633,283 @@ void ChargeFlip::executeEventFromParameter(AnalyzerParameter param, Long64_t Nen
         }
       }
     }
+    */
 
+    if(HasFlag("ScaleFactor")){
+
+      if(!PassMETFilter()) return;
+      if(! (ev.PassTrigger(EleTriggerName) )) return;
+
+      Particle METv = ev.GetMETVector();
+
+      // CF SF ID selection //
+
+      eles = SelectElectrons(AllEles, param.Electron_Tight_ID, MinPt, 2.5);
+      eles_veto = SelectElectrons(AllEles, param.Electron_Veto_ID, MinPt, 2.5);
+      vector<Jet> jets_nolepveto = SelectJets(AllJets, "HNTight", 20., 2.7); //JH : to reject bjets
+
+      std::sort(eles.begin(), eles.end(), PtComparing);
+      std::sort(eles_veto.begin(), eles_veto.end(), PtComparing);
+      int ele_veto_size = eles_veto.size() - eles.size();
+
+      std::sort(jets_nolepveto.begin(), jets_nolepveto.end(), PtComparing);
+      int Nbjet_loose = 0, Nbjet_medium = 0;
+      JetTagging::Parameters jtp_DeepCSV_Medium = JetTagging::Parameters(JetTagging::DeepCSV, JetTagging::Medium, JetTagging::incl, JetTagging::comb);
+      for(unsigned int ij=0; ij<jets_nolepveto.size(); ij++){
+        if(mcCorr->IsBTagged_2a(jtp_DeepCSV_Medium, jets_nolepveto.at(ij))) Nbjet_medium++; //JH : count Nbjet. NOTE : AN says they used CVSv2 and medium WP.
+      }
+
+      if(eles.size() != 2) return;
+      if(HasFlag("HEM")){
+        if( eles.at(0).isHEM()||eles.at(1).isHEM() ) return;
+      }
+      //if(eles.at(0).Pt()<lep0ptcut||eles.at(1).Pt()<lep1ptcut) return; //No need already pt min = 25
+
+      double MCweight = 1.; // JH : test how DY distribution change with MC weight
+      if(!IsDATA && MCSample.Contains("DYJets")){
+        MCweight *= ev.MCweight();
+        vector<Gen> gens = GetGens();
+        for(unsigned int i=0; i<eles.size(); i++){
+          if(GetLeptonType(eles.at(i), gens)<=0 || GetLeptonType(eles.at(i), gens)>=4) return; // JH : To extract MC template
+        }
+      }
+
+      Particle ZCand = eles.at(0)+eles.at(1);
+      if(! (MllLeft<=ZCand.M()&&ZCand.M()<MllRight) ) return;
+
+      // BB
+      if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
+        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+          FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+          FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        } //JH : if you want to check OS distribution before applying the CF weight
+      }
+      // BE
+      if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
+        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+          FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+          FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+      }
+      // EE
+      if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
+        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+          FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+          FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+      }
+
+      /*
+      if(METv.Pt() < 50){
+        // BB
+        if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
+          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+            FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+            FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+        }
+        // BE
+        if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
+          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+        }
+        // EE
+        if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
+          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+            FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+            FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+        }
+      }
+
+      if(nPV < 40){
+        // BB
+        if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
+          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+            FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+            FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+        }
+        // BE
+        if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
+          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+        }
+        // EE
+        if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
+          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+            FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+            FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+        }
+      }
+
+      if(METv.Pt() < 50 && nPV < 40){
+        // BB
+        if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
+          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+            FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+            FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+        }
+        // BE
+        if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
+          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+        }
+        // EE
+        if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
+          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+            FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+            FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+        }
+      }
+
+      if(ele_veto_size == 0){
+        // BB
+        if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
+          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+            FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+            FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+        }
+        // BE
+        if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
+          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+        }
+        // EE
+        if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
+          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+            FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+            FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+        }
+      }
+
+      if(Nbjet_medium == 0){
+        // BB
+        if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
+          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+            FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+            FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+        }
+        // BE
+        if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
+          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+        }
+        // EE
+        if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
+          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+            FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+            FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+          }
+        }
+      }
+      */
+
+      // Now let's shift the electrons' energy by X% //
+
+      vector<Electron> eles_shifted = eles; // copy the vector
+      double X;
+      if(DataYear==2016){
+        if(param.Electron_Tight_ID=="HNTightV1") X = 1.0;
+      }
+      else if(DataYear==2017){
+        if(param.Electron_Tight_ID=="HNTightV1") X = 1.0;
+      }
+      else if(DataYear==2018){
+        if(param.Electron_Tight_ID=="HNTightV1") X = 0.8;
+      }
+      TString X_string = Form("%f",X);
+      X_string = X_string(0,3)+"%";
+
+      for(int j=0;j<2;j++){
+        eles_shifted.at(j).SetE(eles_shifted.at(j).E()*(1-X/100));
+        eles_shifted.at(j).SetPtEtaPhiE(eles_shifted.at(j).E() * TMath::Sin(eles_shifted.at(j).Theta()), eles_shifted.at(j).Eta(), eles_shifted.at(j).Phi(), eles_shifted.at(j).E());
+      }
+
+      Particle ZCand_shifted = eles_shifted.at(0) + eles_shifted.at(1);
+      double weight_shifted = GetCFweight(eles_shifted, param.Electron_Tight_ID, false, 0.);
+      double weight_shifted_SF = GetCFweight(eles_shifted, param.Electron_Tight_ID, true, 0.);
+      weight_shifted *= MCweight;
+      weight_shifted_SF *= MCweight;
+
+      Particle METv_shifted;
+      METv_shifted.SetPxPyPzE(METv.Px()+ZCand.Px()-ZCand_shifted.Px(),METv.Py()+ZCand.Py()-ZCand_shifted.Py(),0,METv.E()+ZCand.E()-ZCand_shifted.E());
+
+      if(MllLeft<=ZCand_shifted.M()&&ZCand_shifted.M()<MllRight){
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+
+          // BB
+          if(abs(eles_shifted.at(0).scEta())<1.4442&&abs(eles_shifted.at(1).scEta())<1.4442){
+            FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_CFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted, NBin, MllLeft, MllRight);
+            //FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_CFSFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF, NBin, MllLeft, MllRight);
+          }
+
+          // BE
+          if((abs(eles_shifted.at(0).scEta())<1.4442&&abs(eles_shifted.at(1).scEta())>=1.556)||(abs(eles_shifted.at(0).scEta())>=1.556&&abs(eles_shifted.at(1).scEta())<1.4442)){
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted, NBin, MllLeft, MllRight);
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFSFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF, NBin, MllLeft, MllRight);
+          }
+
+          // EE
+          if(abs(eles_shifted.at(0).scEta())>=1.556&&abs(eles_shifted.at(1).scEta())>=1.556){
+            FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_CFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted, NBin, MllLeft, MllRight);
+            //FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_CFSFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF, NBin, MllLeft, MllRight);
+          }
+
+        }
+      }
+    }
   }
-
 }
-
-/*
-double ChargeFlip::GetCFweight(std::vector<Electron> eles, TString id){
-  
-  double prob[2];
-
-  if(id == "HEID"){
-
-    //DY+TTLL CF
-
-    for(int i=0;i<2;i++){ 
-
-      if(abs(eles.at(i).scEta())<0.8){
-        if(1/eles.at(i).Pt()<0.0075) prob[i] = 4.59433e-04-4.41286e-02/eles.at(i).Pt();
-        else if(0.0075<=1/eles.at(i).Pt()&&1/eles.at(i).Pt()<0.0155) prob[i] = 2.01545e-04-8.19670e-03/eles.at(i).Pt();
-        else prob[i] = 8.74309e-05-5.72703e-04/eles.at(i).Pt();
-      }
-      else if(0.8<=abs(eles.at(i).scEta())&&abs(eles.at(i).scEta())<1.4442){
-        if(1/eles.at(i).Pt()<0.0055) prob[i] = 3.81412e-03-4.74900e-01/eles.at(i).Pt();
-        else if(0.0055<=1/eles.at(i).Pt()&&1/eles.at(i).Pt()<0.0155) prob[i] = 1.60397e-03-6.97824e-02/eles.at(i).Pt();
-        else prob[i] = 6.59614e-04-7.13587e-03/eles.at(i).Pt();
-      }
-      else if(1.556<=abs(eles.at(i).scEta())&&abs(eles.at(i).scEta())<2.5){
-        if(1/eles.at(i).Pt()<0.0105) prob[i] = 1.23549e-02-6.80049e-01/eles.at(i).Pt();
-        else if(0.0105<=1/eles.at(i).Pt()&&1/eles.at(i).Pt()<0.0205) prob[i] = 7.27935e-03-1.88277e-01/eles.at(i).Pt();
-        else prob[i] = 4.06341e-03-3.22562e-02/eles.at(i).Pt();
-      }
-
-    }
-
-    //
-  
-    return prob[0]/(1.-prob[0])+prob[1]/(1.-prob[1]);
-
-  }
-
-  else if(id == "HNTightV2"){
-
-    //DY+TTLL CF
-
-    for(int i=0;i<2;i++){ 
-
-      if(abs(eles.at(i).scEta())<0.8){
-        if(1/eles.at(i).Pt()<0.0075) prob[i] = 2.91353e-04-2.96481e-02/eles.at(i).Pt();
-        else if(0.0075<=1/eles.at(i).Pt()&&1/eles.at(i).Pt()<0.0155) prob[i] = 1.25648e-04-6.16739e-03/eles.at(i).Pt();
-        else prob[i] = 3.75795e-05-7.16920e-04/eles.at(i).Pt();
-      }
-      else if(0.8<=abs(eles.at(i).scEta())&&abs(eles.at(i).scEta())<1.4442){
-        if(1/eles.at(i).Pt()<0.0055) prob[i] = 2.93283e-03-3.85095e-01/eles.at(i).Pt();
-        else if(0.0055<=1/eles.at(i).Pt()&&1/eles.at(i).Pt()<0.0155) prob[i] = 1.01466e-03-4.96765e-02/eles.at(i).Pt();
-        else prob[i] = 3.43620e-04-8.40559e-03/eles.at(i).Pt();
-      }
-      else if(1.556<=abs(eles.at(i).scEta())&&abs(eles.at(i).scEta())<2.5){
-        if(1/eles.at(i).Pt()<0.0105) prob[i] = 9.20799e-03-6.60680e-01/eles.at(i).Pt();
-        else if(0.0105<=1/eles.at(i).Pt()&&1/eles.at(i).Pt()<0.0205) prob[i] = 4.09673e-03-1.64067e-01/eles.at(i).Pt();
-        else prob[i] = 1.35968e-03-2.70099e-02/eles.at(i).Pt();
-      }
-
-    }
-
-    //
-  
-    return prob[0]/(1.-prob[0])+prob[1]/(1.-prob[1]);
-
-  }
-
-  else if(id == "HNTight2016"){
-
-    //DY+TTLL CF
-
-    for(int i=0;i<2;i++){
-
-      if(abs(eles.at(i).scEta())<0.8){
-        if(1/eles.at(i).Pt()<0.0075) prob[i] = 3.92360e-04-4.03780e-02/eles.at(i).Pt();
-        else if(0.0075<=1/eles.at(i).Pt()&&1/eles.at(i).Pt()<0.0155) prob[i] = 1.44985e-04-6.52879e-03/eles.at(i).Pt();
-        else prob[i] = 6.59979e-05-1.32125e-03/eles.at(i).Pt();
-      }
-      else if(0.8<=abs(eles.at(i).scEta())&&abs(eles.at(i).scEta())<1.4442){
-        if(1/eles.at(i).Pt()<0.0055) prob[i] = 2.61602e-03-3.16041e-01/eles.at(i).Pt();
-        else if(0.0055<=1/eles.at(i).Pt()&&1/eles.at(i).Pt()<0.0155) prob[i] = 1.09783e-03-5.16251e-02/eles.at(i).Pt();
-        else prob[i] = 3.85519e-04-8.10426e-03/eles.at(i).Pt();
-      }
-      else if(1.556<=abs(eles.at(i).scEta())&&abs(eles.at(i).scEta())<2.5){
-        if(1/eles.at(i).Pt()<0.0105) prob[i] = 9.63989e-03-7.02277e-01/eles.at(i).Pt();
-        else if(0.0105<=1/eles.at(i).Pt()&&1/eles.at(i).Pt()<0.0205) prob[i] = 4.38753e-03-1.75528e-01/eles.at(i).Pt();
-        else prob[i] = 1.60630e-03-3.15704e-02/eles.at(i).Pt();
-      }
-
-    }
-
-    //
-  
-    return prob[0]/(1.-prob[0])+prob[1]/(1.-prob[1]);
-
-  }
-
-}
-
-double ChargeFlip::GetCFweight_SF(std::vector<Electron> eles, TString id){
-  
-  double prob[2];
-  double SF_BB, SF_EE;
-
-  if(id == "HEID"){
-
-    //DY+TTLL CF
-    
-    SF_BB = 0.585841;
-    SF_EE = 0.831539;
-
-    for(int i=0;i<2;i++){
-
-      if(abs(eles.at(i).scEta())<0.8){
-        if(1/eles.at(i).Pt()<0.0075) prob[i] = (4.59433e-04-4.41286e-02/eles.at(i).Pt())*SF_BB;
-        else if(0.0075<=1/eles.at(i).Pt()&&1/eles.at(i).Pt()<0.0155) prob[i] = (2.01545e-04-8.19670e-03/eles.at(i).Pt())*SF_BB;
-        else prob[i] = (8.74309e-05-5.72703e-04/eles.at(i).Pt())*SF_BB;
-      }
-      else if(0.8<=abs(eles.at(i).scEta())&&abs(eles.at(i).scEta())<1.4442){
-        if(1/eles.at(i).Pt()<0.0055) prob[i] = (3.81412e-03-4.74900e-01/eles.at(i).Pt())*SF_BB;
-        else if(0.0055<=1/eles.at(i).Pt()&&1/eles.at(i).Pt()<0.0155) prob[i] = (1.60397e-03-6.97824e-02/eles.at(i).Pt())*SF_BB;
-        else prob[i] = (6.59614e-04-7.13587e-03/eles.at(i).Pt())*SF_BB;
-      }
-      else if(1.556<=abs(eles.at(i).scEta())&&abs(eles.at(i).scEta())<2.5){
-        if(1/eles.at(i).Pt()<0.0105) prob[i] = (1.23549e-02-6.80049e-01/eles.at(i).Pt())*SF_EE;
-        else if(0.0105<=1/eles.at(i).Pt()&&1/eles.at(i).Pt()<0.0205) prob[i] = (7.27935e-03-1.88277e-01/eles.at(i).Pt())*SF_EE;
-        else prob[i] = (4.06341e-03-3.22562e-02/eles.at(i).Pt())*SF_EE;
-      }
-
-    }
-
-    //
-
-    return prob[0]/(1.-prob[0])+prob[1]/(1.-prob[1]);
-
-  }
-
-  else if(id == "HNTight2016"){
-
-    //DY+TTLL CF
-
-    SF_BB = 0.585841;
-    SF_EE = 0.831539;
-
-    for(int i=0;i<2;i++){
-
-      if(abs(eles.at(i).scEta())<0.8){
-        if(1/eles.at(i).Pt()<0.0075) prob[i] = 3.92360e-04-4.03780e-02/eles.at(i).Pt();
-        else if(0.0075<=1/eles.at(i).Pt()&&1/eles.at(i).Pt()<0.0155) prob[i] = 1.44985e-04-6.52879e-03/eles.at(i).Pt();
-        else prob[i] = 6.59979e-05-1.32125e-03/eles.at(i).Pt();
-      }
-      else if(0.8<=abs(eles.at(i).scEta())&&abs(eles.at(i).scEta())<1.4442){
-        if(1/eles.at(i).Pt()<0.0055) prob[i] = 2.61602e-03-3.16041e-01/eles.at(i).Pt();
-        else if(0.0055<=1/eles.at(i).Pt()&&1/eles.at(i).Pt()<0.0155) prob[i] = 1.09783e-03-5.16251e-02/eles.at(i).Pt();
-        else prob[i] = 3.85519e-04-8.10426e-03/eles.at(i).Pt();
-      }
-      else if(1.556<=abs(eles.at(i).scEta())&&abs(eles.at(i).scEta())<2.5){
-        if(1/eles.at(i).Pt()<0.0105) prob[i] = 9.63989e-03-7.02277e-01/eles.at(i).Pt();
-        else if(0.0105<=1/eles.at(i).Pt()&&1/eles.at(i).Pt()<0.0205) prob[i] = 4.38753e-03-1.75528e-01/eles.at(i).Pt();
-        else prob[i] = 1.60630e-03-3.15704e-02/eles.at(i).Pt();
-      }
-
-    }
-
-    //
-
-    return prob[0]/(1.-prob[0])+prob[1]/(1.-prob[1]);
-
-  }
-
-}
-
-double ChargeFlip::GetHalfSampleWeight(const Electron& electron, TString id){
-
-  if(id == "HEID"){
-
-    //DY+TTLL
-
-    if(abs(electron.scEta())<0.8){
-      if(1/electron.Pt()<0.005) return 9.58505e-04-1.59759e-01/electron.Pt();
-      else if(0.005<=1/electron.Pt()&&1/electron.Pt()<0.0155) return 2.07325e-04-8.63460e-03/electron.Pt();
-      else return 9.37334e-05-9.81244e-04/electron.Pt();
-    }
-    else if(0.8<=abs(electron.scEta())&&abs(electron.scEta())<1.4442){
-      if(1/electron.Pt()<0.0055) return 3.82245e-03-4.55401e-01/electron.Pt();
-      else if(0.0055<=1/electron.Pt()&&1/electron.Pt()<0.0155) return 1.65421e-03-7.32609e-02/electron.Pt();
-      else return 6.57784e-04-6.53361e-03/electron.Pt();
-    }
-    else if(1.556<=abs(electron.scEta())&&abs(electron.scEta())<2.5){
-      if(1/electron.Pt()<0.01) return 1.27778e-02-7.44197e-01/electron.Pt();
-      else if(0.01<=1/electron.Pt()&&1/electron.Pt()<0.0205) return 7.25863e-03-1.88640e-01/electron.Pt();
-      else return 4.17112e-03-3.71866e-02/electron.Pt();
-    }
-
-    //
-
-  }
-
-  else if(id == "HNTight2016"){
-
-    //DY+TTLL
-
-    if(abs(electron.scEta())<0.8){
-      if(1/electron.Pt()<0.0075) return 4.12045e-04-4.45416e-02/electron.Pt();
-      else if(0.0075<=1/electron.Pt()&&1/electron.Pt()<0.0155) return 1.18690e-04-4.48807e-03/electron.Pt();
-      else return 7.28590e-05-1.58132e-03/electron.Pt();
-    }
-    else if(0.8<=abs(electron.scEta())&&abs(electron.scEta())<1.4442){
-      if(1/electron.Pt()<0.0055) return 3.20894e-03-4.20695e-01/electron.Pt();
-      else if(0.0055<=1/electron.Pt()&&1/electron.Pt()<0.0155) return 1.10226e-03-5.22899e-02/electron.Pt();
-      else return 3.83228e-04-8.13698e-03/electron.Pt();
-    }
-    else if(1.556<=abs(electron.scEta())&&abs(electron.scEta())<2.5){
-      if(1/electron.Pt()<0.01) return 1.01037e-02-7.46975e-01/electron.Pt();
-      else if(0.01<=1/electron.Pt()&&1/electron.Pt()<0.019) return 4.40033e-03-1.78011e-01/electron.Pt();
-      else return 1.59123e-03-3.18552e-02/electron.Pt();
-    }
-
-    //
-
-  }
-
-}
-
-*/

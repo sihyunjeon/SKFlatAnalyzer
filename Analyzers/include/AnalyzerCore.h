@@ -168,6 +168,7 @@ public:
   std::vector<Muon> MuonUsePtCone(const std::vector<Muon>& muons);
   Muon MuonUsePtCone(const Muon& muon);
   Particle UpdateMET(const Particle& METv, const std::vector<Muon>& muons);
+  Particle UpdateMETSmearedJet(const Particle& METv, const std::vector<Jet>& jets);
   Particle UpdateMETMuon(const Particle& METv, const std::vector<Muon>& muons);
   Particle UpdateMETElectron(const Particle& METv, const std::vector<Electron>& electrons);
   Particle UpdateMETElectronCF(const Particle& METv, const std::vector<Electron>& electrons1, const std::vector<Electron>& electrons2);

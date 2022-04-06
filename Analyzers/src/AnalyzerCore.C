@@ -383,11 +383,15 @@ std::vector<Jet> AnalyzerCore::GetAllJets(){
     Jet jet;
     jet.SetPtEtaPhiM(jet_pt->at(i), jet_eta->at(i), jet_phi->at(i), jet_m->at(i));
 
+    jet.SetPxUnSmeared(jet.Px());
+    jet.SetPyUnSmeared(jet.Py());
+
     //==== Jet energy up and down are 1.xx or 0.99, not energy
     jet.SetEnShift( jet_shiftedEnUp->at(i), jet_shiftedEnDown->at(i) );
     if(!IsDATA){
       jet *= jet_smearedRes->at(i);
       jet.SetResShift( jet_smearedResUp->at(i)/jet_smearedRes->at(i), jet_smearedResDown->at(i)/jet_smearedRes->at(i) );
+      jet.SetRes(jet_smearedRes->at(i));
     }
     jet.SetCharge(jet_charge->at(i));
 
@@ -1115,6 +1119,29 @@ Particle AnalyzerCore::UpdateMET(const Particle& METv, const std::vector<Muon>& 
     px_corrected += muons.at(i).Px();
     py_corrected += muons.at(i).Py();
 
+  }
+
+  met_x = met_x + px_orig - px_corrected;
+  met_y = met_y + py_orig - py_corrected;
+
+  Particle METout;
+  METout.SetPxPyPzE(met_x,met_y,0,sqrt(met_x*met_x+met_y*met_y));
+  return METout;
+
+}
+
+Particle AnalyzerCore::UpdateMETSmearedJet(const Particle& METv, const std::vector<Jet>& jets){
+
+  float met_x = METv.Px();
+  float met_y = METv.Py();
+
+  double px_orig(0.), py_orig(0.),px_corrected(0.), py_corrected(0.);
+  for(auto jet : jets){
+    px_orig+= jet.PxUnSmeared();
+    py_orig+= jet.PyUnSmeared();
+
+    px_corrected += jet.Px();
+    py_corrected += jet.Py();
   }
 
   met_x = met_x + px_orig - px_corrected;

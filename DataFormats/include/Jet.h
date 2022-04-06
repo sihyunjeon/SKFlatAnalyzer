@@ -28,11 +28,18 @@ public:
     else return j_En_down;
   }
   void SetResShift(double res_up, double res_down);
+  void SetRes(double res);
+  void SetPxUnSmeared(double px);
+  void SetPyUnSmeared(double py);
   inline double ResShift(int s) const {
     if(s==0) return 1.;
     else if(s>0) return j_Res_up;
     else return j_Res_down;
   }
+
+  inline double Res() const { return j_Res; }
+  inline double PxUnSmeared()  const { return j_PxUnSmeared; }
+  inline double PyUnSmeared()  const { return j_PyUnSmeared; }
 
   void SetTightJetID(double b);
   void SetTightLepVetoJetID(double b);
@@ -50,30 +57,33 @@ private:
   double  j_area;
   int j_partonFlavour;
   int j_hadronFlavour;
-  double  j_CSVv2;
-  double  j_DeepCSV;
-  double  j_DeepFlavour_b;
-  double  j_DeepFlavour_bb;
-  double  j_DeepFlavour_lepb;
-  double  j_DeepFlavour_c;
-  double  j_DeepFlavour_uds;
-  double  j_DeepFlavour_g;
-  double  j_CvsL;
-  double  j_CvsB;
-  double  j_DeepCvsL;
-  double  j_DeepCvsB;
-  double  j_chargedHadronEnergyFraction;
-  double  j_neutralHadronEnergyFraction;
-  double  j_neutralEmEnergyFraction;
-  double  j_chargedEmEnergyFraction;
+  double j_CSVv2;
+  double j_DeepCSV;
+  double j_DeepFlavour_b;
+  double j_DeepFlavour_bb;
+  double j_DeepFlavour_lepb;
+  double j_DeepFlavour_c;
+  double j_DeepFlavour_uds;
+  double j_DeepFlavour_g;
+  double j_CvsL;
+  double j_CvsB;
+  double j_DeepCvsL;
+  double j_DeepCvsB;
+  double j_chargedHadronEnergyFraction;
+  double j_neutralHadronEnergyFraction;
+  double j_neutralEmEnergyFraction;
+  double j_chargedEmEnergyFraction;
   double j_muonEnergyFraction;
   int j_chargedMultiplicity;
   int j_neutralMultiplicity;
   double j_PileupJetId;
   double j_En_up;
   double j_En_down;
+  double j_Res;
   double j_Res_up;
   double j_Res_down;
+  double j_PxUnSmeared;
+  double j_PyUnSmeared;
   bool j_tightJetID, j_tightLepVetoJetID;
 
   ClassDef(Jet,1)

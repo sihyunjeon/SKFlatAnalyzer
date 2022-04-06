@@ -142,6 +142,11 @@ double Electron::EA(){
 
 }
 
+bool Electron::isHEM() const{
+  if(-3.0<scEta()&&scEta()<-1.3 && -1.57<scPhi()&&scPhi()<-0.87) return true;
+  else return false;
+}
+
 bool Electron::PassID(TString ID) const{
 
   //==== XXX veto Gap Always
@@ -169,6 +174,7 @@ bool Electron::PassID(TString ID) const{
   if(ID=="HNTight2016") return Pass_HNTight2016();
   //==== Run2
   if(ID=="ISRVeto") return Pass_ISRVeto(0.6);
+  if(ID=="HNVeto") return Pass_HNVeto(0.6);
   if(ID=="HNLooseV1") return Pass_HNLoose(0.6, 0.05, 0.1, 4., true);
   if(ID=="HNTightV1") return Pass_HNTight(0.05, 0.1, 4., true);
 
@@ -387,6 +393,13 @@ bool Electron::Pass_TriggerEmulation() const{
 bool Electron::Pass_ISRVeto(double relisoCut) const{
   if(! (Pass_CutBasedVetoNoIso()) ) return false;
   if(! (RelIso()<relisoCut) ) return false;
+  return true;
+}
+
+bool Electron::Pass_HNVeto(double relisoCut) const{
+  if(! (Pass_CutBasedVetoNoIso()) ) return false;
+  if(! (RelIso()<relisoCut) ) return false;
+  if(! (fabs(dXY())<0.2 && fabs(dZ())<0.5) ) return false;
   return true;
 }
 
