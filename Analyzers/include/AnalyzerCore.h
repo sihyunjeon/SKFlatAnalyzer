@@ -174,6 +174,7 @@ public:
   Particle UpdateMETElectronCF(const Particle& METv, const std::vector<Electron>& electrons1, const std::vector<Electron>& electrons2);
   std::vector<Muon> MuonApplyPtCut(const std::vector<Muon>& muons, double ptcut);
   std::vector<Electron> ElectronPromptOnly(const std::vector<Electron>& electrons, const std::vector<Gen>& gens);
+  std::vector<Electron> ElectronPromptOnlyHN(const std::vector<Electron>& electrons, const std::vector<Gen>& gens);
   std::vector<Electron> ElectronPromptOnlyChargeFlip(const std::vector<Electron>& electrons, const std::vector<Gen>& gens);
   std::vector<Electron> ElectronUsePtCone(const std::vector<Electron>& electrons);
   Electron ElectronUsePtCone(const Electron& electron);
@@ -196,6 +197,8 @@ public:
   //==== GenMatching
 
   void PrintGen(const std::vector<Gen>& gens);
+  bool IsCF(Electron el, std::vector<Gen> gens);
+  bool ConversionVeto(std::vector<Lepton *> leps,const std::vector<Gen>& gens);
   static Gen GetGenMatchedLepton(const Lepton& lep, const std::vector<Gen>& gens);
   static Gen GetGenMatchedPhoton(const Lepton& lep, const std::vector<Gen>& gens);
   static vector<int> TrackGenSelfHistory(const Gen& me, const std::vector<Gen>& gens);
@@ -218,6 +221,7 @@ public:
   TH3D* GetHist3D(TString histname);
 
   void FillHist(TString histname, double value, double weight, int n_bin, double x_min, double x_max);
+  void FillHistLabel(TString histname, vector<TString> labels, TString label, double weight);
   void FillHist(TString histname, double value, double weight, int n_bin, double *xbins);
   void FillHist(TString histname,
                 double value_x, double value_y,
@@ -271,6 +275,11 @@ public:
   void SwitchToTempDir();
   TFile *outfile=NULL;
   void SetOutfilePath(TString outname);
+
+  //==== Type1 dedicated
+  bool RunSR1(TString channel, TString cutopt, TString IDsuffix, std::vector<Lepton*> leptons, vector<Jet> jets, vector<FatJet> fatjets, double MET, vector<TString> labels, vector<double> cuts, double weight, int DrawCR);
+  bool RunSR2(TString channel, TString cutopt, TString IDsuffix, std::vector<Lepton*> leptons, vector<Jet> jets, vector<FatJet> fatjets, double MET, vector<TString> labels, vector<double> cuts, double weight, int DrawCR);
+  bool RunSR3(TString channel, TString cutopt, TString IDsuffix, std::vector<Lepton*> leptons, vector<Jet> jets, vector<FatJet> fatjets, double MET, vector<TString> labels, vector<double> cuts, double weight, int DrawCR);
 
 };
 

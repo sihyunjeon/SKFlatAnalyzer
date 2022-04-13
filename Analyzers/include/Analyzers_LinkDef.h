@@ -22,5 +22,6 @@
 #pragma link C++ class Signal+;
 #pragma link C++ class Test+;
 #pragma link C++ class ChargeFlip+;
+#pragma link C++ class HNType1+;
 
 #endif
