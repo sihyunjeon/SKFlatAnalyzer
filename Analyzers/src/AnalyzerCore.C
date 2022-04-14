@@ -1203,6 +1203,41 @@ Particle AnalyzerCore::UpdateMETElectron(const Particle& METv, const std::vector
 
 }
 
+Particle AnalyzerCore::UpdateMETFake(const Particle& METv, const std::vector<Electron>& electrons, const std::vector<Muon>& muons){
+
+  double met_x = METv.Px();
+  double met_y = METv.Py();
+
+  double px_orig(0.), py_orig(0.), px_corrected(0.), py_corrected(0.);
+  for(unsigned int i=0; i<electrons.size(); i++){
+
+    px_orig += electrons.at(i).Px();
+    py_orig += electrons.at(i).Py();
+
+    px_corrected += electrons.at(i).PtCone()*TMath::Cos(electrons.at(i).Phi());
+    py_corrected += electrons.at(i).PtCone()*TMath::Sin(electrons.at(i).Phi());
+
+  }
+
+  for(unsigned int i=0; i<muons.size(); i++){
+
+    px_orig += muons.at(i).Px();
+    py_orig += muons.at(i).Py();
+
+    px_corrected += muons.at(i).PtCone()*TMath::Cos(muons.at(i).Phi());
+    py_corrected += muons.at(i).PtCone()*TMath::Sin(muons.at(i).Phi());
+
+  }
+
+  met_x = met_x + px_orig - px_corrected;
+  met_y = met_y + py_orig - py_corrected;
+
+  Particle METout;
+  METout.SetPxPyPzE(met_x,met_y,0,sqrt(met_x*met_x+met_y*met_y));
+  return METout;
+
+}
+
 Particle AnalyzerCore::UpdateMETElectronCF(const Particle& METv, const std::vector<Electron>& electrons1, const std::vector<Electron>& electrons2){
 
   double met_x = METv.Px();

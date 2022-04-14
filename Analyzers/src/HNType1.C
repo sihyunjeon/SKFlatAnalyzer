@@ -332,9 +332,9 @@ void HNType1::executeEventFromParameter(AnalyzerParameter param){
     ElectronID = param.Electron_Loose_ID;
   }
 
-  vector<Muon> muons = MuonPromptOnly(SelectMuons(this_AllMuons, MuonID, 10., 2.4),gens);
+  vector<Muon> muons = MuonPromptOnly(SelectMuons(this_AllMuons, MuonID, 10., 2.4), gens);
   vector<Muon> muons_veto = SelectMuons(this_AllMuons, param.Muon_Veto_ID, 5., 2.4);
-  vector<Electron> electrons = ElectronPromptOnlyHN(SelectElectrons(this_AllElectrons, ElectronID, 10., 2.5),gens);
+  vector<Electron> electrons = ElectronPromptOnlyHN(SelectElectrons(this_AllElectrons, ElectronID, 10., 2.5), gens);
   vector<Electron> electrons_loose = SelectElectrons(this_AllElectrons, param.Electron_Loose_ID, 10., 2.5);
   vector<Electron> electrons_veto = SelectElectrons(this_AllElectrons, param.Electron_Veto_ID, 10., 2.5); //JH : lepton selection done
   vector<Jet> jets_forward_nolepveto = SelectJetsPileupMVA(SelectJets(this_AllJets, param.Jet_ID, 20., 4.7), "loose"); // JH : we might see how to set pt cut later
@@ -445,7 +445,6 @@ void HNType1::executeEventFromParameter(AnalyzerParameter param){
     this_ptcone_muon = muons.at(i).CalcPtCone(muons.at(i).RelIso(), mu_tight_iso); //JH : CalcPtCone() in Lepton.h; this returns (i) pt for more tightly isolated leptons than the tight_iso, or (ii) pt + pt*(RelIso-tight_iso) which is the proxy for the mother parton's pt -> used for fake estimation
     muons.at(i).SetPtCone(this_ptcone_muon);
   }
-   
   for(unsigned int i=0; i<electrons.size(); i++){
     if(IDsuffix == "HN2016") el_tight_iso = 0.08;
     if(param.Electron_Tight_ID.Contains("HNTight")){ // POG cut-based tight WP
@@ -454,6 +453,16 @@ void HNType1::executeEventFromParameter(AnalyzerParameter param){
     }
     this_ptcone_electron = electrons.at(i).CalcPtCone(electrons.at(i).RelIso(), el_tight_iso);
     electrons.at(i).SetPtCone(this_ptcone_electron);
+  }
+
+  if(RunFake){
+      //==== Correct MET if RunFake=true, because pT was replaced by pTcone
+      METv = UpdateMETFake(METv, electrons, muons);
+
+      muons = MuonUsePtCone(muons);
+      electrons = ElectronUsePtCone(electrons);
+      std::sort(muons.begin(), muons.end(), PtComparing);
+      std::sort(electrons.begin(), electrons.end(), PtComparing);
   }
 
   //if(muons.size()==2 && electrons.size()==0){

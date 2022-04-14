@@ -171,6 +171,7 @@ public:
   Particle UpdateMETSmearedJet(const Particle& METv, const std::vector<Jet>& jets);
   Particle UpdateMETMuon(const Particle& METv, const std::vector<Muon>& muons);
   Particle UpdateMETElectron(const Particle& METv, const std::vector<Electron>& electrons);
+  Particle UpdateMETFake(const Particle& METv, const std::vector<Electron>& electrons, const std::vector<Muon>& muons);
   Particle UpdateMETElectronCF(const Particle& METv, const std::vector<Electron>& electrons1, const std::vector<Electron>& electrons2);
   std::vector<Muon> MuonApplyPtCut(const std::vector<Muon>& muons, double ptcut);
   std::vector<Electron> ElectronPromptOnly(const std::vector<Electron>& electrons, const std::vector<Gen>& gens);
