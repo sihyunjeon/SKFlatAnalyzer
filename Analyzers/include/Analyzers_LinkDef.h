@@ -23,5 +23,6 @@
 #pragma link C++ class Test+;
 #pragma link C++ class ChargeFlip+;
 #pragma link C++ class HNType1+;
+#pragma link C++ class NonIso+;
 
 #endif
