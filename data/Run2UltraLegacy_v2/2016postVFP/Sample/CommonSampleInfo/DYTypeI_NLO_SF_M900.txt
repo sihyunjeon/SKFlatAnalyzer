@@ -1,0 +1,2 @@
+# alias PD xsec nmc sumw
+DYTypeI_NLO_SF_M900 DYTypeI_NLO_SF_M900  0.003301848162 199000 185730.0 
