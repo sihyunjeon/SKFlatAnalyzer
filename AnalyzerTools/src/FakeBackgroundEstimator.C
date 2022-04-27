@@ -13,7 +13,7 @@ void FakeBackgroundEstimator::ReadHistograms(){
 
   TString datapath = getenv("DATA_DIR");
   //datapath = datapath+"/"+GetEra()+"/FakeRate/";
-  datapath = datapath+"/"+Form("%d",GetYear())+"/FakeRate/"; //JH : I will conbine 2016 fake rate
+  datapath = datapath+"/"+Form("%d",GetYear())+"/FakeRate/"; //JH : I will combine 2016 fake rate
 
   TDirectory* origDir = gDirectory;
 
@@ -73,10 +73,10 @@ double FakeBackgroundEstimator::GetElectronFakeRate(TString ID, TString key, dou
 
   eta = fabs(eta);
 
-  if(pt>=200) pt = 199;
+  if(pt>=80.) pt = 79.;
   if(eta>=2.5) eta = 2.49;
   //==== HOTFIX FIXME
-  if(eta>=1.479 && pt>=150) pt = 149.;
+  //if(eta>=1.479 && pt>=150) pt = 149.;
 
   std::map< TString, TH2D* >::const_iterator mapit;
   mapit = map_hist_Electron.find(ID+"_"+key);

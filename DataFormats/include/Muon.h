@@ -62,6 +62,8 @@ public:
   inline bool isPOGMedium() const {return PassSelector(CutBasedIdMedium);}
   inline bool isPOGLoose() const {return PassSelector(CutBasedIdLoose);}
 
+  inline bool isMiniIsoMedium() const {return PassSelector(MiniIsoMedium);}
+
   //==== TODO isOLDPOGHighPt returns values from bit, which is before the update
   //==== In UltraLegacy, this should be removed
   inline bool isOLDPOGHighPt() const {return PassSelector(CutBasedIdGlobalHighPt);}
@@ -102,6 +104,7 @@ public:
   bool PassID(TString ID) const;
   bool Pass_POGTightWithTightIso() const;
   bool Pass_POGHighPtWithLooseTrkIso() const;
+  bool Pass_POGHighPtWithLooseMiniIso() const;
   bool Pass_TESTID() const;
 
   //==== EXO-17-028 ID

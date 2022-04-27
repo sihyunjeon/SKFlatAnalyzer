@@ -39,6 +39,7 @@ public:
 
   bool PassID(TString ID) const;
   bool Pass_HNTight(double tau21Cut) const;
+  bool Pass_HN() const;
 
   double GetTaggerResult(JetTagging::Tagger tg) const;
 
