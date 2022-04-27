@@ -1,2 +1,0 @@
-# alias PD xsec nmc sumw
-SSWWTypeI_NLO_SF_M1200 SSWWTypeI_NLO_SF_M1200  0.0224 376500 138030.0 

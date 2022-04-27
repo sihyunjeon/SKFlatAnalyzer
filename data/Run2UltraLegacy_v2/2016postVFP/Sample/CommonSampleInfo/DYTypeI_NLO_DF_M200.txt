@@ -1,2 +1,0 @@
-# alias PD xsec nmc sumw
-DYTypeI_NLO_DF_M200 DYTypeI_NLO_DF_M200  1.431145091020 432000 400698.0 

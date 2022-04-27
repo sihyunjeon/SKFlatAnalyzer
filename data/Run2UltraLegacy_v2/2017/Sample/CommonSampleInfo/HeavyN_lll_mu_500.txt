@@ -1,2 +1,0 @@
-# alias PD xsec nmc sumw
-HeavyN_lll_mu_500 HeavyNeutrino_trilepton_M-500_V-0p01_mu_NLO_TuneCP5_13TeV-madgraph-pythia8  0.00820300 99138 93028.0 

@@ -1,2 +1,0 @@
-# alias PD xsec nmc sumw
-WZJJToLNu WZJJ  0.01780708628 196000 196000.0 

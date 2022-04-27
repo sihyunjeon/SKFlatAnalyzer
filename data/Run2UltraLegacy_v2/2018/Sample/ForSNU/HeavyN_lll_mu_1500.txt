@@ -1,3 +1,0 @@
-/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2018/MC/HeavyNeutrino_trilepton_M-1500_V-0p01_mu_NLO_TuneCP5_13TeV-madgraph-pythia8/210907_144409/0000/SKFlatNtuple_2018_MC_1.root
-/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2018/MC/HeavyNeutrino_trilepton_M-1500_V-0p01_mu_NLO_TuneCP5_13TeV-madgraph-pythia8/210907_144409/0000/SKFlatNtuple_2018_MC_2.root
-/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2018/MC/HeavyNeutrino_trilepton_M-1500_V-0p01_mu_NLO_TuneCP5_13TeV-madgraph-pythia8/210907_144409/0000/SKFlatNtuple_2018_MC_3.root
