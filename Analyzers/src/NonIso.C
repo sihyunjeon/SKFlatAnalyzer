@@ -306,6 +306,7 @@ void NonIso::executeEventFromParameter(AnalyzerParameter param){
   //===================================
 
   Particle METv = ev.GetMETVector();
+  double MET = METv.Pt();
 
   //=========================
   //==== Event selections..
@@ -322,13 +323,18 @@ void NonIso::executeEventFromParameter(AnalyzerParameter param){
   FillHist("Nocut/Number_Mu_highpt", muons_highpt.size(), weight, 10, 0., 10.);
   FillHist("Nocut/Number_Mu_highptmini", muons_highptmini.size(), weight, 10, 0., 10.);
   FillHist("Nocut/Number_Fatjet", fatjets.size(), weight, 10, 0., 10.);
+  FillHist("Nocut/MET", MET, weight, 1500, 0., 1500.);
   if(muons_highpt.size()>0){
     FillHist("Nocut/Mu1_highpt_Pt", muons_highpt.at(0).Pt(), weight, 1500, 0., 1500.);
     FillHist("Nocut/Mu1_highpt_Eta", muons_highpt.at(0).Eta(), weight, 50, -2.5, 2.5);
+    FillHist("Nocut/Mu1_highpt_RelIso", muons_highpt.at(0).RelIso(), weight, 100, 0., 1.);
+    FillHist("Nocut/Mu1_highpt_MiniRelIso", muons_highpt.at(0).MiniRelIso(), weight, 100, 0., 1.);
   }
   if(muons_highptmini.size()>0){
     FillHist("Nocut/Mu1_highptmini_Pt", muons_highptmini.at(0).Pt(), weight, 1500, 0., 1500.);
     FillHist("Nocut/Mu1_highptmini_Eta", muons_highptmini.at(0).Eta(), weight, 50, -2.5, 2.5);
+    FillHist("Nocut/Mu1_highptmini_RelIso", muons_highptmini.at(0).RelIso(), weight, 100, 0., 1.);
+    FillHist("Nocut/Mu1_highptmini_MiniRelIso", muons_highptmini.at(0).MiniRelIso(), weight, 100, 0., 1.);
   }
   if(fatjets.size()>0){
     FillHist("Nocut/FatJet_Pt", fatjets.at(0).Pt(), weight, 1500, 0., 1500.);
@@ -356,13 +362,18 @@ void NonIso::executeEventFromParameter(AnalyzerParameter param){
   FillHist("Trig/Number_Mu_highpt", muons_highpt.size(), weight, 10, 0., 10.);
   FillHist("Trig/Number_Mu_highptmini", muons_highptmini.size(), weight, 10, 0., 10.);
   FillHist("Trig/Number_Fatjet", fatjets.size(), weight, 10, 0., 10.);
+  FillHist("Trig/MET", MET, weight, 1500, 0., 1500.);
   if(muons_highpt.size()>0){
     FillHist("Trig/Mu1_highpt_Pt", muons_highpt.at(0).Pt(), weight, 1500, 0., 1500.);
     FillHist("Trig/Mu1_highpt_Eta", muons_highpt.at(0).Eta(), weight, 50, -2.5, 2.5);
+    FillHist("Trig/Mu1_highpt_RelIso", muons_highpt.at(0).RelIso(), weight, 100, 0., 1.);
+    FillHist("Trig/Mu1_highpt_MiniRelIso", muons_highpt.at(0).MiniRelIso(), weight, 100, 0., 1.);
   }
   if(muons_highptmini.size()>0){
     FillHist("Trig/Mu1_highptmini_Pt", muons_highptmini.at(0).Pt(), weight, 1500, 0., 1500.);
     FillHist("Trig/Mu1_highptmini_Eta", muons_highptmini.at(0).Eta(), weight, 50, -2.5, 2.5);
+    FillHist("Trig/Mu1_highptmini_RelIso", muons_highptmini.at(0).RelIso(), weight, 100, 0., 1.);
+    FillHist("Trig/Mu1_highptmini_MiniRelIso", muons_highptmini.at(0).MiniRelIso(), weight, 100, 0., 1.);
   }
   if(fatjets.size()>0){
     FillHist("Trig/FatJet_Pt", fatjets.at(0).Pt(), weight, 1500, 0., 1500.);
@@ -377,18 +388,21 @@ void NonIso::executeEventFromParameter(AnalyzerParameter param){
     FillHist("Trig/dR2", muons_highptmini.at(0).DeltaR(fatjets.at(0)), weight, 50, 0., 5.);
   }
 
-  if(muons_highpt.size()==1 && fatjets.size()==1){
+  if(muons_highpt.size()==1 && fatjets.size()==1 && MET>100.){
     if(muons_highpt.at(0).DeltaR(fatjets.at(0))<0.8){
       if(fatjets.at(0).LSF()>0.75){
         FillHist("dRlt0p8/Nevents", 2.5, weight, 5, 0., 5.);
         FillHist("dRlt0p8/Nevents_unweighted", 2.5, 1., 5, 0., 5.);
         FillHist("dRlt0p8/Mu_Pt", muons_highpt.at(0).Pt(), weight, 1500, 0., 1500.);
         FillHist("dRlt0p8/Mu_Eta", muons_highpt.at(0).Eta(), weight, 50, -2.5, 2.5);
+        FillHist("dRlt0p8/Mu_RelIso", muons_highpt.at(0).RelIso(), weight, 100, 0., 1.);
+        FillHist("dRlt0p8/Mu_MiniRelIso", muons_highpt.at(0).MiniRelIso(), weight, 100, 0., 1.);
         FillHist("dRlt0p8/FatJet_Pt", fatjets.at(0).Pt(), weight, 1500, 0., 1500.);
         FillHist("dRlt0p8/FatJet_Eta", fatjets.at(0).Eta(), weight, 100, -5, 5);
         FillHist("dRlt0p8/FatJet_Mass", fatjets.at(0).SDMass(), weight, 1500, 0., 1500.);
         FillHist("dRlt0p8/FatJet_LSF", fatjets.at(0).LSF(), weight, 20, 0., 2.);
         FillHist("dRlt0p8/dR", muons_highpt.at(0).DeltaR(fatjets.at(0)), weight, 50, 0., 5.);
+        FillHist("dRlt0p8/MET", MET, weight, 1500, 0., 1500.);
       }
     }
     else{
@@ -406,12 +420,15 @@ void NonIso::executeEventFromParameter(AnalyzerParameter param){
         FillHist("dRgt0p8/mini/Number_Mu_highpt", muons_highpt.size(), weight, 2, 0., 2.);
         FillHist("dRgt0p8/mini/Mu_Pt", muons_highptmini.at(0).Pt(), weight, 1500, 0., 1500.);
         FillHist("dRgt0p8/mini/Mu_Eta", muons_highptmini.at(0).Eta(), weight, 50, -2.5, 2.5);
+        FillHist("dRgt0p8/mini/Mu_RelIso", muons_highptmini.at(0).RelIso(), weight, 100, 0., 1.);
+        FillHist("dRgt0p8/mini/Mu_MiniRelIso", muons_highptmini.at(0).MiniRelIso(), weight, 100, 0., 1.);
         FillHist("dRgt0p8/mini/FatJet_Pt", fatjets.at(0).Pt(), weight, 1500, 0., 1500.);
         FillHist("dRgt0p8/mini/FatJet_Eta", fatjets.at(0).Eta(), weight, 100, -5, 5);
         FillHist("dRgt0p8/mini/FatJet_Mass", fatjets.at(0).SDMass(), weight, 1500, 0., 1500.);
         FillHist("dRgt0p8/mini/FatJet_LSF", fatjets.at(0).LSF(), weight, 20, 0., 2.);
         FillHist("dRgt0p8/mini/dR", muons_highptmini.at(0).DeltaR(fatjets.at(0)), weight, 50, 0., 5.);
         FillHist("dRgt0p8/mini/dR_validation", muons_highpt.at(0).DeltaR(fatjets.at(0)), weight, 50, 0., 5.);
+        FillHist("dRgt0p8/mini/MET", MET, weight, 1500, 0., 1500.);
       }
     }
   }
