@@ -504,412 +504,410 @@ void ChargeFlip::executeEventFromParameter(AnalyzerParameter param, Long64_t Nen
   }
 
   // Scale Factor measurement //
-
-  else{ //if IsDATA;
     
+  /*
+  if(HasFlag("ScaleFactor_Old")){
+
+    if(!PassMETFilter()) return;
+    if(! (ev.PassTrigger(EleTriggerName) )) return;
+    
+    Particle METv = ev.GetMETVector();
+  
+    // CF SF ID selection //
+  
+    eles = SelectElectrons(AllEles, param.Electron_Tight_ID, MinPt, 2.5);
+
+    std::sort(eles.begin(), eles.end(), PtComparing);
+  
+    if(eles.size() != 2) return;
+    //if(eles.at(0).Pt()<lep0ptcut||eles.at(1).Pt()<lep1ptcut) return; //No need already pt min = 25
+  
+    Particle ZCand = eles.at(0)+eles.at(1);
+    if(! (MllLeft<=ZCand.M()&&ZCand.M()<MllRight) ) return;
+  
+    // BB
+    if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
+  
+      if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+        FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS", ZCand.M(), 1., NBin, MllLeft, MllRight);
+      }
+  
+    }
+  
+    // BE
+    if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
+  
+      if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+        FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS", ZCand.M(), 1., NBin, MllLeft, MllRight);
+      }
+  
+    }
+  
+    // EE
+    if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
+  
+      if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+        FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS", ZCand.M(), 1., NBin, MllLeft, MllRight);
+      }
+  
+    }
+  
+    // Now let's shift the electrons' energy X% //
+    
+    vector<Electron> eles_shifted = eles; // copy the vector
+    double X;
+    if(DataYear==2016){
+      if(param.Electron_Tight_ID=="HNTightV1") X = 1.0;
+    }
+    else if(DataYear==2017){
+      if(param.Electron_Tight_ID=="HNTightV1") X = 1.0;
+    }
+    else if(DataYear==2018){
+      if(param.Electron_Tight_ID=="HNTightV1") X = 0.8;
+    }
+    TString X_string = Form("%f",X);
+    X_string = X_string(0,3)+"%";
+    
+    for(int j=0;j<2;j++){
+      eles_shifted.at(j).SetE(eles_shifted.at(j).E()*(1-X/100));
+      eles_shifted.at(j).SetPtEtaPhiE(eles_shifted.at(j).E() * TMath::Sin(eles_shifted.at(j).Theta()), eles_shifted.at(j).Eta(), eles_shifted.at(j).Phi(), eles_shifted.at(j).E());
+    }
+  
+    Particle ZCand_shifted = eles_shifted.at(0) + eles_shifted.at(1);
+    double weight_shifted = GetCFweight(eles_shifted, param.Electron_Tight_ID, false, 0.);
+    double weight_shifted_SF_BWexpo_BWexpo = 0.;
+    double weight_shifted_SF_BWexpo_gauspol3 = 0.;
+    double weight_shifted_SF_gauspol3_BWexpo = 0.;
+    double weight_shifted_SF_gauspol3_gauspol3 = 0.;
+    if(DataYear==2016){
+      weight_shifted_SF_BWexpo_gauspol3 = GetCFweight(eles_shifted, param.Electron_Tight_ID, true, "BW_expo", "gaus_pol3");
+      weight_shifted_SF_gauspol3_gauspol3 = GetCFweight(eles_shifted, param.Electron_Tight_ID, true, "gaus_pol3", "gaus_pol3");
+    }
+    if(DataYear==2017){
+      weight_shifted_SF_BWexpo_BWexpo = GetCFweight(eles_shifted, param.Electron_Tight_ID, true, "BW_expo", "BW_expo");
+      weight_shifted_SF_BWexpo_gauspol3 = GetCFweight(eles_shifted, param.Electron_Tight_ID, true, "BW_expo", "gaus_pol3");
+      weight_shifted_SF_gauspol3_BWexpo = GetCFweight(eles_shifted, param.Electron_Tight_ID, true, "gaus_pol3", "BW_expo");
+      weight_shifted_SF_gauspol3_gauspol3 = GetCFweight(eles_shifted, param.Electron_Tight_ID, true, "gaus_pol3", "gaus_pol3");
+    }
+    if(DataYear==2018){
+      weight_shifted_SF_gauspol3_gauspol3 = GetCFweight(eles_shifted, param.Electron_Tight_ID, true, "gaus_pol3", "gaus_pol3");
+    }
+  
+    Particle METv_shifted;
+    METv_shifted.SetPxPyPzE(METv.Px()+ZCand.Px()-ZCand_shifted.Px(),METv.Py()+ZCand.Py()-ZCand_shifted.Py(),0,METv.E()+ZCand.E()-ZCand_shifted.E());
+  
+    if(MllLeft<=ZCand_shifted.M()&&ZCand_shifted.M()<MllRight){
+      if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+  
+        // BB
+        if(abs(eles_shifted.at(0).scEta())<1.4442&&abs(eles_shifted.at(1).scEta())<1.4442){
+          FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_CFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted, NBin, MllLeft, MllRight);
+          //FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_CFSFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF, NBin, MllLeft, MllRight);
+        }
+    
+        // BE
+        if((abs(eles_shifted.at(0).scEta())<1.4442&&abs(eles_shifted.at(1).scEta())>=1.556)||(abs(eles_shifted.at(0).scEta())>=1.556&&abs(eles_shifted.at(1).scEta())<1.4442)){
+          if(DataYear==2016){
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFSF_BWexpo_gauspol3_weighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF_BWexpo_gauspol3, NBin, MllLeft, MllRight);
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFSF_gauspol3_gauspol3_weighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF_gauspol3_gauspol3, NBin, MllLeft, MllRight);
+          }
+          else if(DataYear==2017){
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFSF_BWexpo_BWexpo_weighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF_BWexpo_BWexpo, NBin, MllLeft, MllRight);
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFSF_BWexpo_gauspol3_weighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF_BWexpo_gauspol3, NBin, MllLeft, MllRight);
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFSF_gauspol3_BWexpo_weighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF_gauspol3_BWexpo, NBin, MllLeft, MllRight);
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFSF_gauspol3_gauspol3_weighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF_gauspol3_gauspol3, NBin, MllLeft, MllRight);
+          }
+          if(DataYear==2018){
+            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFSF_gauspol3_gauspol3_weighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF_gauspol3_gauspol3, NBin, MllLeft, MllRight);
+          }
+        }
+    
+        // EE
+        if(abs(eles_shifted.at(0).scEta())>=1.556&&abs(eles_shifted.at(1).scEta())>=1.556){
+          FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_CFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted, NBin, MllLeft, MllRight);
+          //FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_CFSFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF, NBin, MllLeft, MllRight);
+        }
+        
+      }
+    }
+  }
+  */
+
+  if(HasFlag("ScaleFactor")){
+
+    if(!PassMETFilter()) return;
+    if(! (ev.PassTrigger(EleTriggerName) )) return;
+
+    Particle METv = ev.GetMETVector();
+
+    // CF SF ID selection //
+
+    eles = SelectElectrons(AllEles, param.Electron_Tight_ID, MinPt, 2.5);
+    eles_veto = SelectElectrons(AllEles, param.Electron_Veto_ID, MinPt, 2.5);
+    vector<Jet> jets_nolepveto = SelectJets(AllJets, "HNTight", 20., 2.7); //JH : to reject bjets
+
+    std::sort(eles.begin(), eles.end(), PtComparing);
+    std::sort(eles_veto.begin(), eles_veto.end(), PtComparing);
+    int ele_veto_size = eles_veto.size() - eles.size();
+
+    std::sort(jets_nolepveto.begin(), jets_nolepveto.end(), PtComparing);
+    int Nbjet_loose = 0, Nbjet_medium = 0;
+    JetTagging::Parameters jtp_DeepCSV_Medium = JetTagging::Parameters(JetTagging::DeepCSV, JetTagging::Medium, JetTagging::incl, JetTagging::comb);
+    for(unsigned int ij=0; ij<jets_nolepveto.size(); ij++){
+      if(mcCorr->IsBTagged_2a(jtp_DeepCSV_Medium, jets_nolepveto.at(ij))) Nbjet_medium++; //JH : count Nbjet. NOTE : AN says they used CVSv2 and medium WP.
+    }
+
+    if(eles.size() != 2) return;
+    if(HasFlag("HEM")){
+      if( eles.at(0).isHEM()||eles.at(1).isHEM() ) return;
+    }
+    //if(eles.at(0).Pt()<lep0ptcut||eles.at(1).Pt()<lep1ptcut) return; //No need already pt min = 25
+
+    double MCweight = 1.; // JH : test how DY distribution change with MC weight
+    if(!IsDATA && MCSample.Contains("DYJets")){
+      MCweight *= ev.MCweight();
+      vector<Gen> gens = GetGens();
+      for(unsigned int i=0; i<eles.size(); i++){
+        if(GetLeptonType(eles.at(i), gens)<=0 || GetLeptonType(eles.at(i), gens)>=4) return; // JH : To extract MC template
+      }
+    }
+
+    Particle ZCand = eles.at(0)+eles.at(1);
+    if(! (MllLeft<=ZCand.M()&&ZCand.M()<MllRight) ) return;
+
+    // BB
+    if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
+      if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+        FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+      }
+      if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+        FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+      } //JH : if you want to check OS distribution before applying the CF weight
+    }
+    // BE
+    if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
+      if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+        FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+      }
+      if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+        FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+      }
+    }
+    // EE
+    if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
+      if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+        FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+      }
+      if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+        FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+      }
+    }
+
     /*
-    if(HasFlag("ScaleFactor_Old")){
-
-      if(!PassMETFilter()) return;
-      if(! (ev.PassTrigger(EleTriggerName) )) return;
-      
-      Particle METv = ev.GetMETVector();
-  
-      // CF SF ID selection //
-  
-      eles = SelectElectrons(AllEles, param.Electron_Tight_ID, MinPt, 2.5);
-
-      std::sort(eles.begin(), eles.end(), PtComparing);
-  
-      if(eles.size() != 2) return;
-      //if(eles.at(0).Pt()<lep0ptcut||eles.at(1).Pt()<lep1ptcut) return; //No need already pt min = 25
-  
-      Particle ZCand = eles.at(0)+eles.at(1);
-      if(! (MllLeft<=ZCand.M()&&ZCand.M()<MllRight) ) return;
-  
+    if(METv.Pt() < 50){
       // BB
       if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
-  
         if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-          FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS", ZCand.M(), 1., NBin, MllLeft, MllRight);
+          FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
         }
-  
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+          FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
       }
-  
       // BE
       if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
-  
         if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-          FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS", ZCand.M(), 1., NBin, MllLeft, MllRight);
+          FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
         }
-  
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+          FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
       }
-  
       // EE
       if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
-  
         if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-          FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS", ZCand.M(), 1., NBin, MllLeft, MllRight);
+          FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
         }
-  
-      }
-  
-      // Now let's shift the electrons' energy X% //
-      
-      vector<Electron> eles_shifted = eles; // copy the vector
-      double X;
-      if(DataYear==2016){
-        if(param.Electron_Tight_ID=="HNTightV1") X = 1.0;
-      }
-      else if(DataYear==2017){
-        if(param.Electron_Tight_ID=="HNTightV1") X = 1.0;
-      }
-      else if(DataYear==2018){
-        if(param.Electron_Tight_ID=="HNTightV1") X = 0.8;
-      }
-      TString X_string = Form("%f",X);
-      X_string = X_string(0,3)+"%";
-      
-      for(int j=0;j<2;j++){
-        eles_shifted.at(j).SetE(eles_shifted.at(j).E()*(1-X/100));
-        eles_shifted.at(j).SetPtEtaPhiE(eles_shifted.at(j).E() * TMath::Sin(eles_shifted.at(j).Theta()), eles_shifted.at(j).Eta(), eles_shifted.at(j).Phi(), eles_shifted.at(j).E());
-      }
-  
-      Particle ZCand_shifted = eles_shifted.at(0) + eles_shifted.at(1);
-      double weight_shifted = GetCFweight(eles_shifted, param.Electron_Tight_ID, false, 0.);
-      double weight_shifted_SF_BWexpo_BWexpo = 0.;
-      double weight_shifted_SF_BWexpo_gauspol3 = 0.;
-      double weight_shifted_SF_gauspol3_BWexpo = 0.;
-      double weight_shifted_SF_gauspol3_gauspol3 = 0.;
-      if(DataYear==2016){
-        weight_shifted_SF_BWexpo_gauspol3 = GetCFweight(eles_shifted, param.Electron_Tight_ID, true, "BW_expo", "gaus_pol3");
-        weight_shifted_SF_gauspol3_gauspol3 = GetCFweight(eles_shifted, param.Electron_Tight_ID, true, "gaus_pol3", "gaus_pol3");
-      }
-      if(DataYear==2017){
-        weight_shifted_SF_BWexpo_BWexpo = GetCFweight(eles_shifted, param.Electron_Tight_ID, true, "BW_expo", "BW_expo");
-        weight_shifted_SF_BWexpo_gauspol3 = GetCFweight(eles_shifted, param.Electron_Tight_ID, true, "BW_expo", "gaus_pol3");
-        weight_shifted_SF_gauspol3_BWexpo = GetCFweight(eles_shifted, param.Electron_Tight_ID, true, "gaus_pol3", "BW_expo");
-        weight_shifted_SF_gauspol3_gauspol3 = GetCFweight(eles_shifted, param.Electron_Tight_ID, true, "gaus_pol3", "gaus_pol3");
-      }
-      if(DataYear==2018){
-        weight_shifted_SF_gauspol3_gauspol3 = GetCFweight(eles_shifted, param.Electron_Tight_ID, true, "gaus_pol3", "gaus_pol3");
-      }
-  
-      Particle METv_shifted;
-      METv_shifted.SetPxPyPzE(METv.Px()+ZCand.Px()-ZCand_shifted.Px(),METv.Py()+ZCand.Py()-ZCand_shifted.Py(),0,METv.E()+ZCand.E()-ZCand_shifted.E());
-  
-      if(MllLeft<=ZCand_shifted.M()&&ZCand_shifted.M()<MllRight){
         if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-  
-          // BB
-          if(abs(eles_shifted.at(0).scEta())<1.4442&&abs(eles_shifted.at(1).scEta())<1.4442){
-            FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_CFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted, NBin, MllLeft, MllRight);
-            //FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_CFSFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF, NBin, MllLeft, MllRight);
-          }
-      
-          // BE
-          if((abs(eles_shifted.at(0).scEta())<1.4442&&abs(eles_shifted.at(1).scEta())>=1.556)||(abs(eles_shifted.at(0).scEta())>=1.556&&abs(eles_shifted.at(1).scEta())<1.4442)){
-            if(DataYear==2016){
-              FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFSF_BWexpo_gauspol3_weighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF_BWexpo_gauspol3, NBin, MllLeft, MllRight);
-              FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFSF_gauspol3_gauspol3_weighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF_gauspol3_gauspol3, NBin, MllLeft, MllRight);
-            }
-            else if(DataYear==2017){
-              FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFSF_BWexpo_BWexpo_weighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF_BWexpo_BWexpo, NBin, MllLeft, MllRight);
-              FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFSF_BWexpo_gauspol3_weighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF_BWexpo_gauspol3, NBin, MllLeft, MllRight);
-              FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFSF_gauspol3_BWexpo_weighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF_gauspol3_BWexpo, NBin, MllLeft, MllRight);
-              FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFSF_gauspol3_gauspol3_weighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF_gauspol3_gauspol3, NBin, MllLeft, MllRight);
-            }
-            if(DataYear==2018){
-              FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFSF_gauspol3_gauspol3_weighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF_gauspol3_gauspol3, NBin, MllLeft, MllRight);
-            }
-          }
-      
-          // EE
-          if(abs(eles_shifted.at(0).scEta())>=1.556&&abs(eles_shifted.at(1).scEta())>=1.556){
-            FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_CFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted, NBin, MllLeft, MllRight);
-            //FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_CFSFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF, NBin, MllLeft, MllRight);
-          }
-          
+          FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+      }
+    }
+
+    if(nPV < 40){
+      // BB
+      if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
+        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+          FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+          FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+      }
+      // BE
+      if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
+        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+          FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+          FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+      }
+      // EE
+      if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
+        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+          FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+          FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+      }
+    }
+
+    if(METv.Pt() < 50 && nPV < 40){
+      // BB
+      if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
+        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+          FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+          FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+      }
+      // BE
+      if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
+        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+          FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+          FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+      }
+      // EE
+      if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
+        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+          FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+          FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+      }
+    }
+
+    if(ele_veto_size == 0){
+      // BB
+      if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
+        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+          FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+          FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+      }
+      // BE
+      if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
+        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+          FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+          FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+      }
+      // EE
+      if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
+        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+          FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+          FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+      }
+    }
+
+    if(Nbjet_medium == 0){
+      // BB
+      if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
+        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+          FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+          FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+      }
+      // BE
+      if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
+        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+          FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+          FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+      }
+      // EE
+      if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
+        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
+          FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
+        }
+        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
+          FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
         }
       }
     }
     */
 
-    if(HasFlag("ScaleFactor")){
+    // Now let's shift the electrons' energy by X% //
 
-      if(!PassMETFilter()) return;
-      if(! (ev.PassTrigger(EleTriggerName) )) return;
+    vector<Electron> eles_shifted = eles; // copy the vector
+    double X;
+    if(DataYear==2016){
+      if(param.Electron_Tight_ID=="HNTightV1") X = 1.0;
+    }
+    else if(DataYear==2017){
+      if(param.Electron_Tight_ID=="HNTightV1") X = 1.0;
+    }
+    else if(DataYear==2018){
+      if(param.Electron_Tight_ID=="HNTightV1") X = 0.8;
+    }
+    TString X_string = Form("%f",X);
+    X_string = X_string(0,3)+"%";
 
-      Particle METv = ev.GetMETVector();
+    for(int j=0;j<2;j++){
+      eles_shifted.at(j).SetE(eles_shifted.at(j).E()*(1-X/100));
+      eles_shifted.at(j).SetPtEtaPhiE(eles_shifted.at(j).E() * TMath::Sin(eles_shifted.at(j).Theta()), eles_shifted.at(j).Eta(), eles_shifted.at(j).Phi(), eles_shifted.at(j).E());
+    }
 
-      // CF SF ID selection //
+    Particle ZCand_shifted = eles_shifted.at(0) + eles_shifted.at(1);
+    double weight_shifted = GetCFweight(eles_shifted, param.Electron_Tight_ID, false, 0.);
+    double weight_shifted_SF = GetCFweight(eles_shifted, param.Electron_Tight_ID, true, 0.);
+    weight_shifted *= MCweight;
+    weight_shifted_SF *= MCweight;
 
-      eles = SelectElectrons(AllEles, param.Electron_Tight_ID, MinPt, 2.5);
-      eles_veto = SelectElectrons(AllEles, param.Electron_Veto_ID, MinPt, 2.5);
-      vector<Jet> jets_nolepveto = SelectJets(AllJets, "HNTight", 20., 2.7); //JH : to reject bjets
+    Particle METv_shifted;
+    METv_shifted.SetPxPyPzE(METv.Px()+ZCand.Px()-ZCand_shifted.Px(),METv.Py()+ZCand.Py()-ZCand_shifted.Py(),0,METv.E()+ZCand.E()-ZCand_shifted.E());
 
-      std::sort(eles.begin(), eles.end(), PtComparing);
-      std::sort(eles_veto.begin(), eles_veto.end(), PtComparing);
-      int ele_veto_size = eles_veto.size() - eles.size();
+    if(MllLeft<=ZCand_shifted.M()&&ZCand_shifted.M()<MllRight){
+      if(eles.at(0).Charge()*eles.at(1).Charge()<0){
 
-      std::sort(jets_nolepveto.begin(), jets_nolepveto.end(), PtComparing);
-      int Nbjet_loose = 0, Nbjet_medium = 0;
-      JetTagging::Parameters jtp_DeepCSV_Medium = JetTagging::Parameters(JetTagging::DeepCSV, JetTagging::Medium, JetTagging::incl, JetTagging::comb);
-      for(unsigned int ij=0; ij<jets_nolepveto.size(); ij++){
-        if(mcCorr->IsBTagged_2a(jtp_DeepCSV_Medium, jets_nolepveto.at(ij))) Nbjet_medium++; //JH : count Nbjet. NOTE : AN says they used CVSv2 and medium WP.
-      }
-
-      if(eles.size() != 2) return;
-      if(HasFlag("HEM")){
-        if( eles.at(0).isHEM()||eles.at(1).isHEM() ) return;
-      }
-      //if(eles.at(0).Pt()<lep0ptcut||eles.at(1).Pt()<lep1ptcut) return; //No need already pt min = 25
-
-      double MCweight = 1.; // JH : test how DY distribution change with MC weight
-      if(!IsDATA && MCSample.Contains("DYJets")){
-        MCweight *= ev.MCweight();
-        vector<Gen> gens = GetGens();
-        for(unsigned int i=0; i<eles.size(); i++){
-          if(GetLeptonType(eles.at(i), gens)<=0 || GetLeptonType(eles.at(i), gens)>=4) return; // JH : To extract MC template
-        }
-      }
-
-      Particle ZCand = eles.at(0)+eles.at(1);
-      if(! (MllLeft<=ZCand.M()&&ZCand.M()<MllRight) ) return;
-
-      // BB
-      if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
-        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-          FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-        }
-        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-          FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-        } //JH : if you want to check OS distribution before applying the CF weight
-      }
-      // BE
-      if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
-        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-          FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-        }
-        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-          FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-        }
-      }
-      // EE
-      if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
-        if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-          FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-        }
-        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-          FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-        }
-      }
-
-      /*
-      if(METv.Pt() < 50){
         // BB
-        if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
-          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-            FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-            FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
+        if(abs(eles_shifted.at(0).scEta())<1.4442&&abs(eles_shifted.at(1).scEta())<1.4442){
+          FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_CFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted, NBin, MllLeft, MllRight);
+          //FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_CFSFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF, NBin, MllLeft, MllRight);
         }
+
         // BE
-        if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
-          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-            FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
+        if((abs(eles_shifted.at(0).scEta())<1.4442&&abs(eles_shifted.at(1).scEta())>=1.556)||(abs(eles_shifted.at(0).scEta())>=1.556&&abs(eles_shifted.at(1).scEta())<1.4442)){
+          FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted, NBin, MllLeft, MllRight);
+          FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFSFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF, NBin, MllLeft, MllRight);
         }
+
         // EE
-        if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
-          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-            FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-            FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_MET50", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
+        if(abs(eles_shifted.at(0).scEta())>=1.556&&abs(eles_shifted.at(1).scEta())>=1.556){
+          FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_CFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted, NBin, MllLeft, MllRight);
+          //FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_CFSFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF, NBin, MllLeft, MllRight);
         }
-      }
 
-      if(nPV < 40){
-        // BB
-        if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
-          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-            FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-            FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-        }
-        // BE
-        if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
-          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-            FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-        }
-        // EE
-        if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
-          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-            FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-            FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-        }
-      }
-
-      if(METv.Pt() < 50 && nPV < 40){
-        // BB
-        if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
-          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-            FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-            FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-        }
-        // BE
-        if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
-          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-            FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-        }
-        // EE
-        if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
-          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-            FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-            FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_MET50_nPV40", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-        }
-      }
-
-      if(ele_veto_size == 0){
-        // BB
-        if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
-          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-            FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-            FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-        }
-        // BE
-        if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
-          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-            FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-        }
-        // EE
-        if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
-          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-            FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-            FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_l3veto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-        }
-      }
-
-      if(Nbjet_medium == 0){
-        // BB
-        if(abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())<1.4442){
-          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-            FillHist(param.Name+"/ScaleFactor/BB_ZMass_SS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-            FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-        }
-        // BE
-        if((abs(eles.at(0).scEta())<1.4442&&abs(eles.at(1).scEta())>=1.556)||(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())<1.4442)){
-          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-            FillHist(param.Name+"/ScaleFactor/BE_ZMass_SS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-        }
-        // EE
-        if(abs(eles.at(0).scEta())>=1.556&&abs(eles.at(1).scEta())>=1.556){
-          if(eles.at(0).Charge()*eles.at(1).Charge()>0){
-            FillHist(param.Name+"/ScaleFactor/EE_ZMass_SS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-          if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-            FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_bveto", ZCand.M(), MCweight, NBin, MllLeft, MllRight);
-          }
-        }
-      }
-      */
-
-      // Now let's shift the electrons' energy by X% //
-
-      vector<Electron> eles_shifted = eles; // copy the vector
-      double X;
-      if(DataYear==2016){
-        if(param.Electron_Tight_ID=="HNTightV1") X = 1.0;
-      }
-      else if(DataYear==2017){
-        if(param.Electron_Tight_ID=="HNTightV1") X = 1.0;
-      }
-      else if(DataYear==2018){
-        if(param.Electron_Tight_ID=="HNTightV1") X = 0.8;
-      }
-      TString X_string = Form("%f",X);
-      X_string = X_string(0,3)+"%";
-
-      for(int j=0;j<2;j++){
-        eles_shifted.at(j).SetE(eles_shifted.at(j).E()*(1-X/100));
-        eles_shifted.at(j).SetPtEtaPhiE(eles_shifted.at(j).E() * TMath::Sin(eles_shifted.at(j).Theta()), eles_shifted.at(j).Eta(), eles_shifted.at(j).Phi(), eles_shifted.at(j).E());
-      }
-
-      Particle ZCand_shifted = eles_shifted.at(0) + eles_shifted.at(1);
-      double weight_shifted = GetCFweight(eles_shifted, param.Electron_Tight_ID, false, 0.);
-      double weight_shifted_SF = GetCFweight(eles_shifted, param.Electron_Tight_ID, true, 0.);
-      weight_shifted *= MCweight;
-      weight_shifted_SF *= MCweight;
-
-      Particle METv_shifted;
-      METv_shifted.SetPxPyPzE(METv.Px()+ZCand.Px()-ZCand_shifted.Px(),METv.Py()+ZCand.Py()-ZCand_shifted.Py(),0,METv.E()+ZCand.E()-ZCand_shifted.E());
-
-      if(MllLeft<=ZCand_shifted.M()&&ZCand_shifted.M()<MllRight){
-        if(eles.at(0).Charge()*eles.at(1).Charge()<0){
-
-          // BB
-          if(abs(eles_shifted.at(0).scEta())<1.4442&&abs(eles_shifted.at(1).scEta())<1.4442){
-            FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_CFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted, NBin, MllLeft, MllRight);
-            //FillHist(param.Name+"/ScaleFactor/BB_ZMass_OS_CFSFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF, NBin, MllLeft, MllRight);
-          }
-
-          // BE
-          if((abs(eles_shifted.at(0).scEta())<1.4442&&abs(eles_shifted.at(1).scEta())>=1.556)||(abs(eles_shifted.at(0).scEta())>=1.556&&abs(eles_shifted.at(1).scEta())<1.4442)){
-            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted, NBin, MllLeft, MllRight);
-            FillHist(param.Name+"/ScaleFactor/BE_ZMass_OS_CFSFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF, NBin, MllLeft, MllRight);
-          }
-
-          // EE
-          if(abs(eles_shifted.at(0).scEta())>=1.556&&abs(eles_shifted.at(1).scEta())>=1.556){
-            FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_CFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted, NBin, MllLeft, MllRight);
-            //FillHist(param.Name+"/ScaleFactor/EE_ZMass_OS_CFSFweighted_shifted_"+X_string, ZCand_shifted.M(), weight_shifted_SF, NBin, MllLeft, MllRight);
-          }
-
-        }
       }
     }
   }
+  
 }
