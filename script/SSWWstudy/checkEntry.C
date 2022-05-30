@@ -1,4 +1,8 @@
-void checkEntry(){
+void checkEntry(TString channel, TString region){
+
+  cout << "===============================================" << endl;
+  cout << "<channel : " << channel << ">" << endl << endl;
+  cout << "<region : " << region << ">" << endl << endl;
   string fileline;
   ifstream in("fileList_checkEntry.txt");
 
@@ -11,73 +15,28 @@ void checkEntry(){
       continue;
     }
     if(this_line.Contains("#")) continue;
-    TString process, region, hist, bin, skim;
+    TString category, process, isSkim;
+    is >> category;
     is >> process;
-    is >> region;
-    is >> hist;
-    is >> bin;
-    int bin_int = bin.Atoi();
-    is >> skim;
+    is >> isSkim;
 
     TFile *f_MC;
-    TH1D *h_MC;
-
-    if(skim.Sizeof() == 1) f_MC = new TFile("SSWW_"+process+".root");
-    else f_MC = new TFile("SSWW_SkimTree_"+skim+"_"+process+".root");
-
-    h_MC = (TH1D*)f_MC->Get(region+"/"+hist);
-    double Nevent;
-    if(h_MC) Nevent = h_MC->GetBinContent(bin_int);
-    else Nevent = 0.;
-    
-    cout << "===============================================" << endl;
-    cout << "process : " << process << endl;
-    //cout << "skim : " << skim << endl;
-    cout << "region : " << region << endl;
-    cout << "Nevent in " << bin << "th bin : " << Nevent << endl;
-  }
-
-}
-
-
-void checkEntry(TString region){
-
-  cout << "===============================================" << endl;
-  cout << "<region : " << region << ">" << endl << endl;
-  string fileline;
-  ifstream in("fileList_checkEntry2.txt");
-  map<TString, int> map_bin;
-  map_bin["SR/M1500_1"]    = 17;
-  map_bin["SR_inv"]        = 16;
-  map_bin["btag"]          = 14;
-  map_bin["WZ"]            = 17;
-  map_bin["WZb"]           = 17;
-  map_bin["highSR1"]       = 13;
-  map_bin["highSR1/M1500"] = 14;
-  map_bin["highSR2"]       = 11;
-  map_bin["highSR2/M1500"] = 12;
-
-  // Line loop
-  while(getline(in, fileline)){
-    std::istringstream is(fileline);
-    TString this_line = fileline;
-    if(this_line==""){
-      cout << endl;
-      continue;
+    TH1D *h_MC, *h_Nevt;
+    if(isSkim=="skimmed") f_MC = new TFile("testPuppi_HNType1_SkimTree_HNMultiLep_testPuppi_"+process+".root");
+    else f_MC = new TFile("testPuppi_HNType1_testPuppi_"+process+".root");
+    h_MC = (TH1D*)f_MC->Get(channel+"/"+region+"/HToverPt1_HN");
+    h_Nevt = (TH1D*)f_MC->Get(channel+"/Pre/Nevents_HN");
+    int Nbin;
+    double Nevent, Ntot;
+    if(h_MC){
+      Nbin = h_MC->GetNbinsX();
+      Nevent = h_MC->Integral(0,Nbin+1);
+      Ntot = h_Nevt->GetBinContent(1);
     }
-    if(this_line.Contains("#")) continue;
-    TString process;
-    is >> process;
-
-    TFile *f_MC;
-    TH1D *h_MC;
-    f_MC = new TFile("SSWW_SkimTree_HNMultiLep_"+process+".root");
-    h_MC = (TH1D*)f_MC->Get(region+"/Number_Events_HN");
-    double Nevent;
-    if(h_MC) Nevent = h_MC->GetBinContent(map_bin[region]);
     else Nevent = 0.;
     
-    cout << process << " : " << Nevent << endl;
+    if(category=="signal") cout << process << " : " << Nevent << " (" << (Nevent/Ntot)*100. << " %)" << endl;
+    else cout << process << " : " << Nevent << endl;
   }
   cout << "===============================================" << endl;
 
