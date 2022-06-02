@@ -2,7 +2,7 @@ void calcSig(TString channel, TString signal, TString mass, TString datacard){ /
   TString hist_mass;
   TString mass_number = mass(1,100);
   if(mass_number.Atof()>2000.) hist_mass = "M2500"; //JH : FIXME !!HOTFIX!! I don't have optimization M(N) > 2500 GeV
-	else hist_mass = mass; //JH : FIXME !!HOTFIX!! I don't have optimization M(N) > 2500 GeV
+  else hist_mass = mass; //JH : FIXME !!HOTFIX!! I don't have optimization M(N) > 2500 GeV
   /////////////////////////////////////MC////////////////////////////////////////////
   string fileline;
   ifstream in("fileList_calcSig.txt");
