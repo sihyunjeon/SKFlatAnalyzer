@@ -1,10 +1,16 @@
-void calcSig(TString signal, TString mass){ //calcSig("SSWWTypeI_NLO_SF_M1500","M1500")
+void calcSig(TString channel, TString signal, TString mass, TString datacard){ //calcSig("dimu", "SSWWTypeI_NLO_SF_M1500", "M1500", "y")
+  TString hist_mass;
+  TString mass_number = mass(1,100);
+  if(mass_number.Atof()>2000.) hist_mass = "M2500"; //JH : FIXME !!HOTFIX!! I don't have optimization M(N) > 2500 GeV
+	else hist_mass = mass; //JH : FIXME !!HOTFIX!! I don't have optimization M(N) > 2500 GeV
   /////////////////////////////////////MC////////////////////////////////////////////
   string fileline;
   ifstream in("fileList_calcSig.txt");
-  double MC_SR = 0., MC_SR_inv = 0., MC_highSR1 = 0., MC_highSR1_opt = 0., MC_highSR1_1jet = 0., MC_highSR1_1jet_opt = 0., MC_highSR2 = 0., MC_highSR2_opt = 0., MC_SR_opt = 0.;
-  double signal_SR = 0., signal_SR_inv = 0., signal_highSR1 = 0., signal_highSR1_opt = 0., signal_highSR1_1jet = 0., signal_highSR1_1jet_opt = 0., signal_highSR2 = 0., signal_highSR2_opt = 0., signal_SR_opt = 0.;
-  double fake_SR = 0., fake_SR_inv = 0., fake_highSR1 = 0., fake_highSR1_opt = 0., fake_highSR1_1jet = 0., fake_highSR1_1jet_opt = 0., fake_highSR2 = 0., fake_highSR2_opt = 0., fake_SR_opt = 0.;
+  double MC_SR1 = 0., MC_SR1_opt = 0., MC_SR2 = 0., MC_SR2_opt = 0., MC_SR3 = 0., MC_SR3_opt = 0.;
+  double signal_SR1 = 0., signal_SR1_opt = 0., signal_SR2 = 0., signal_SR2_opt = 0., signal_SR3 = 0., signal_SR3_opt = 0.;
+  double fake_SR1 = 0., fake_SR1_opt = 0., fake_SR2 = 0., fake_SR2_opt = 0., fake_SR3 = 0., fake_SR3_opt = 0.;
+  double CF_SR1 = 0., CF_SR1_opt = 0., CF_SR2 = 0., CF_SR2_opt = 0., CF_SR3 = 0., CF_SR3_opt = 0.;
+  double bkg_SR1 = 0., bkg_SR1_opt = 0., bkg_SR2 = 0., bkg_SR2_opt = 0., bkg_SR3 = 0., bkg_SR3_opt = 0.;
   // Line loop
   while(getline(in, fileline)){
     std::istringstream is(fileline);
@@ -22,196 +28,247 @@ void calcSig(TString signal, TString mass){ //calcSig("SSWWTypeI_NLO_SF_M1500","
     }
 
     TFile *f_MC;
-    TH1D *h_MC_SR, *h_MC_SR_opt, *h_MC_SR_inv, *h_MC_highSR1, *h_MC_highSR1_opt, *h_MC_highSR1_1jet, *h_MC_highSR1_1jet_opt, *h_MC_highSR2, *h_MC_highSR2_opt;
-    if(isSkim=="skimmed") f_MC = new TFile("SSWW_SkimTree_HNMultiLep_"+process+".root");
-    else f_MC = new TFile("SSWW_"+process+".root");
+    TH1D *h_MC_SR1, *h_MC_SR1_opt, *h_MC_SR2, *h_MC_SR2_opt, *h_MC_SR3, *h_MC_SR3_opt;
+    if(isSkim=="skimmed") f_MC = new TFile("HNType1_SkimTree_HNMultiLep_"+process+".root");
+    else f_MC = new TFile("HNType1_"+process+".root");
     //cout << "f_MC : " << f_MC << endl;
-    h_MC_SR = (TH1D*)f_MC->Get("SR/HToverPt1_HN");
-    h_MC_SR_opt = (TH1D*)f_MC->Get("SR/M1500_1/HToverPt1_HN"); //JH : FIXME M1500_1 --> opt
-    h_MC_SR_inv = (TH1D*)f_MC->Get("SR_inv/HToverPt1_HN");
-    h_MC_highSR1 = (TH1D*)f_MC->Get("highSR1/HToverPt1_HN");
-    h_MC_highSR1_opt = (TH1D*)f_MC->Get("highSR1/"+mass+"/HToverPt1_HN");
-    h_MC_highSR1_1jet = (TH1D*)f_MC->Get("highSR1_1jet/HToverPt1_HN");
-    h_MC_highSR1_1jet_opt = (TH1D*)f_MC->Get("highSR1_1jet/"+mass+"/HToverPt1_HN");
-    h_MC_highSR2 = (TH1D*)f_MC->Get("highSR2/HToverPt1_HN");
-    h_MC_highSR2_opt = (TH1D*)f_MC->Get("highSR2/"+mass+"/HToverPt1_HN");
-    int Nbin = 10; // Nbin of HToverPt1
+    h_MC_SR1     = (TH1D*)f_MC->Get(channel+"/SR1_Central/HToverPt1_HN");
+    h_MC_SR1_opt = (TH1D*)f_MC->Get(channel+"/SR1_Central/"+hist_mass+"/HToverPt1_HN");
+    h_MC_SR2     = (TH1D*)f_MC->Get(channel+"/SR2_Central/HToverPt1_HN");
+    h_MC_SR2_opt = (TH1D*)f_MC->Get(channel+"/SR2_Central/"+hist_mass+"/HToverPt1_HN");
+    h_MC_SR3     = (TH1D*)f_MC->Get(channel+"/SR3_Central/HToverPt1_HN");
+    h_MC_SR3_opt = (TH1D*)f_MC->Get(channel+"/SR3_Central/"+hist_mass+"/HToverPt1_HN");
+    int Nbin = 20; // Nbin of HToverPt1
     cout.flags(ios::left); // left align; see https://m.blog.naver.com/PostView.naver?isHttpsRedirect=true&blogId=tipsware&logNo=221115657586
     cout << "========================================================" << endl;
     cout << "!!process : " << process << "!!" << endl;
-    if(h_MC_SR){
-                                cout << "SR                                     : " << h_MC_SR->Integral(0,Nbin+1) << endl;
-                                if(category=="MC")     MC_SR     += h_MC_SR->Integral(0,Nbin+1);
-                                if(category=="signal") signal_SR += h_MC_SR->Integral(0,Nbin+1);
+    if(h_MC_SR1){
+                                cout << "SR1                                : " << h_MC_SR1->Integral(0,Nbin+1) << endl;
+                                if(category=="MC")     MC_SR1     += h_MC_SR1->Integral(0,Nbin+1);
+                                if(category=="signal") signal_SR1 += h_MC_SR1->Integral(0,Nbin+1);
     }
-    else                        cout << "SR                                     : NULL;" << endl;
-    if(h_MC_SR_opt){
-                                cout << "SR, with optimization                  : " << h_MC_SR_opt->Integral(0,Nbin+1) << endl;
-                                if(category=="MC")         MC_SR_opt += h_MC_SR_opt->Integral(0,Nbin+1);
-                                if(category=="signal") signal_SR_opt += h_MC_SR_opt->Integral(0,Nbin+1);
+    else                        cout << "SR1                                : NULL;" << endl;
+    if(h_MC_SR1_opt){
+                                cout << "SR1, with "; cout.width(6); cout << mass; cout << " optimization      : " << h_MC_SR1_opt->Integral(0,Nbin+1) << endl;
+                                if(category=="MC")         MC_SR1_opt += h_MC_SR1_opt->Integral(0,Nbin+1);
+                                if(category=="signal") signal_SR1_opt += h_MC_SR1_opt->Integral(0,Nbin+1);
     }
-    else                        {cout << "SR, with optimization                  : NULL;" << endl;}
-    if(h_MC_SR_inv){
-                                cout << "SR_inv                                 : " << h_MC_SR_inv->Integral(0,Nbin+1) << endl;
-                                if(category=="MC")         MC_SR_inv += h_MC_SR_inv->Integral(0,Nbin+1);
-                                if(category=="signal") signal_SR_inv += h_MC_SR_inv->Integral(0,Nbin+1);
+    else{                        
+                                cout << "SR1, with "; cout.width(6); cout << mass; cout << " optimization      : NULL;" << endl;
     }
-    else                        cout << "SR_inv                                 : NULL;" << endl;
-    if(h_MC_highSR1){
-                                cout << "highSR1                                : " << h_MC_highSR1->Integral(0,Nbin+1) << endl;
-                                if(category=="MC")         MC_highSR1 += h_MC_highSR1->Integral(0,Nbin+1);
-                                if(category=="signal") signal_highSR1 += h_MC_highSR1->Integral(0,Nbin+1);
+    if(h_MC_SR2){
+                                cout << "SR2                                : " << h_MC_SR2->Integral(0,Nbin+1) << endl;
+                                if(category=="MC")         MC_SR2 += h_MC_SR2->Integral(0,Nbin+1);
+                                if(category=="signal") signal_SR2 += h_MC_SR2->Integral(0,Nbin+1);
     }
-    else                        cout << "highSR1                                : NULL;" << endl;
-    if(h_MC_highSR1_opt){
-                                cout << "highSR1, with "; cout.width(6); cout << mass; cout << " optimization      : " << h_MC_highSR1_opt->Integral(0,Nbin+1) << endl;
-                                if(category=="MC")         MC_highSR1_opt += h_MC_highSR1_opt->Integral(0,Nbin+1);
-                                if(category=="signal") signal_highSR1_opt += h_MC_highSR1_opt->Integral(0,Nbin+1);
+    else                        cout << "SR2                                : NULL;" << endl;
+    if(h_MC_SR2_opt){
+                                cout << "SR2, with "; cout.width(6); cout << mass; cout << " optimization      : " << h_MC_SR2_opt->Integral(0,Nbin+1) << endl;
+                                if(category=="MC")         MC_SR2_opt += h_MC_SR2_opt->Integral(0,Nbin+1);
+                                if(category=="signal") signal_SR2_opt += h_MC_SR2_opt->Integral(0,Nbin+1);
     }
-    else                        {cout << "highSR1, with "; cout.width(6); cout << mass; cout << " optimization      : NULL;" << endl;}
-    if(h_MC_highSR1_1jet){
-                                cout << "highSR1_1jet                           : " << h_MC_highSR1_1jet->Integral(0,Nbin+1) << endl;
-                                if(category=="MC")         MC_highSR1_1jet += h_MC_highSR1_1jet->Integral(0,Nbin+1);
-                                if(category=="signal") signal_highSR1_1jet += h_MC_highSR1_1jet->Integral(0,Nbin+1);
+    else{                       
+                                cout << "SR2, with "; cout.width(6); cout << mass; cout << " optimization      : NULL;" << endl;
     }
-    else                        cout << "highSR1_1jet                           : NULL;" << endl;
-    if(h_MC_highSR1_1jet_opt){
-                                cout << "highSR1_1jet, with "; cout.width(6); cout << mass; cout << " optimization : " << h_MC_highSR1_1jet_opt->Integral(0,Nbin+1) << endl;
-                                if(category=="MC")         MC_highSR1_1jet_opt += h_MC_highSR1_1jet_opt->Integral(0,Nbin+1);
-                                if(category=="signal") signal_highSR1_1jet_opt += h_MC_highSR1_1jet_opt->Integral(0,Nbin+1);
+    if(h_MC_SR3){
+                                cout << "SR3                                : " << h_MC_SR3->Integral(0,Nbin+1) << endl;
+                                if(category=="MC")         MC_SR3 += h_MC_SR3->Integral(0,Nbin+1);
+                                if(category=="signal") signal_SR3 += h_MC_SR3->Integral(0,Nbin+1);
     }
-    else                        {cout << "highSR1_1jet, with "; cout.width(6); cout << mass; cout << " optimization : NULL;" << endl;}
-    if(h_MC_highSR2){
-                                cout << "highSR2                                : " << h_MC_highSR2->Integral(0,Nbin+1) << endl;
-                                if(category=="MC")         MC_highSR2 += h_MC_highSR2->Integral(0,Nbin+1);
-                                if(category=="signal") signal_highSR2 += h_MC_highSR2->Integral(0,Nbin+1);
+    else                        cout << "SR3                                : NULL;" << endl;
+    if(h_MC_SR3_opt){
+                                cout << "SR3, with "; cout.width(6); cout << mass; cout << " optimization      : " << h_MC_SR3_opt->Integral(0,Nbin+1) << endl;
+                                if(category=="MC")         MC_SR3_opt += h_MC_SR3_opt->Integral(0,Nbin+1);
+                                if(category=="signal") signal_SR3_opt += h_MC_SR3_opt->Integral(0,Nbin+1);
     }
-    else                        cout << "highSR2                                : NULL;" << endl;
-    if(h_MC_highSR2_opt){
-                                cout << "highSR2, with "; cout.width(6); cout << mass; cout << " optimization      : " << h_MC_highSR2_opt->Integral(0,Nbin+1) << endl;
-                                if(category=="MC")         MC_highSR2_opt += h_MC_highSR2_opt->Integral(0,Nbin+1);
-                                if(category=="signal") signal_highSR2_opt += h_MC_highSR2_opt->Integral(0,Nbin+1);
+    else{                        
+                                cout << "SR3, with "; cout.width(6); cout << mass; cout << " optmization       : NULL;" << endl;
     }
-    else                        {cout << "highSR2, with "; cout.width(6); cout << mass; cout << " optmization       : NULL;" << endl;}
   }
   cout << "===================================================================================================" << endl;
-  cout << "total MC in SR                                    : " << MC_SR << endl;
-  cout << "total MC in SR, with optimization                 : " << MC_SR_opt << endl;
-  cout << "total MC in SR_inv                                : " << MC_SR_inv << endl;
-  cout << "total MC in highSR1                               : " << MC_highSR1 << endl;
-  cout << "total MC in highSR1, with "; cout.width(6); cout << mass; cout << " optimization     : " << MC_highSR1_opt << endl;
-  cout << "total MC in highSR1_1jet                          : " << MC_highSR1_1jet << endl;
-  cout << "total MC in highSR1_1jet, with "; cout.width(6); cout << mass; cout << "optimization : " << MC_highSR1_1jet_opt << endl;
-  cout << "total MC in highSR2                               : " << MC_highSR2 << endl;
-  cout << "total MC in highSR2, with "; cout.width(6); cout << mass; cout << "optimization      : " << MC_highSR2_opt << endl;
+  cout << "total MC in SR1                              : " << MC_SR1 << endl;
+  cout << "total MC in SR1, with "; cout.width(6); cout << mass; cout << "optimization     : " << MC_SR1_opt << endl;
+  cout << "total MC in SR2                              : " << MC_SR2 << endl;
+  cout << "total MC in SR2, with "; cout.width(6); cout << mass; cout << "optimization     : " << MC_SR2_opt << endl;
+  cout << "total MC in SR3                              : " << MC_SR3 << endl;
+  cout << "total MC in SR3, with "; cout.width(6); cout << mass; cout << "optimization     : " << MC_SR3_opt << endl;
 
   /////////////////////////////////////Fake////////////////////////////////////////////
-  TFile *f_Fake = new TFile("/data6/Users/jihkim/SKFlatOutput/Run2UltraLegacy_v2/SSWW/2016/jcln_inv__fatjet_veto__RunFake__/DATA/SSWW_SkimTree_Dilepton_DoubleMuon.root");
-  TH1D *h_Fake_SR, *h_Fake_SR_opt, *h_Fake_SR_inv, *h_Fake_highSR1, *h_Fake_highSR1_opt, *h_Fake_highSR1_1jet, *h_Fake_highSR1_1jet_opt, *h_Fake_highSR2, *h_Fake_highSR2_opt;
-  h_Fake_SR = (TH1D*)f_Fake->Get("SR/HToverPt1_HN");
-  h_Fake_SR_opt = (TH1D*)f_Fake->Get("SR/M1500_1/HToverPt1_HN"); //JH : FIXME M1500 --> opt
-  h_Fake_SR_inv = (TH1D*)f_Fake->Get("SR_inv/HToverPt1_HN");
-  h_Fake_highSR1 = (TH1D*)f_Fake->Get("highSR1/HToverPt1_HN");
-  h_Fake_highSR1_opt = (TH1D*)f_Fake->Get("highSR1/"+mass+"/HToverPt1_HN");
-  h_Fake_highSR1_1jet = (TH1D*)f_Fake->Get("highSR1_1jet/HToverPt1_HN");
-  h_Fake_highSR1_1jet_opt = (TH1D*)f_Fake->Get("highSR1_1jet/"+mass+"/HToverPt1_HN");
-  h_Fake_highSR2 = (TH1D*)f_Fake->Get("highSR2/HToverPt1_HN");
-  h_Fake_highSR2_opt = (TH1D*)f_Fake->Get("highSR2/"+mass+"/HToverPt1_HN");
-  int Nbin = 10; // Nbin of HToverPt1
+  TFile *f_Fake;
+  if(channel=="dimu") f_Fake = new TFile("/data6/Users/jihkim/SKFlatOutput/Run2UltraLegacy_v2/HNType1/2016/RunFake__/DATA/HNType1_SkimTree_Dilepton_DoubleMuon.root");
+  if(channel=="diel") f_Fake = new TFile("/data6/Users/jihkim/SKFlatOutput/Run2UltraLegacy_v2/HNType1/2016/RunFake__/DATA/HNType1_SkimTree_Dilepton_DoubleEG.root");
+  TH1D *h_Fake_SR1, *h_Fake_SR1_opt, *h_Fake_SR2, *h_Fake_SR2_opt, *h_Fake_SR3, *h_Fake_SR3_opt;
+  h_Fake_SR1     = (TH1D*)f_Fake->Get(channel+"/SR1_Central/HToverPt1_HN");
+  h_Fake_SR1_opt = (TH1D*)f_Fake->Get(channel+"/SR1_Central/"+hist_mass+"/HToverPt1_HN");
+  h_Fake_SR2     = (TH1D*)f_Fake->Get(channel+"/SR2_Central/HToverPt1_HN");
+  h_Fake_SR2_opt = (TH1D*)f_Fake->Get(channel+"/SR2_Central/"+hist_mass+"/HToverPt1_HN");
+  h_Fake_SR3     = (TH1D*)f_Fake->Get(channel+"/SR3_Central/HToverPt1_HN");
+  h_Fake_SR3_opt = (TH1D*)f_Fake->Get(channel+"/SR3_Central/"+hist_mass+"/HToverPt1_HN");
+  int Nbin = 20; // Nbin of HToverPt1
   cout << "===================================================================================================" << endl;
-  if(h_Fake_SR){
-                              cout << "fake in SR                                        : " << h_Fake_SR->Integral(0,Nbin+1) << endl;
-                              fake_SR += h_Fake_SR->Integral(0,Nbin+1);
+  if(h_Fake_SR1){
+                              cout << "fake in SR1                                  : " << h_Fake_SR1->Integral(0,Nbin+1) << endl;
+                              fake_SR1 += h_Fake_SR1->Integral(0,Nbin+1);
   }
-  else                        cout << "fake in SR                                        : NULL;" << endl;
-  if(h_Fake_SR_opt){
-                              cout << "fake in SR, with optimization                     : " << h_Fake_SR_opt->Integral(0,Nbin+1) << endl;
-                              fake_SR_opt += h_Fake_SR_opt->Integral(0,Nbin+1);
+  else                        cout << "fake in SR1                                  : NULL;" << endl;
+  if(h_Fake_SR1_opt){
+                              cout << "fake in SR1, with "; cout.width(6); cout << mass; cout << " optimization        : " << h_Fake_SR1_opt->Integral(0,Nbin+1) << endl;
+                              fake_SR1_opt += h_Fake_SR1_opt->Integral(0,Nbin+1);
   }
-  else                        {cout << "fake in SR, with optimization                     : NULL;" << endl;}
-  if(h_Fake_SR_inv){
-                              cout << "fake in SR_inv                                    : " << h_Fake_SR_inv->Integral(0,Nbin+1) << endl;
-                              fake_SR_inv += h_Fake_SR_inv->Integral(0,Nbin+1);
+  else{
+                              cout << "fake in SR1, with "; cout.width(6); cout << mass; cout << " optimization        : NULL;" << endl;
   }
-  else                        cout << "fake in SR_inv                                    : NULL;" << endl;
-  if(h_Fake_highSR1){
-                              cout << "fake in highSR1                                   : " << h_Fake_highSR1->Integral(0,Nbin+1) << endl;
-                              fake_highSR1 += h_Fake_highSR1->Integral(0,Nbin+1);
+  if(h_Fake_SR2){
+                              cout << "fake in SR2                                  : " << h_Fake_SR2->Integral(0,Nbin+1) << endl;
+                              fake_SR2 += h_Fake_SR2->Integral(0,Nbin+1);
   }
-  else                        cout << "fake in highSR1                                   : NULL;" << endl;
-  if(h_Fake_highSR1_opt){
-                              cout << "fake in highSR1, with "; cout.width(6); cout << mass; cout << " optimization         : " << h_Fake_highSR1_opt->Integral(0,Nbin+1) << endl;
-                              fake_highSR1_opt += h_Fake_highSR1_opt->Integral(0,Nbin+1);
+  else                        cout << "fake in SR2                                  : NULL;" << endl;
+  if(h_Fake_SR2_opt){
+                              cout << "fake in SR2, with "; cout.width(6); cout << mass; cout << " optimization        : " << h_Fake_SR2_opt->Integral(0,Nbin+1) << endl;
+                              fake_SR2_opt += h_Fake_SR2_opt->Integral(0,Nbin+1);
   }
-  else                        {cout << "fake in highSR1, with "; cout.width(6); cout << mass; cout << " optimization         : NULL;" << endl;}
-  if(h_Fake_highSR1_1jet){
-                              cout << "fake in highSR1_1jet                              : " << h_Fake_highSR1_1jet->Integral(0,Nbin+1) << endl;
-                              fake_highSR1_1jet += h_Fake_highSR1_1jet->Integral(0,Nbin+1);
+  else{
+                              cout << "fake in SR2, with "; cout.width(6); cout << mass; cout << " optimization        : NULL;" << endl;
   }
-  else                        cout << "fake in highSR1_1jet                              : NULL;" << endl;
-  if(h_Fake_highSR1_1jet_opt){
-                              cout << "fake in highSR1_1jet, with "; cout.width(6); cout << mass; cout << " optimization    : " << h_Fake_highSR1_1jet_opt->Integral(0,Nbin+1) << endl;
-                              fake_highSR1_1jet_opt += h_Fake_highSR1_1jet_opt->Integral(0,Nbin+1);
+  if(h_Fake_SR3){
+                              cout << "fake in SR3                                  : " << h_Fake_SR3->Integral(0,Nbin+1) << endl;
+                              fake_SR3 += h_Fake_SR3->Integral(0,Nbin+1);
   }
-  else                        {cout << "fake in highSR1_1jet, with "; cout.width(6); cout << mass; cout << " optimization    : NULL;" << endl;}
-  if(h_Fake_highSR2){
-                              cout << "fake in highSR2                                   : " << h_Fake_highSR2->Integral(0,Nbin+1) << endl;
-                              fake_highSR2 += h_Fake_highSR2->Integral(0,Nbin+1);
+  else                        cout << "fake in SR3                                  : NULL;" << endl;
+  if(h_Fake_SR3_opt){
+                              cout << "fake in SR3, with "; cout.width(6); cout << mass; cout << " optimization        : " << h_Fake_SR3_opt->Integral(0,Nbin+1) << endl;
+                              fake_SR3_opt += h_Fake_SR3_opt->Integral(0,Nbin+1);
   }
-  else                        cout << "fake in highSR2                                   : NULL;" << endl;
-  if(h_Fake_highSR2_opt){
-                              cout << "fake in highSR2, with "; cout.width(6); cout << mass; cout << " optimization         : " << h_Fake_highSR2_opt->Integral(0,Nbin+1) << endl;
-                              fake_highSR2_opt += h_Fake_highSR2_opt->Integral(0,Nbin+1);
+  else{
+                              cout << "fake in SR3, with "; cout.width(6); cout << mass; cout << " optimization        : NULL;" << endl;
   }
-  else                        {cout << "fake in highSR2, with "; cout.width(6); cout << mass; cout << " optimization         : NULL;" << endl;}
 
-  ///////////////////////////////////signal//////////////////////////////////////////
+  /////////////////////////////////////CF////////////////////////////////////////////
+  if(channel=="diel"){
+    TFile *f_CF = new TFile("/data6/Users/jihkim/SKFlatOutput/Run2UltraLegacy_v2/HNType1/2016/RunCF__/DATA/HNType1_SkimTree_Dilepton_DoubleEG.root");
+    TH1D *h_CF_SR1, *h_CF_SR1_opt, *h_CF_SR2, *h_CF_SR2_opt, *h_CF_SR3, *h_CF_SR3_opt;
+    h_CF_SR1     = (TH1D*)f_CF->Get(channel+"/SR1_Central/HToverPt1_HN");
+    h_CF_SR1_opt = (TH1D*)f_CF->Get(channel+"/SR1_Central/"+hist_mass+"/HToverPt1_HN");
+    h_CF_SR2     = (TH1D*)f_CF->Get(channel+"/SR2_Central/HToverPt1_HN");
+    h_CF_SR2_opt = (TH1D*)f_CF->Get(channel+"/SR2_Central/"+hist_mass+"/HToverPt1_HN");
+    h_CF_SR3     = (TH1D*)f_CF->Get(channel+"/SR3_Central/HToverPt1_HN");
+    h_CF_SR3_opt = (TH1D*)f_CF->Get(channel+"/SR3_Central/"+hist_mass+"/HToverPt1_HN");
+    int Nbin = 20; // Nbin of HToverPt1
+    cout << "===================================================================================================" << endl;
+    if(h_CF_SR1){
+                                cout << "CF in SR1                                  : " << h_CF_SR1->Integral(0,Nbin+1) << endl;
+                                CF_SR1 += h_CF_SR1->Integral(0,Nbin+1);
+    }
+    else                        cout << "CF in SR1                                  : NULL;" << endl;
+    if(h_CF_SR1_opt){
+                                cout << "CF in SR1, with "; cout.width(6); cout << mass; cout << " optimization        : " << h_CF_SR1_opt->Integral(0,Nbin+1) << endl;
+                                CF_SR1_opt += h_CF_SR1_opt->Integral(0,Nbin+1);
+    }
+    else{
+                                cout << "CF in SR1, with "; cout.width(6); cout << mass; cout << " optimization        : NULL;" << endl;
+    }
+    if(h_CF_SR2){
+                                cout << "CF in SR2                                  : " << h_CF_SR2->Integral(0,Nbin+1) << endl;
+                                CF_SR2 += h_CF_SR2->Integral(0,Nbin+1);
+    }
+    else                        cout << "CF in SR2                                  : NULL;" << endl;
+    if(h_CF_SR2_opt){
+                                cout << "CF in SR2, with "; cout.width(6); cout << mass; cout << " optimization        : " << h_CF_SR2_opt->Integral(0,Nbin+1) << endl;
+                                CF_SR2_opt += h_CF_SR2_opt->Integral(0,Nbin+1);
+    }
+    else{
+                                cout << "CF in SR2, with "; cout.width(6); cout << mass; cout << " optimization        : NULL;" << endl;
+    }
+    if(h_CF_SR3){
+                                cout << "CF in SR3                                  : " << h_CF_SR3->Integral(0,Nbin+1) << endl;
+                                CF_SR3 += h_CF_SR3->Integral(0,Nbin+1);
+    }
+    else                        cout << "CF in SR3                                  : NULL;" << endl;
+    if(h_CF_SR3_opt){
+                                cout << "CF in SR3, with "; cout.width(6); cout << mass; cout << " optimization        : " << h_CF_SR3_opt->Integral(0,Nbin+1) << endl;
+                                CF_SR3_opt += h_CF_SR3_opt->Integral(0,Nbin+1);
+    }
+    else{
+                                cout << "CF in SR3, with "; cout.width(6); cout << mass; cout << " optimization        : NULL;" << endl;
+    }
+  }
+
+  bkg_SR1 = MC_SR1+fake_SR1+CF_SR1;
+  bkg_SR1_opt = MC_SR1_opt+fake_SR1_opt+CF_SR1_opt;
+  bkg_SR2 = MC_SR2+fake_SR2+CF_SR2;
+  bkg_SR2_opt = MC_SR2_opt+fake_SR2_opt+CF_SR2_opt;
+  bkg_SR3 = MC_SR3+fake_SR3+CF_SR3;
+  bkg_SR3_opt = MC_SR3_opt+fake_SR3_opt+CF_SR3_opt;
+
+  ///////////////////////////////////signal normalization//////////////////////////////////////////
   //if(signal.Contains("DY")||signal.Contains("VBF")){
-  //  signal_SR                   *= 10000.;
-  //  signal_SR_opt               *= 10000.;
-  //  signal_SR_inv               *= 10000.;
-  //  signal_highSR1              *= 10000.;
-  //  signal_highSR1_opt          *= 10000.;
-  //  signal_highSR1_1jet         *= 10000.;
-  //  signal_highSR1_1jet_opt     *= 10000.;
-  //  signal_highSR2              *= 10000.;
-  //  signal_highSR2_opt          *= 10000.;
+  //  signal_SR1              *= 10000.;
+  //  signal_SR1_opt          *= 10000.;
+  //  signal_SR2              *= 10000.;
+  //  signal_SR2_opt          *= 10000.;
+  //  signal_SR3              *= 10000.;
+  //  signal_SR3_opt          *= 10000.;
   //} //JH : we don't need this for UL. because the xsec in sample info were already normalized to V==1.
+
   cout << "===================================================================================================" << endl;
-  cout << "signal " << signal << " in SR                  : ";
-  cout.width(12); cout << signal_SR << "--> S/sqrt(B) = ";
-  cout.width(12); cout << signal_SR/sqrt(fake_SR+MC_SR);
-  cout << ", full expansion = " << sqrt( 2.*((signal_SR+fake_SR+MC_SR)*log(1+(signal_SR/(fake_SR+MC_SR))) - signal_SR) ) << endl;
-  cout << "signal " << signal << " in SR_opt              : ";
-  cout.width(12); cout << signal_SR_opt << "--> S/sqrt(B) = ";
-  cout.width(12); cout << signal_SR_opt/sqrt(fake_SR_opt+MC_SR_opt);
-  cout << ", full expansion = " << sqrt( 2.*((signal_SR_opt+fake_SR_opt+MC_SR_opt)*log(1+(signal_SR_opt/(fake_SR_opt+MC_SR_opt))) - signal_SR_opt) ) << endl;
-  cout << "signal " << signal << " in SR_inv              : ";
-  cout.width(12); cout << signal_SR_inv << "--> S/sqrt(B) = ";
-  cout.width(12); cout << signal_SR_inv/sqrt(fake_SR_inv+MC_SR_inv);
-  cout << ", full expansion = " << sqrt( 2.*((signal_SR_inv+fake_SR_inv+MC_SR_inv)*log(1+(signal_SR_inv/(fake_SR_inv+MC_SR_inv))) - signal_SR_inv) ) << endl;
-  cout << "signal " << signal << " in highSR1             : ";
-  cout.width(12); cout << signal_highSR1 << "--> S/sqrt(B) = ";
-  cout.width(12); cout << signal_highSR1/sqrt(fake_highSR1+MC_highSR1);
-  cout << ", full expansion = " << sqrt( 2.*((signal_highSR1+fake_highSR1+MC_highSR1)*log(1+(signal_highSR1/(fake_highSR1+MC_highSR1))) - signal_highSR1) ) << endl;
-  cout << "signal " << signal << " in highSR1_"; cout.width(6); cout << mass; cout << "      : ";
-  cout.width(12); cout << signal_highSR1_opt << "--> S/sqrt(B) = ";
-  cout.width(12); cout << signal_highSR1_opt/sqrt(fake_highSR1_opt+MC_highSR1_opt);
-  cout << ", full expansion = " << sqrt( 2.*((signal_highSR1_opt+fake_highSR1_opt+MC_highSR1_opt)*log(1+(signal_highSR1_opt/(fake_highSR1_opt+MC_highSR1_opt))) - signal_highSR1_opt) ) << endl;
-  cout << "signal " << signal << " in highSR1_1jet        : ";
-  cout.width(12); cout << signal_highSR1_1jet << "--> S/sqrt(B) = ";
-  cout.width(12); cout << signal_highSR1_1jet/sqrt(fake_highSR1_1jet+MC_highSR1_1jet);
-  cout << ", full expansion = " << sqrt( 2.*((signal_highSR1_1jet+fake_highSR1_1jet+MC_highSR1_1jet)*log(1+(signal_highSR1_1jet/(fake_highSR1_1jet+MC_highSR1_1jet))) - signal_highSR1_1jet) ) << endl;
-  cout << "signal " << signal << " in highSR1_1jet_"; cout.width(6); cout << mass; cout << " : ";
-  cout.width(12); cout << signal_highSR1_1jet_opt << "--> S/sqrt(B) = ";
-  cout.width(12); cout << signal_highSR1_1jet_opt/sqrt(fake_highSR1_1jet_opt+MC_highSR1_1jet_opt);
-  cout << ", full expansion = " << sqrt( 2.*((signal_highSR1_1jet_opt+fake_highSR1_1jet_opt+MC_highSR1_1jet_opt)*log(1+(signal_highSR1_1jet_opt/(fake_highSR1_1jet_opt+MC_highSR1_1jet_opt))) - signal_highSR1_1jet_opt) ) << endl;
-  cout << "signal " << signal << " in highSR2             : ";
-  cout.width(12); cout << signal_highSR2 << "--> S/sqrt(B) = ";
-  cout.width(12); cout << signal_highSR2/sqrt(fake_highSR2+MC_highSR2);
-  cout << ", full expansion = " << sqrt( 2.*((signal_highSR2+fake_highSR2+MC_highSR2)*log(1+(signal_highSR2/(fake_highSR2+MC_highSR2))) - signal_highSR2) ) << endl;
-  cout << "signal " << signal << " in highSR2_"; cout.width(6); cout << mass; cout << "      : ";
-  cout.width(12); cout << signal_highSR2_opt << "--> S/sqrt(B) = ";
-  cout.width(12); cout << signal_highSR2_opt/sqrt(fake_highSR2_opt+MC_highSR2_opt);
-  cout << ", full expansion = " << sqrt( 2.*((signal_highSR2_opt+fake_highSR2_opt+MC_highSR2_opt)*log(1+(signal_highSR2_opt/(fake_highSR2_opt+MC_highSR2_opt))) - signal_highSR2_opt) ) << endl;
+  cout << "signal " << signal << " in SR1         : ";
+  cout.width(12); cout << signal_SR1 << "--> S/sqrt(B) = ";
+  cout.width(12); cout << signal_SR1/sqrt(bkg_SR1);
+  cout << ", full expansion = " << sqrt( 2.*((signal_SR1+bkg_SR1)*log(1+(signal_SR1/(bkg_SR1))) - signal_SR1) ) << endl;
+  cout << "signal " << signal << " in SR1_"; cout.width(6); cout << mass; cout << "  : ";
+  cout.width(12); cout << signal_SR1_opt << "--> S/sqrt(B) = ";
+  cout.width(12); cout << signal_SR1_opt/sqrt(bkg_SR1_opt);
+  cout << ", full expansion = " << sqrt( 2.*((signal_SR1_opt+bkg_SR1_opt)*log(1+(signal_SR1_opt/(bkg_SR1_opt))) - signal_SR1_opt) ) << endl;
+  cout << "signal " << signal << " in SR2         : ";
+  cout.width(12); cout << signal_SR2 << "--> S/sqrt(B) = ";
+  cout.width(12); cout << signal_SR2/sqrt(bkg_SR2);
+  cout << ", full expansion = " << sqrt( 2.*((signal_SR2+bkg_SR2)*log(1+(signal_SR2/(bkg_SR2))) - signal_SR2) ) << endl;
+  cout << "signal " << signal << " in SR2_"; cout.width(6); cout << mass; cout << "  : ";
+  cout.width(12); cout << signal_SR2_opt << "--> S/sqrt(B) = ";
+  cout.width(12); cout << signal_SR2_opt/sqrt(bkg_SR2_opt);
+  cout << ", full expansion = " << sqrt( 2.*((signal_SR2_opt+bkg_SR2_opt)*log(1+(signal_SR2_opt/(bkg_SR2_opt))) - signal_SR2_opt) ) << endl;
+  cout << "signal " << signal << " in SR3         : ";
+  cout.width(12); cout << signal_SR3 << "--> S/sqrt(B) = ";
+  cout.width(12); cout << signal_SR3/sqrt(bkg_SR3);
+  cout << ", full expansion = " << sqrt( 2.*((signal_SR3+bkg_SR3)*log(1+(signal_SR3/(bkg_SR3))) - signal_SR3) ) << endl;
+  cout << "signal " << signal << " in SR3_"; cout.width(6); cout << mass; cout << "  : ";
+  cout.width(12); cout << signal_SR3_opt << "--> S/sqrt(B) = ";
+  cout.width(12); cout << signal_SR3_opt/sqrt(bkg_SR3_opt);
+  cout << ", full expansion = " << sqrt( 2.*((signal_SR3_opt+bkg_SR3_opt)*log(1+(signal_SR3_opt/(bkg_SR3_opt))) - signal_SR3_opt) ) << endl;
+
+  if(datacard=="y"){
+
+    //signal scaling
+    signal_SR1_opt *= 0.01;
+    signal_SR2_opt *= 0.01;
+    signal_SR3_opt *= 0.01;
+
+    vector<double> card_items = {signal_SR1_opt, MC_SR1_opt, CF_SR1_opt, fake_SR1_opt, signal_SR2_opt, MC_SR2_opt, CF_SR2_opt, fake_SR2_opt, signal_SR3_opt, MC_SR3_opt, CF_SR3_opt, fake_SR3_opt};
+    vector<TString> card_items_txt;
+    for(int i=0; i<card_items.size(); i++) card_items_txt.push_back(Form("%f",card_items.at(i)));
+
+    ofstream out("datacard/Card_2016_"+channel+"_"+mass+"_HNTightV1.txt");
+
+    string fileline;
+    ifstream in;
+    if(mass=="M100") in.open("skeleton/datacard_"+channel+"_lowmass.txt");
+    else in.open("skeleton/datacard_"+channel+"_highmass.txt");
+    while(getline(in, fileline)){
+      TString this_line = fileline;
+      if(this_line.Contains("#")){
+        this_line = "rate                               ";
+        for(int i=0; i<card_items.size(); i++){
+          this_line += card_items_txt.at(i);
+          this_line += "  ";
+        }
+      }
+      out << this_line << endl;
+    }
+    out.close();
+
+  }
+
+  //cout << "===================================================================================================" << endl;
+  //cout << "put the line below into the data card;" << endl;
+  //cout << signal_SR1_opt << "  " << MC_SR1_opt << "  " << CF_SR1_opt << "  " << fake_SR1_opt << "  " << signal_SR2_opt << "  " << MC_SR2_opt << "  " << CF_SR2_opt << "  " << fake_SR2_opt << "  " << signal_SR3_opt << "  " << MC_SR3_opt << "  " << CF_SR3_opt << "  " << fake_SR3_opt << endl;
 }
