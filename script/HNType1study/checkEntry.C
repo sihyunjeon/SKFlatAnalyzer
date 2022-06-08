@@ -35,7 +35,7 @@ void checkEntry(TString channel, TString region){
     }
     else Nevent = 0.;
     
-    if(category=="signal") cout << process << " : " << Nevent << " (" << (Nevent/Ntot)*100.*2. << " %)" << endl;
+    if(category=="signal") cout << process << " : " << Nevent << " (" << (Nevent/Ntot)*100. << " %)" << endl;
     else cout << process << " : " << Nevent << endl;
   }
   cout << "===============================================" << endl;

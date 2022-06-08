@@ -5,30 +5,30 @@
 #python python/SKFlat.py -a HNType1 -e 2016a -i SSWWTypeI_NLO_SF_M1500 -n 50 --userflags jcln_inv,fatjet_veto --batchname auto &
 
 ### test puppi jet ###
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_DYTypeI_NLO_DF_M100 -n 50 --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_DYTypeI_NLO_DF_M1000 -n 50 --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_VBFTypeI_NLO_DF_M1000 -n 50 --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_SSWWTypeI_NLO_DF_M1000 -n 50 --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_SSWWTypeI_NLO_DF_M15000 -n 50 --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WpWpJJ_EWK -n 50 --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WZTo3LNu -n 50 --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WGToLNuG -n 50 --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_DYTypeI_NLO_DF_M100 -n 50 --userflags Puppi --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_DYTypeI_NLO_DF_M1000 -n 50 --userflags Puppi --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_VBFTypeI_NLO_DF_M1000 -n 50 --userflags Puppi --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_SSWWTypeI_NLO_DF_M1000 -n 50 --userflags Puppi --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_SSWWTypeI_NLO_DF_M15000 -n 50 --userflags Puppi --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WpWpJJ_EWK -n 50 --userflags Puppi --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WZTo3LNu -n 50 --userflags Puppi --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WGToLNuG -n 50 --userflags Puppi --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_DYTypeI_NLO_DF_M100 -n 50 --userflags NoPUID --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_DYTypeI_NLO_DF_M1000 -n 50 --userflags NoPUID --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_VBFTypeI_NLO_DF_M1000 -n 50 --userflags NoPUID --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_SSWWTypeI_NLO_DF_M1000 -n 50 --userflags NoPUID --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_SSWWTypeI_NLO_DF_M15000 -n 50 --userflags NoPUID --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WpWpJJ_EWK -n 50 --userflags NoPUID --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WZTo3LNu -n 50 --userflags NoPUID --batchname auto &
-python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WGToLNuG -n 50 --userflags NoPUID --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_DYTypeI_NLO_DF_M100 -n 50 --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_DYTypeI_NLO_DF_M1000 -n 50 --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_VBFTypeI_NLO_DF_M1000 -n 50 --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_SSWWTypeI_NLO_DF_M1000 -n 50 --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_SSWWTypeI_NLO_DF_M15000 -n 50 --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WpWpJJ_EWK -n 50 --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WZTo3LNu -n 50 --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WGToLNuG -n 50 --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_DYTypeI_NLO_DF_M100 -n 50 --userflags Puppi --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_DYTypeI_NLO_DF_M1000 -n 50 --userflags Puppi --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_VBFTypeI_NLO_DF_M1000 -n 50 --userflags Puppi --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_SSWWTypeI_NLO_DF_M1000 -n 50 --userflags Puppi --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_SSWWTypeI_NLO_DF_M15000 -n 50 --userflags Puppi --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WpWpJJ_EWK -n 50 --userflags Puppi --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WZTo3LNu -n 50 --userflags Puppi --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WGToLNuG -n 50 --userflags Puppi --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_DYTypeI_NLO_DF_M100 -n 50 --userflags NoPUID --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_DYTypeI_NLO_DF_M1000 -n 50 --userflags NoPUID --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_VBFTypeI_NLO_DF_M1000 -n 50 --userflags NoPUID --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_SSWWTypeI_NLO_DF_M1000 -n 50 --userflags NoPUID --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_SSWWTypeI_NLO_DF_M15000 -n 50 --userflags NoPUID --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WpWpJJ_EWK -n 50 --userflags NoPUID --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WZTo3LNu -n 50 --userflags NoPUID --batchname auto &
+#python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WGToLNuG -n 50 --userflags NoPUID --batchname auto &
 
 ### Test (investigation of key variables in each steps in event selection) ###
 #! data !#
@@ -47,13 +47,13 @@ python python/SKFlat.py -a testPuppi_HNType1 -e 2016b -i testPuppi_WGToLNuG -n 5
 
 ### Event selections (CR, SR) ###
 #! 2016a !#
-#python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
-#python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
-#python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
-#python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
-#python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --userflags RunCF --batchname auto &
-#python python/SKFlat.py -a HNType1 -e 2016a -l submitList/SSWW_2016_HNMultiLep.txt -n 50 --skim SkimTree_HNMultiLep --batchname auto &
-#python python/SKFlat.py -a HNType1 -e 2016a -l submitList/signals_Mproxy.txt -n 50 --batchname auto &
+python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
+python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
+python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
+python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
+python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --userflags RunCF --batchname auto &
+python python/SKFlat.py -a HNType1 -e 2016a -l submitList/SSWW_2016_HNMultiLep.txt -n 50 --skim SkimTree_HNMultiLep --batchname auto &
+python python/SKFlat.py -a HNType1 -e 2016a -l submitList/signals_Mproxy.txt -n 50 --batchname auto &
 #python python/SKFlat.py -a HNType1 -e 2016a -l submitList/signals.txt -n 50 --batchname auto &
 #python python/SKFlat.py -a HNType1 -e 2016a -l submitList/signals_M1500.txt -n 50 --batchname auto &
 #python python/SKFlat.py -a HNType1 -e 2016a -l submitList/signals_test.txt -n 50 --batchname auto &

@@ -848,7 +848,9 @@ void HNType1::executeEventFromParameter(AnalyzerParameter param){
     }
 
     // Start signal region selection
-    vector<TString> SR_summary_labels = {"Pre", "SR1_pass", "SR1_fail", "SR2_pass", "SR2_fail", "SR3_pass", "SR3_fail"};
+    vector<TString> SR_summary_labels = {"Pre", "SR1_pass", "SR1_fail", "SR2_pass", "SR2_fail", "SR3_pass", "SR3_fail", "SR3_forward_pass", "SR3_forward_fail",
+                                         "SR3_forward_mW_pass", "SR3_forward_mW_fail", "SR3_forward_mW_HToverPt1_pass", "SR3_forward_mW_HToverPt1_fail",
+                                         "SR3_forward_mW_HToverPt0p5_pass", "SR3_forward_mW_HToverPt0p5_fail"};
     FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_"+IDsuffix, SR_summary_labels, "Pre", weight);
     FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_unweighted_"+IDsuffix, SR_summary_labels, "Pre", 1.);
 
@@ -860,7 +862,7 @@ void HNType1::executeEventFromParameter(AnalyzerParameter param){
         if(SR1_opts[i]=="Central"){
           SR1_labels = {"Nfatjet", "bveto", "mW", "MET2ST"};
           SR1_cuts = {Nbjet_medium, 40., 130., 15.};
-          if(RunSR1(channels.at(it_ch), SR1_opts[i], IDsuffix, leptons, jets, fatjets, MET, SR1_labels, SR1_cuts, weight, 1)){
+          if(RunSR1(channels.at(it_ch), SR1_opts[i], IDsuffix, leptons, jets, jets_forward, fatjets, MET, SR1_labels, SR1_cuts, weight, 1)){
             FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_"+IDsuffix, SR_summary_labels, "SR1_pass", weight);
             FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_unweighted_"+IDsuffix, SR_summary_labels, "SR1_pass", 1.);
           }
@@ -869,21 +871,21 @@ void HNType1::executeEventFromParameter(AnalyzerParameter param){
             FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_unweighted_"+IDsuffix, SR_summary_labels, "SR1_fail", 1.);
           }
         }
-        else if(SR1_opts[i]=="bveto_loose"){
-          SR1_labels = {"Nfatjet", "bveto", "mW", "MET2ST"};
-          SR1_cuts = {Nbjet_loose, 40., 130., 15.};
-          RunSR1(channels.at(it_ch), SR1_opts[i], IDsuffix, leptons, jets, fatjets, MET, SR1_labels, SR1_cuts, weight, 1);
-        }
-        else if(SR1_opts[i]=="mW50to150"){
-          SR1_labels = {"Nfatjet", "bveto", "mW", "MET2ST"};
-          SR1_cuts = {Nbjet_medium, 50., 150., 15.};
-          RunSR1(channels.at(it_ch), SR1_opts[i], IDsuffix, leptons, jets, fatjets, MET, SR1_labels, SR1_cuts, weight, 0);
-        }
-        else if(SR1_opts[i]=="MET2ST_20"){
-          SR1_labels = {"Nfatjet", "bveto", "mW", "MET2ST"};
-          SR1_cuts = {Nbjet_medium, 40., 130., 20.};
-          RunSR1(channels.at(it_ch), SR1_opts[i], IDsuffix, leptons, jets, fatjets, MET, SR1_labels, SR1_cuts, weight, 0);
-        }
+        //else if(SR1_opts[i]=="bveto_loose"){
+        //  SR1_labels = {"Nfatjet", "bveto", "mW", "MET2ST"};
+        //  SR1_cuts = {Nbjet_loose, 40., 130., 15.};
+        //  RunSR1(channels.at(it_ch), SR1_opts[i], IDsuffix, leptons, jets, jets_forward, fatjets, MET, SR1_labels, SR1_cuts, weight, 1);
+        //}
+        //else if(SR1_opts[i]=="mW50to150"){
+        //  SR1_labels = {"Nfatjet", "bveto", "mW", "MET2ST"};
+        //  SR1_cuts = {Nbjet_medium, 50., 150., 15.};
+        //  RunSR1(channels.at(it_ch), SR1_opts[i], IDsuffix, leptons, jets, jets_forward, fatjets, MET, SR1_labels, SR1_cuts, weight, 0);
+        //}
+        //else if(SR1_opts[i]=="MET2ST_20"){
+        //  SR1_labels = {"Nfatjet", "bveto", "mW", "MET2ST"};
+        //  SR1_cuts = {Nbjet_medium, 40., 130., 20.};
+        //  RunSR1(channels.at(it_ch), SR1_opts[i], IDsuffix, leptons, jets, jets_forward, fatjets, MET, SR1_labels, SR1_cuts, weight, 0);
+        //}
       }
     }
     else{ // no fatjet
@@ -894,7 +896,7 @@ void HNType1::executeEventFromParameter(AnalyzerParameter param){
         if(SR2_opts[i]=="Central"){
           SR2_labels = {"nofatjet", "Nforwardjet", "lpt", "mll", "max_zep", "j2pt", "detajj", "mjj", "bveto", "dphill", "HToverPt1"};
           SR2_cuts = {2., 30., 20., 0.75, 30., 2.5, 750., Nbjet_medium, 2., 1.,};
-          if(RunSR2(channels.at(it_ch), SR2_opts[i], IDsuffix, leptons, jets_forward, fatjets, MET, SR2_labels, SR2_cuts, weight, 1)){
+          if(RunSR2(channels.at(it_ch), SR2_opts[i], IDsuffix, leptons, jets, jets_forward, fatjets, MET, SR2_labels, SR2_cuts, weight, 1)){
             FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_"+IDsuffix, SR_summary_labels, "SR2_pass", weight);
             FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_unweighted_"+IDsuffix, SR_summary_labels, "SR2_pass", 1.);
           }
@@ -902,14 +904,14 @@ void HNType1::executeEventFromParameter(AnalyzerParameter param){
             FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_"+IDsuffix, SR_summary_labels, "SR2_fail", weight);
             FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_unweighted_"+IDsuffix, SR_summary_labels, "SR2_fail", 1.);
 
-            vector<TString> SR3_opts = {"Central"};
+            vector<TString> SR3_opts = {"Central", "forward", "forward_mW", "forward_mW_HToverPt1", "forward_mW_HToverPt0p5"};
             vector<TString> SR3_labels;
             vector<double> SR3_cuts;
             for(int i=0; i<SR3_opts.size(); i++){
               if(SR3_opts[i]=="Central"){
                 SR3_labels = {"VBFfail", "Njet", "bveto", "mW", "j1pt", "MET2ST"};
-                SR3_cuts = {2., Nbjet_medium, 30., 150., 25., 15.,};
-                if(RunSR3(channels.at(it_ch), SR3_opts[i], IDsuffix, leptons, jets, fatjets, MET, SR3_labels, SR3_cuts, weight, 1)){
+                SR3_cuts = {2., Nbjet_medium, 30., 150., 25., 15.};
+                if(RunSR3(channels.at(it_ch), SR3_opts[i], IDsuffix, leptons, jets, jets_forward, fatjets, MET, SR3_labels, SR3_cuts, weight, 1)){
                   FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_"+IDsuffix, SR_summary_labels, "SR3_pass", weight);
                   FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_unweighted_"+IDsuffix, SR_summary_labels, "SR3_pass", 1.);
                 }
@@ -917,68 +919,63 @@ void HNType1::executeEventFromParameter(AnalyzerParameter param){
                   FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_"+IDsuffix, SR_summary_labels, "SR3_fail", weight);
                   FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_unweighted_"+IDsuffix, SR_summary_labels, "SR3_fail", 1.);
 
-                  // Define HT, ST, MET^2/ST
-                  double HT = 0.;
-                  double ST = 0.;
-                  double MET2ST;
-                  for(unsigned int i=0; i<jets.size(); i++) HT += jets.at(i).Pt();
-                  for(unsigned int i=0; i<jets.size(); i++) ST += jets.at(i).Pt();
-                  for(unsigned int i=0; i<fatjets.size(); i++) ST += fatjets.at(i).Pt();
-                  for(unsigned int i=0; i<leptons.size(); i++) ST += leptons.at(i)->Pt();
-                  ST += MET;
-                  MET2ST = MET*MET/ST;
+                  DrawEvent(channels.at(it_ch), "SR3_Central_fail", IDsuffix, leptons, jets, jets_forward, fatjets, MET, weight);
+                }
+              }
+              else if(SR3_opts[i]=="forward"){
+                SR3_labels = {"VBFfail", "Njet", "bveto", "mW", "j1pt", "MET2ST"};
+                SR3_cuts = {2., Nbjet_medium, 30., 150., 25., 15.};
+                if(RunSR3(channels.at(it_ch), SR3_opts[i], IDsuffix, leptons, jets, jets_forward, fatjets, MET, SR3_labels, SR3_cuts, weight, 1)){
+                  FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_"+IDsuffix, SR_summary_labels, "SR3_forward_pass", weight);
+                  FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_unweighted_"+IDsuffix, SR_summary_labels, "SR3_forward_pass", 1.);
+                }
+                else{
+                  FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_"+IDsuffix, SR_summary_labels, "SR3_forward_fail", weight);
+                  FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_unweighted_"+IDsuffix, SR_summary_labels, "SR3_forward_fail", 1.);
 
-                  Particle DiLep = *leptons.at(0)+*leptons.at(1);
-                  double dPhill = fabs(leptons.at(0)->DeltaPhi(*leptons.at(1)));
-                  double HToverPt1 = HT/leptons.at(0)->Pt();
+                  DrawEvent(channels.at(it_ch), "SR3_forward_fail", IDsuffix, leptons, jets, jets_forward, fatjets, MET, weight);
+                }
+              }
+              else if(SR3_opts[i]=="forward_mW"){
+                SR3_labels = {"VBFfail", "Njet", "bveto", "mW", "j1pt", "MET2ST"};
+                SR3_cuts = {2., Nbjet_medium, 0., 15000., 25., 15.};
+                if(RunSR3(channels.at(it_ch), SR3_opts[i], IDsuffix, leptons, jets, jets_forward, fatjets, MET, SR3_labels, SR3_cuts, weight, 0)){
+                  FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_"+IDsuffix, SR_summary_labels, "SR3_forward_mW_pass", weight);
+                  FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_unweighted_"+IDsuffix, SR_summary_labels, "SR3_forward_mW_pass", 1.);
+                }
+                else{
+                  FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_"+IDsuffix, SR_summary_labels, "SR3_forward_mW_fail", weight);
+                  FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_unweighted_"+IDsuffix, SR_summary_labels, "SR3_forward_mW_fail", 1.);
 
-                  Particle DiJet, Wtemp, WCand, lljj, l1jj, l2jj;
-                  if(jets.size()>1){
-                    DiJet = jets.at(0)+jets.at(1);
-                    // Select two jets that makes m(jj) closest to m(W)
-                    double MW = 80.379;
-                    double tmpMassDiff = 10000.;
-                    int j1 = 0, j2 = 0;
-                    for(unsigned int k=0; k<jets.size(); k++){
-                      for(unsigned int l=k+1; l<jets.size(); l++){
-                        Wtemp = jets.at(k) + jets.at(l);
-                        if(fabs(Wtemp.M() - MW) < tmpMassDiff){
-                          tmpMassDiff = fabs(Wtemp.M() - MW);
-                          j1 = k; j2 = l; //JH : this saves (k,l) tuple if that combination gives a smaller difference than the former combination
-                        }
-                      }
-                    }
-                    WCand = jets.at(j1) + jets.at(j2);
-                    lljj = *leptons.at(0) + *leptons.at(1) + jets.at(j1) + jets.at(j2);
-                    l1jj = *leptons.at(0) + jets.at(j1) + jets.at(j2);
-                    l2jj = *leptons.at(1) + jets.at(j1) + jets.at(j2);
-                  }
-                  FillHist(channels.at(it_ch)+"/SR3_fail/Njets_all_"+IDsuffix, jets_all.size(), weight, 10, 0., 10.);
-                  FillHist(channels.at(it_ch)+"/SR3_fail/Njets_forward_noPUID_"+IDsuffix, jets_forward_noPUID.size(), weight, 10, 0., 10.);
-                  FillHist(channels.at(it_ch)+"/SR3_fail/Njets_forward_"+IDsuffix, jets_forward.size(), weight, 10, 0., 10.);
-                  FillHist(channels.at(it_ch)+"/SR3_fail/Njets_"+IDsuffix, jets.size(), weight, 10, 0., 10.);
-                  FillHist(channels.at(it_ch)+"/SR3_fail/Nfatjets_"+IDsuffix, fatjets.size(), weight, 10, 0., 10.);
-                  FillHist(channels.at(it_ch)+"/SR3_fail/DiLep_Mass_"+IDsuffix, DiLep.M(), weight, 1500, 0., 1500.);
-                  FillHist(channels.at(it_ch)+"/SR3_fail/Lep1_Pt_"+IDsuffix, leptons.at(0)->Pt(), weight, 1500, 0., 1500.);
-                  FillHist(channels.at(it_ch)+"/SR3_fail/Lep2_Pt_"+IDsuffix, leptons.at(1)->Pt(), weight, 1500, 0., 1500.);
-                  FillHist(channels.at(it_ch)+"/SR3_fail/Lep1_Eta_"+IDsuffix, leptons.at(0)->Eta(), weight, 50, -2.5, 2.5);
-                  FillHist(channels.at(it_ch)+"/SR3_fail/Lep2_Eta_"+IDsuffix, leptons.at(1)->Eta(), weight, 50, -2.5, 2.5);
-                  if(jets.size()>0){
-                    FillHist(channels.at(it_ch)+"/SR3_fail/Jet1_Pt_"+IDsuffix, jets.at(0).Pt(), weight, 1500, 0., 1500.);
-                    FillHist(channels.at(it_ch)+"/SR3_fail/Jet1_Eta_"+IDsuffix, jets.at(0).Eta(), weight, 100, -5, 5);
-                  }
-                  if(jets.size()>1){
-                    FillHist(channels.at(it_ch)+"/SR3_fail/Jet2_Pt_"+IDsuffix, jets.at(1).Pt(), weight, 1500, 0., 1500.);
-                    FillHist(channels.at(it_ch)+"/SR3_fail/Jet2_Eta_"+IDsuffix, jets.at(1).Eta(), weight, 100, -5, 5);
-                    FillHist(channels.at(it_ch)+"/SR3_fail/lljj_Mass_"+IDsuffix, lljj.M(), weight, 2000, 0., 2000.);
-                    FillHist(channels.at(it_ch)+"/SR3_fail/l1jj_Mass_"+IDsuffix, l1jj.M(), weight, 2000, 0., 2000.);
-                    FillHist(channels.at(it_ch)+"/SR3_fail/l2jj_Mass_"+IDsuffix, l2jj.M(), weight, 2000, 0., 2000.);
-                    FillHist(channels.at(it_ch)+"/SR3_fail/DiJet_Mass_"+IDsuffix, DiJet.M(), weight, 3000, 0., 3000.);
-                  }
-                  FillHist(channels.at(it_ch)+"/SR3_fail/MET_"+IDsuffix, MET, weight, 1000, 0., 1000.);
-                  FillHist(channels.at(it_ch)+"/SR3_fail/MET2ST_"+IDsuffix, MET2ST, weight, 1000, 0., 1000.);
-                  FillHist(channels.at(it_ch)+"/SR3_fail/dPhill_"+IDsuffix, dPhill, weight, 32, 0., 3.2);
-                  FillHist(channels.at(it_ch)+"/SR3_fail/HToverPt1_"+IDsuffix, HToverPt1, weight, 20, 0., 10.);
+                  DrawEvent(channels.at(it_ch), "SR3_forward_mW_fail", IDsuffix, leptons, jets, jets_forward, fatjets, MET, weight);
+                }
+              }
+              else if(SR3_opts[i]=="forward_mW_HToverPt1"){
+                SR3_labels = {"VBFfail", "Njet", "bveto", "mW", "j1pt", "MET2ST", "HToverPt1"};
+                SR3_cuts = {2., Nbjet_medium, 0., 15000., 25., 15., 1.};
+                if(RunSR3(channels.at(it_ch), SR3_opts[i], IDsuffix, leptons, jets, jets_forward, fatjets, MET, SR3_labels, SR3_cuts, weight, 0)){
+                  FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_"+IDsuffix, SR_summary_labels, "SR3_forward_mW_HToverPt1_pass", weight);
+                  FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_unweighted_"+IDsuffix, SR_summary_labels, "SR3_forward_mW_HToverPt1_pass", 1.);
+                }
+                else{
+                  FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_"+IDsuffix, SR_summary_labels, "SR3_forward_mW_HToverPt1_fail", weight);
+                  FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_unweighted_"+IDsuffix, SR_summary_labels, "SR3_forward_mW_HToverPt1_fail", 1.);
+
+                  DrawEvent(channels.at(it_ch), "SR3_forward_mW_HToverPt1_fail", IDsuffix, leptons, jets, jets_forward, fatjets, MET, weight);
+                }
+              }
+              else if(SR3_opts[i]=="forward_mW_HToverPt0p5"){
+                SR3_labels = {"VBFfail", "Njet", "bveto", "mW", "j1pt", "MET2ST", "HToverPt0p5"};
+                SR3_cuts = {2., Nbjet_medium, 0., 15000., 25., 15., 0.5};
+                if(RunSR3(channels.at(it_ch), SR3_opts[i], IDsuffix, leptons, jets, jets_forward, fatjets, MET, SR3_labels, SR3_cuts, weight, 0)){
+                  FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_"+IDsuffix, SR_summary_labels, "SR3_forward_mW_HToverPt0p5_pass", weight);
+                  FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_unweighted_"+IDsuffix, SR_summary_labels, "SR3_forward_mW_HToverPt0p5_pass", 1.);
+                }
+                else{
+                  FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_"+IDsuffix, SR_summary_labels, "SR3_forward_mW_HToverPt0p5_fail", weight);
+                  FillHistLabel(channels.at(it_ch)+"/SR_Central_summary_unweighted_"+IDsuffix, SR_summary_labels, "SR3_forward_mW_HToverPt0p5_fail", 1.);
+
+                  DrawEvent(channels.at(it_ch), "SR3_forward_mW_HToverPt0p5_fail", IDsuffix, leptons, jets, jets_forward, fatjets, MET, weight);
                 }
               }
             } // SR3 done

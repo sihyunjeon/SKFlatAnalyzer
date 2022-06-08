@@ -3,7 +3,7 @@ WZTo3LNu_mllmin4p0_powheg
 ZZTo4L_m_1toInf_powheg
 ZZTo4L_powheg
 WGToLNuG
-ZGTo2LG_01J
+ZGToLLG_01J
 TTG
 #ttHToNonbb
 ttWToLNu

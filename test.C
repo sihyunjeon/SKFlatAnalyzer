@@ -1,6 +1,6 @@
 R__LOAD_LIBRARY(/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/lhapdf/6.2.3/lib/libLHAPDF.so)
 
-void test(TString era, TString isdata, TString stream){ // test("2016preVFP","data","DM")
+void test(TString era, TString isdata, TString stream){ // test("2016preVFP","data","DM"), test("2016preVFP","mc","SSWWTypeI_SF_M1500")
 
   //Fake m;
   //SSWW m;
@@ -28,7 +28,7 @@ void test(TString era, TString isdata, TString stream){ // test("2016preVFP","da
   m.Userflags = {
     //"FR", //Fake
     //"Norm", //Fake
-    "RunFake", //SSWW, Signal, Control
+    //"RunFake", //SSWW, Signal, Control
     //"RunCF", //SSWW, Signal, Control
     //"FR_ex", //Signal, Control
     //"jcln_inv", //SSWW
@@ -76,11 +76,35 @@ void test(TString era, TString isdata, TString stream){ // test("2016preVFP","da
   }
   else if(era=="2016preVFP" && isdata=="mc" && stream=="SSWWTypeI_SF_M1500"){
     m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/SSWWTypeI_NLO_SF_M1500/211126_002710/0000/SKFlatNtuple_2016preVFP_MC_1.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/SSWWTypeI_NLO_SF_M1500/211126_002710/0000/SKFlatNtuple_2016preVFP_MC_2.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/SSWWTypeI_NLO_SF_M1500/211126_002710/0000/SKFlatNtuple_2016preVFP_MC_3.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/SSWWTypeI_NLO_SF_M1500/211126_002710/0000/SKFlatNtuple_2016preVFP_MC_4.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/SSWWTypeI_NLO_SF_M1500/211126_002710/0000/SKFlatNtuple_2016preVFP_MC_5.root");
-    //m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/SSWWTypeI_NLO_SF_M1500/211126_002710/0000/SKFlatNtuple_2016preVFP_MC_6.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/SSWWTypeI_NLO_SF_M1500/211126_002710/0000/SKFlatNtuple_2016preVFP_MC_2.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/SSWWTypeI_NLO_SF_M1500/211126_002710/0000/SKFlatNtuple_2016preVFP_MC_3.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/SSWWTypeI_NLO_SF_M1500/211126_002710/0000/SKFlatNtuple_2016preVFP_MC_4.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/SSWWTypeI_NLO_SF_M1500/211126_002710/0000/SKFlatNtuple_2016preVFP_MC_5.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/SSWWTypeI_NLO_SF_M1500/211126_002710/0000/SKFlatNtuple_2016preVFP_MC_6.root");
+  }
+  else if(era=="2016preVFP" && isdata=="mc" && stream=="DYTypeI_SF_M100"){
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/DYTypeI_NLO_SF_M100/210924_155926/0000/SKFlatNtuple_2016preVFP_MC_1.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/DYTypeI_NLO_SF_M100/210924_155926/0000/SKFlatNtuple_2016preVFP_MC_2.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/DYTypeI_NLO_SF_M100/210924_155926/0000/SKFlatNtuple_2016preVFP_MC_3.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/DYTypeI_NLO_SF_M100/210924_155926/0000/SKFlatNtuple_2016preVFP_MC_4.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/DYTypeI_NLO_SF_M100/210924_155926/0000/SKFlatNtuple_2016preVFP_MC_5.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/DYTypeI_NLO_SF_M100/210924_155926/0000/SKFlatNtuple_2016preVFP_MC_6.root");
+  }
+  else if(era=="2016preVFP" && isdata=="mc" && stream=="DYTypeI_SF_M1500"){
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/DYTypeI_NLO_SF_M1500/211027_185254/0000/SKFlatNtuple_2016preVFP_MC_1.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/DYTypeI_NLO_SF_M1500/211027_185254/0000/SKFlatNtuple_2016preVFP_MC_2.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/DYTypeI_NLO_SF_M1500/211027_185254/0000/SKFlatNtuple_2016preVFP_MC_3.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/DYTypeI_NLO_SF_M1500/211027_185254/0000/SKFlatNtuple_2016preVFP_MC_4.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/DYTypeI_NLO_SF_M1500/211027_185254/0000/SKFlatNtuple_2016preVFP_MC_5.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/DYTypeI_NLO_SF_M1500/211027_185254/0000/SKFlatNtuple_2016preVFP_MC_6.root");
+  }
+  else if(era=="2016preVFP" && isdata=="mc" && stream=="WZ"){
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/WZTo3LNu_mllmin4p0_TuneCP5_13TeV-powheg-pythia8/210921_013131/0000/SKFlatNtuple_2016preVFP_MC_1.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/WZTo3LNu_mllmin4p0_TuneCP5_13TeV-powheg-pythia8/210921_013131/0000/SKFlatNtuple_2016preVFP_MC_2.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/WZTo3LNu_mllmin4p0_TuneCP5_13TeV-powheg-pythia8/210921_013131/0000/SKFlatNtuple_2016preVFP_MC_3.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/WZTo3LNu_mllmin4p0_TuneCP5_13TeV-powheg-pythia8/210921_013131/0000/SKFlatNtuple_2016preVFP_MC_4.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/WZTo3LNu_mllmin4p0_TuneCP5_13TeV-powheg-pythia8/210921_013131/0000/SKFlatNtuple_2016preVFP_MC_5.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/WZTo3LNu_mllmin4p0_TuneCP5_13TeV-powheg-pythia8/210921_013131/0000/SKFlatNtuple_2016preVFP_MC_6.root");
   }
   else if(era=="2016postVFP" && isdata=="mc" && stream=="DY"){
     m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016postVFP/MC/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/210915_033906/0000/SKFlatNtuple_2016postVFP_MC_1.root");

@@ -2791,7 +2791,7 @@ void AnalyzerCore::FillJetPlots(std::vector<Jet> jets, std::vector<FatJet> fatje
 
 // Dedicated functions for type1 analysis//
 
-bool AnalyzerCore::RunSR1(TString channel, TString cutopt, TString IDsuffix, std::vector<Lepton*> leptons, vector<Jet> jets, vector<FatJet> fatjets, double MET, vector<TString> labels, vector<double> cuts, double weight, int DrawCR){
+bool AnalyzerCore::RunSR1(TString channel, TString cutopt, TString IDsuffix, std::vector<Lepton*> leptons, vector<Jet> jets, vector<Jet> jets_forward, vector<FatJet> fatjets, double MET, vector<TString> labels, vector<double> cuts, double weight, int DrawCR){
 
   FillHistLabel(channel+"/SR1_"+cutopt+"/Nevents_"+IDsuffix, labels, "Nfatjet", weight);
   FillHistLabel(channel+"/SR1_"+cutopt+"/Nevents_unweighted_"+IDsuffix, labels, "Nfatjet", 1.);
@@ -2906,6 +2906,7 @@ bool AnalyzerCore::RunSR1(TString channel, TString cutopt, TString IDsuffix, std
   FillHist(channel+"/SR1_"+cutopt+"/dPhill_"+IDsuffix, dPhill, weight, 32, 0., 3.2);
   FillHist(channel+"/SR1_"+cutopt+"/HToverPt1_"+IDsuffix, HToverPt1, weight, 20, 0., 10.);
 
+/*
   vector<double> Lep1PtCut, Lep2PtCut, mlJCut1, mlJCut2, MET2STCut;
   vector<TString> mass = {"M100", "M200", "M300", "M400", "M500", "M600", "M700", "M800", "M900", "M1000", "M1100", "M1200", "M1300", "M1500", "M2000", "M2500"};
 
@@ -2970,12 +2971,13 @@ bool AnalyzerCore::RunSR1(TString channel, TString cutopt, TString IDsuffix, std
     FillHist(channel+"/SR1_"+cutopt+"/"+mass.at(i)+"/dPhill_"+IDsuffix, dPhill, weight, 32, 0., 3.2);
     FillHist(channel+"/SR1_"+cutopt+"/"+mass.at(i)+"/HToverPt1_"+IDsuffix, HToverPt1, weight, 20, 0., 10.);
   }
+*/
 
   return true;
 
 }
 
-bool AnalyzerCore::RunSR2(TString channel, TString cutopt, TString IDsuffix, std::vector<Lepton*> leptons, vector<Jet> jets_forward, vector<FatJet> fatjets, double MET, vector<TString> labels, vector<double> cuts, double weight, int DrawCR){
+bool AnalyzerCore::RunSR2(TString channel, TString cutopt, TString IDsuffix, std::vector<Lepton*> leptons, vector<Jet> jets, vector<Jet> jets_forward, vector<FatJet> fatjets, double MET, vector<TString> labels, vector<double> cuts, double weight, int DrawCR){
 
   FillHistLabel(channel+"/SR2_"+cutopt+"/Nevents_"+IDsuffix, labels, "nofatjet", weight);
   FillHistLabel(channel+"/SR2_"+cutopt+"/Nevents_unweighted_"+IDsuffix, labels, "nofatjet", 1.);
@@ -3161,10 +3163,16 @@ bool AnalyzerCore::RunSR2(TString channel, TString cutopt, TString IDsuffix, std
 
 }
 
-bool AnalyzerCore::RunSR3(TString channel, TString cutopt, TString IDsuffix, std::vector<Lepton*> leptons, vector<Jet> jets, vector<FatJet> fatjets, double MET, vector<TString> labels, vector<double> cuts, double weight, int DrawCR){
+bool AnalyzerCore::RunSR3(TString channel, TString cutopt, TString IDsuffix, std::vector<Lepton*> leptons, vector<Jet> jets, vector<Jet> jets_forward, vector<FatJet> fatjets, double MET, vector<TString> labels, vector<double> cuts, double weight, int DrawCR){
 
   FillHistLabel(channel+"/SR3_"+cutopt+"/Nevents_"+IDsuffix, labels, "VBFfail", weight);
   FillHistLabel(channel+"/SR3_"+cutopt+"/Nevents_unweighted_"+IDsuffix, labels, "VBFfail", 1.);
+
+  // use forward jets instead of central jets
+  if(cutopt.Contains("forward")){
+    jets.clear();
+    jets = jets_forward;
+  }
 
   if(jets.size()>=cuts[0]){
   // Cutflow : Njet
@@ -3263,6 +3271,15 @@ bool AnalyzerCore::RunSR3(TString channel, TString cutopt, TString IDsuffix, std
   }
   else return false;
 
+  if(cutopt.Contains("HToverPt")){
+    if(HToverPt1 < cuts[6]){
+    // Cutflow : HToverPt1
+      FillHistLabel(channel+"/SR3_"+cutopt+"/Nevents_"+IDsuffix, labels, "HToverPt1", weight);
+      FillHistLabel(channel+"/SR3_"+cutopt+"/Nevents_unweighted_"+IDsuffix, labels, "HToverPt1", 1.);
+    }
+    else return false;
+  }
+
   FillHist(channel+"/SR3_"+cutopt+"/Njets_"+IDsuffix, jets.size(), weight, 10, 0., 10.);
   FillHist(channel+"/SR3_"+cutopt+"/Nfatjets_"+IDsuffix, fatjets.size(), weight, 10, 0., 10.);
   FillHist(channel+"/SR3_"+cutopt+"/DiLep_Mass_"+IDsuffix, DiLep.M(), weight, 1500, 0., 1500.);
@@ -3284,6 +3301,7 @@ bool AnalyzerCore::RunSR3(TString channel, TString cutopt, TString IDsuffix, std
   FillHist(channel+"/SR3_"+cutopt+"/dPhill_"+IDsuffix, dPhill, weight, 32, 0., 3.2);
   FillHist(channel+"/SR3_"+cutopt+"/HToverPt1_"+IDsuffix, HToverPt1, weight, 20, 0., 10.);
 
+/*
   vector<double> Lep1PtCut, Lep2PtCut, mlljjCut, mljjCut1, mljjCut2, MET2STCut;
   vector<TString> mass = {"M100", "M200", "M300", "M400", "M500", "M600", "M700", "M800", "M900", "M1000", "M1100", "M1200", "M1300", "M1500", "M2000", "M2500"};
 
@@ -3357,8 +3375,74 @@ bool AnalyzerCore::RunSR3(TString channel, TString cutopt, TString IDsuffix, std
     FillHist(channel+"/SR3_"+cutopt+"/"+mass.at(i)+"/dPhill_"+IDsuffix, dPhill, weight, 32, 0., 3.2);
     FillHist(channel+"/SR3_"+cutopt+"/"+mass.at(i)+"/HToverPt1_"+IDsuffix, HToverPt1, weight, 20, 0., 10.);
   }
+*/
 
   return true;
 
 }
 
+void AnalyzerCore::DrawEvent(TString channel, TString name, TString IDsuffix, std::vector<Lepton*> leptons, vector<Jet> jets, vector<Jet> jets_forward, vector<FatJet> fatjets, double MET, double weight){
+
+  // Define HT, ST, MET^2/ST
+  double HT = 0.;
+  double ST = 0.;
+  double MET2ST;
+  for(unsigned int i=0; i<jets.size(); i++) HT += jets.at(i).Pt();
+  for(unsigned int i=0; i<jets.size(); i++) ST += jets.at(i).Pt();
+  for(unsigned int i=0; i<fatjets.size(); i++) ST += fatjets.at(i).Pt();
+  for(unsigned int i=0; i<leptons.size(); i++) ST += leptons.at(i)->Pt();
+  ST += MET;
+  MET2ST = MET*MET/ST;
+
+  Particle DiLep = *leptons.at(0)+*leptons.at(1);
+  double dPhill = fabs(leptons.at(0)->DeltaPhi(*leptons.at(1)));
+  double HToverPt1 = HT/leptons.at(0)->Pt();
+
+  Particle DiJet, Wtemp, WCand, lljj, l1jj, l2jj;
+  if(jets.size()>1){
+    DiJet = jets.at(0)+jets.at(1);
+    // Select two jets that makes m(jj) closest to m(W)
+    double MW = 80.379;
+    double tmpMassDiff = 10000.;
+    int j1 = 0, j2 = 0;
+    for(unsigned int k=0; k<jets.size(); k++){
+      for(unsigned int l=k+1; l<jets.size(); l++){
+        Wtemp = jets.at(k) + jets.at(l);
+        if(fabs(Wtemp.M() - MW) < tmpMassDiff){
+          tmpMassDiff = fabs(Wtemp.M() - MW);
+          j1 = k; j2 = l; //JH : this saves (k,l) tuple if that combination gives a smaller difference than the former combination
+        }
+      }
+    }
+    WCand = jets.at(j1) + jets.at(j2);
+    lljj = *leptons.at(0) + *leptons.at(1) + jets.at(j1) + jets.at(j2);
+    l1jj = *leptons.at(0) + jets.at(j1) + jets.at(j2);
+    l2jj = *leptons.at(1) + jets.at(j1) + jets.at(j2);
+  }
+
+  FillHist(channel+"/"+name+"/Njets_forward_"+IDsuffix, jets_forward.size(), weight, 10, 0., 10.);
+  FillHist(channel+"/"+name+"/Njets_"+IDsuffix, jets.size(), weight, 10, 0., 10.);
+  FillHist(channel+"/"+name+"/Nfatjets_"+IDsuffix, fatjets.size(), weight, 10, 0., 10.);
+  FillHist(channel+"/"+name+"/DiLep_Mass_"+IDsuffix, DiLep.M(), weight, 1500, 0., 1500.);
+  FillHist(channel+"/"+name+"/Lep1_Pt_"+IDsuffix, leptons.at(0)->Pt(), weight, 1500, 0., 1500.);
+  FillHist(channel+"/"+name+"/Lep2_Pt_"+IDsuffix, leptons.at(1)->Pt(), weight, 1500, 0., 1500.);
+  FillHist(channel+"/"+name+"/Lep1_Eta_"+IDsuffix, leptons.at(0)->Eta(), weight, 50, -2.5, 2.5);
+  FillHist(channel+"/"+name+"/Lep2_Eta_"+IDsuffix, leptons.at(1)->Eta(), weight, 50, -2.5, 2.5);
+  if(jets.size()>0){
+    FillHist(channel+"/"+name+"/Jet1_Pt_"+IDsuffix, jets.at(0).Pt(), weight, 1500, 0., 1500.);
+    FillHist(channel+"/"+name+"/Jet1_Eta_"+IDsuffix, jets.at(0).Eta(), weight, 100, -5, 5);
+  }
+  if(jets.size()>1){
+    FillHist(channel+"/"+name+"/Jet2_Pt_"+IDsuffix, jets.at(1).Pt(), weight, 1500, 0., 1500.);
+    FillHist(channel+"/"+name+"/Jet2_Eta_"+IDsuffix, jets.at(1).Eta(), weight, 100, -5, 5);
+    FillHist(channel+"/"+name+"/lljj_Mass_"+IDsuffix, lljj.M(), weight, 2000, 0., 2000.);
+    FillHist(channel+"/"+name+"/l1jj_Mass_"+IDsuffix, l1jj.M(), weight, 2000, 0., 2000.);
+    FillHist(channel+"/"+name+"/l2jj_Mass_"+IDsuffix, l2jj.M(), weight, 2000, 0., 2000.);
+    FillHist(channel+"/"+name+"/DiJet_Mass_"+IDsuffix, DiJet.M(), weight, 3000, 0., 3000.);
+  }
+  FillHist(channel+"/"+name+"/MET_"+IDsuffix, MET, weight, 1000, 0., 1000.);
+  FillHist(channel+"/"+name+"/MET2ST_"+IDsuffix, MET2ST, weight, 1000, 0., 1000.);
+  FillHist(channel+"/"+name+"/dPhill_"+IDsuffix, dPhill, weight, 32, 0., 3.2);
+  FillHist(channel+"/"+name+"/HToverPt1_"+IDsuffix, HToverPt1, weight, 20, 0., 10.);
+
+}

@@ -1,7 +1,7 @@
 import commands as cmd
 
-with open("signals.txt") as f:
-#with open("SSWW_2016_HNMultiLep.txt") as f:
+#with open("signals.txt") as f:
+with open("SSWW_2016_HNMultiLep.txt") as f:
 #with open("Control_2016_HNMultiLep.txt") as f:
 #with open("Control_2017_HNMultiLep.txt") as f:
 #with open("Signal_2016_HNMultiLep.txt") as f:

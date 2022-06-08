@@ -278,13 +278,11 @@ public:
   void SetOutfilePath(TString outname);
 
   //==== Type1 dedicated
-  bool RunSR1(TString channel, TString cutopt, TString IDsuffix, std::vector<Lepton*> leptons, vector<Jet> jets, vector<FatJet> fatjets, double MET, vector<TString> labels, vector<double> cuts, double weight, int DrawCR);
-  bool RunSR2(TString channel, TString cutopt, TString IDsuffix, std::vector<Lepton*> leptons, vector<Jet> jets, vector<FatJet> fatjets, double MET, vector<TString> labels, vector<double> cuts, double weight, int DrawCR);
-  bool RunSR3(TString channel, TString cutopt, TString IDsuffix, std::vector<Lepton*> leptons, vector<Jet> jets, vector<FatJet> fatjets, double MET, vector<TString> labels, vector<double> cuts, double weight, int DrawCR);
+  bool RunSR1(TString channel, TString cutopt, TString IDsuffix, std::vector<Lepton*> leptons, vector<Jet> jets, vector<Jet> jets_forward, vector<FatJet> fatjets, double MET, vector<TString> labels, vector<double> cuts, double weight, int DrawCR);
+  bool RunSR2(TString channel, TString cutopt, TString IDsuffix, std::vector<Lepton*> leptons, vector<Jet> jets, vector<Jet> jets_forward, vector<FatJet> fatjets, double MET, vector<TString> labels, vector<double> cuts, double weight, int DrawCR);
+  bool RunSR3(TString channel, TString cutopt, TString IDsuffix, std::vector<Lepton*> leptons, vector<Jet> jets, vector<Jet> jets_forward, vector<FatJet> fatjets, double MET, vector<TString> labels, vector<double> cuts, double weight, int DrawCR);
+  void DrawEvent(TString channel, TString name, TString IDsuffix, std::vector<Lepton*> leptons, vector<Jet> jets, vector<Jet> jets_forward, vector<FatJet> fatjets, double MET, double weight);
 
 };
 
-
-
 #endif
-
