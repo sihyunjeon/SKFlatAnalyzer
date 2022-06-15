@@ -338,7 +338,7 @@ void HNType1::executeEventFromParameter(AnalyzerParameter param){
   vector<Electron> electrons_loose = SelectElectrons(this_AllElectrons, param.Electron_Loose_ID, 10., 2.5);
   vector<Electron> electrons_veto = SelectElectrons(this_AllElectrons, param.Electron_Veto_ID, 10., 2.5); //JH : lepton selection done
   vector<Jet> jets_forward_nolepveto = SelectJetsPileupMVA(SelectJets(this_AllJets, param.Jet_ID, 20., 4.7), "loose"); // JH : we might see how to set pt cut later
-  vector<Jet> jets_nolepveto = SelectJets(this_AllJets, param.Jet_ID, 20., 2.5);
+  vector<Jet> jets_nolepveto = SelectJets(this_AllJets, param.Jet_ID, 20., 2.7);
   vector<Jet> jets_bcand = SelectJets(this_AllJets, param.Jet_ID, 20., 2.4); //JH : to reject bjets
   vector<FatJet> fatjets_nolepveto = SelectFatJets(this_AllFatJets, param.FatJet_ID, 200., 2.7);
 
