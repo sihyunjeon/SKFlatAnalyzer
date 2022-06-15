@@ -175,8 +175,8 @@ void Control::executeEvent(){
     param.Electron_Veto_ID  = ElectronVetoID;
     param.Electron_FR_ID = ElectronFRName;     // ID name in histmap_Electron.txt
     param.Electron_FR_Key = "AwayJetPt40"; // histname
-    //param.Electron_ID_SF_Key = "passTightID";
-    param.Electron_ID_SF_Key = "";
+    param.Electron_ID_SF_Key = "passTightID";
+    //param.Electron_ID_SF_Key = "";
     param.Electron_Trigger_SF_Key = "";
     param.Electron_UsePtCone = true;
 
@@ -342,7 +342,7 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
   vector<Muon> muons_veto = SelectMuons(this_AllMuons, param.Muon_Veto_ID, 5., 2.4);
   vector<Electron> electrons = SelectElectrons(this_AllElectrons, ElectronID, 10., 2.5);
   vector<Electron> electrons_veto = SelectElectrons(this_AllElectrons, param.Electron_Veto_ID, 10., 2.5); //JH : lepton selection done
-  vector<Jet> jets_nolepveto = SelectJetsPileupMVA(SelectJets(this_AllJets, param.Jet_ID, 20., 2.7), "loose");
+  vector<Jet> jets_nolepveto = SelectJets(this_AllJets, param.Jet_ID, 20., 2.7);
   vector<Jet> jets_bcand = jets_nolepveto; //JH : to reject bjets
   vector<FatJet> fatjets_nolepveto = SelectFatJets(this_AllFatJets, param.FatJet_ID, 200., 2.7);
 
@@ -586,7 +586,7 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
     //==== DY, TT control region
     //=====================================
     if(it_rg2<6 && leptons.size()==2){ //JH : DYmm, DYee, DYemu, TTmm, TTee, TTemu
-      if(muons.size()!=2) continue; //JH : only for now!!!!!!!!!! only muons.
+      //if(muons.size()!=2) continue; //JH : only for now!!!!!!!!!! only muons.
 
       trigger_lumi = 1., dimu_trig_weight = 0., emu_trig_weight = 0.;
       // Passing triggers & ptcut
@@ -675,7 +675,7 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
             ele_idsf   = mcCorr->ElectronID_SF("HEEP", electrons.at(j).scEta(), electrons.at(j).UncorrPt(), 0);
           }
           else if(param.Electron_Tight_ID.Contains("HNTight")){
-            ele_idsf = mcCorr->ElectronID_SF(param.Electron_Tight_ID, electrons.at(j).scEta(), electrons.at(j).UncorrPt(), 0);
+            ele_idsf = mcCorr->ElectronID_SF(param.Electron_ID_SF_Key, electrons.at(j).scEta(), electrons.at(j).UncorrPt(), 0);
           }
           else ele_idsf = 1.;
           weight *= ele_recosf*ele_idsf;
@@ -908,7 +908,7 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
             ele_idsf   = mcCorr->ElectronID_SF("HEEP", electrons.at(j).scEta(), electrons.at(j).UncorrPt(), 0);
           }
           else if(param.Electron_Tight_ID.Contains("HNTight")){
-            ele_idsf = mcCorr->ElectronID_SF(param.Electron_Tight_ID, electrons.at(j).scEta(), electrons.at(j).UncorrPt(), 0);
+            ele_idsf = mcCorr->ElectronID_SF(param.Electron_ID_SF_Key, electrons.at(j).scEta(), electrons.at(j).UncorrPt(), 0);
           }
           else ele_idsf = 1.;
           weight *= ele_recosf*ele_idsf;
@@ -1240,7 +1240,7 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
             ele_idsf   = mcCorr->ElectronID_SF("HEEP", electrons.at(j).scEta(), electrons.at(j).UncorrPt(), 0);
           }
           else if(param.Electron_Tight_ID.Contains("HNTight")){
-            ele_idsf = mcCorr->ElectronID_SF(param.Electron_Tight_ID, electrons.at(j).scEta(), electrons.at(j).UncorrPt(), 0);
+            ele_idsf = mcCorr->ElectronID_SF(param.Electron_ID_SF_Key, electrons.at(j).scEta(), electrons.at(j).UncorrPt(), 0);
           }
           weight *= ele_recosf*ele_idsf;
         }

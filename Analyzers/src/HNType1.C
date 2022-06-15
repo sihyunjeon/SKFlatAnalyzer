@@ -627,7 +627,7 @@ void HNType1::executeEventFromParameter(AnalyzerParameter param){
         if(param.Electron_Tight_ID.Contains("HEEP")){
           ele_idsf   = mcCorr->ElectronID_SF("HEEP", electrons.at(j).scEta(), electrons.at(j).UncorrPt(), 0);
         }
-        else ele_idsf = 1.;
+        else ele_idsf = mcCorr->ElectronID_SF(param.Electron_ID_SF_Key, electrons.at(j).scEta(), electrons.at(j).UncorrPt(), 0); // FIXME passTightID for now
         weight *= ele_recosf*ele_idsf; //JH : recalculate total weight applying 2016 trigger lumi dependency && lepton SF
       }
     } //JH : Now total weight including 2016 trigger lumi and lepton SF done && lepton gen-matching (for first 2 leptons only) done
