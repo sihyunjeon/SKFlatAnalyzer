@@ -52,7 +52,7 @@ python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleMuon.txt -
 python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
 python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
 python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --userflags RunCF --batchname auto &
-python python/SKFlat.py -a HNType1 -e 2016a -l submitList/SSWW_2016_HNMultiLep.txt -n 50 --skim SkimTree_HNMultiLep --batchname auto &
+python python/SKFlat.py -a HNType1 -e 2016a -l submitList/HNType1_2016_HNMultiLep.txt -n 50 --skim SkimTree_HNMultiLep --batchname auto &
 python python/SKFlat.py -a HNType1 -e 2016a -l submitList/signals_Mproxy.txt -n 50 --batchname auto &
 #python python/SKFlat.py -a HNType1 -e 2016a -l submitList/signals.txt -n 50 --batchname auto &
 #python python/SKFlat.py -a HNType1 -e 2016a -l submitList/signals_M1500.txt -n 50 --batchname auto &
@@ -126,7 +126,7 @@ python python/SKFlat.py -a HNType1 -e 2016a -l submitList/signals_Mproxy.txt -n 
 
 
 
-### Control Regions ###
+### SR sideband Control Regions ### <-- deprecated
 
 ##!! 2016 !!##
 #! data !#
