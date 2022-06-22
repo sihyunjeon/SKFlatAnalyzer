@@ -4,7 +4,7 @@ void calcSig2(TString channel, TString signal, TString mass, TString datacard){ 
   TString hist_mass;
   TString mass_number = mass(1,100);
   if(mass_number.Atof()>2000.) hist_mass = "M2500"; //JH : FIXME !!HOTFIX!! I don't have optimization M(N) > 2500 GeV
-	else hist_mass = mass; //JH : FIXME !!HOTFIX!! I don't have optimization M(N) > 2500 GeV
+  else hist_mass = mass; //JH : FIXME !!HOTFIX!! I don't have optimization M(N) > 2500 GeV
   /////////////////////////////////////MC////////////////////////////////////////////
   string fileline;
   ifstream in("fileList_calcSig.txt");
@@ -321,6 +321,7 @@ void calcSig(TString channel, TString signal, TString region, TString details){ 
         cout.width(27); cout << process; cout << " : NULL;" << endl;
       }
     }
+    delete f_MC;
   }
   if(details == "y"){
     cout << "===============================================" << endl;
@@ -345,6 +346,7 @@ void calcSig(TString channel, TString signal, TString region, TString details){ 
       cout.width(27); cout << "fake"; cout << " : NULL;" << endl;
     }
   }
+  delete f_Fake;
 
   /////////////////////////////////////CF////////////////////////////////////////////
   if(channel=="diel"){
@@ -363,6 +365,7 @@ void calcSig(TString channel, TString signal, TString region, TString details){ 
         cout.width(27); cout << "CF"; cout << " : NULL;" << endl;
       }
     }
+    delete f_CF;
   }
 
   bkg = MC+fake+CF;
