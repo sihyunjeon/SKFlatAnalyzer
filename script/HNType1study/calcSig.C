@@ -1,4 +1,6 @@
-void calcSig(TString channel, TString signal, TString mass, TString datacard){ //calcSig("dimu", "SSWWTypeI_NLO_SF_M1500", "M1500", "y")
+// ********************** Before running this script, make sure you put proper fake, CF path *************************** //
+
+void calcSig2(TString channel, TString signal, TString mass, TString datacard){ //calcSig("dimu", "SSWWTypeI_NLO_SF_M1500", "M1500", "y")
   TString hist_mass;
   TString mass_number = mass(1,100);
   if(mass_number.Atof()>2000.) hist_mass = "M2500"; //JH : FIXME !!HOTFIX!! I don't have optimization M(N) > 2500 GeV
@@ -271,4 +273,156 @@ void calcSig(TString channel, TString signal, TString mass, TString datacard){ /
   //cout << "===================================================================================================" << endl;
   //cout << "put the line below into the data card;" << endl;
   //cout << signal_SR1_opt << "  " << MC_SR1_opt << "  " << CF_SR1_opt << "  " << fake_SR1_opt << "  " << signal_SR2_opt << "  " << MC_SR2_opt << "  " << CF_SR2_opt << "  " << fake_SR2_opt << "  " << signal_SR3_opt << "  " << MC_SR3_opt << "  " << CF_SR3_opt << "  " << fake_SR3_opt << endl;
+}
+
+void calcSig(TString channel, TString signal, TString region, TString details){ //calcSig("dimu", "SSWWTypeI_NLO_SF_M1500", "SR3_Central", "y")
+  /////////////////////////////////////MC////////////////////////////////////////////
+  string fileline;
+  ifstream in("fileList_calcSig.txt");
+  double MC = 0., Nsignal = 0., fake = 0., CF = 0., bkg = 0.;
+
+  if(details == "y"){
+    cout << "********** "+region+" **********" << endl;
+    cout << "===============================================" << endl;
+  }
+  // Line loop
+  while(getline(in, fileline)){
+    std::istringstream is(fileline);
+    TString this_line = fileline;
+    if(this_line.Contains("#")||this_line=="") continue;
+    TString category, process, isSkim;
+    is >> category;
+    is >> process;
+    is >> isSkim;
+    //cout << "process : " << process << endl;
+    //cout << "isSkim : " << isSkim << endl;
+
+    if(category=="signal"){
+      if(process!=signal) continue;
+    }
+
+    TFile *f_MC;
+    TH1D *h_MC;
+    if(isSkim=="skimmed") f_MC = new TFile("HNType1_SkimTree_HNMultiLep_"+process+".root");
+    else f_MC = new TFile("HNType1_"+process+".root");
+    //cout << "f_MC : " << f_MC << endl;
+    h_MC = (TH1D*)f_MC->Get(channel+"/"+region+"/HToverPt1_HN");
+    int Nbin = 20; // Nbin of HToverPt1
+    cout.flags(ios::left); // left align; see https://m.blog.naver.com/PostView.naver?isHttpsRedirect=true&blogId=tipsware&logNo=221115657586
+    if(h_MC){
+      if(category=="MC")     MC      += h_MC->Integral(0,Nbin+1);
+      if(category=="signal") Nsignal += h_MC->Integral(0,Nbin+1);
+      if(details == "y"){
+        cout.width(27); cout << process; cout << " : "; cout << h_MC->Integral(0,Nbin+1) << endl;
+      }
+    }
+    else{
+      if(details == "y"){
+        cout.width(27); cout << process; cout << " : NULL;" << endl;
+      }
+    }
+  }
+  if(details == "y"){
+    cout << "===============================================" << endl;
+    cout.width(27); cout << "total MC"; cout << " : " << MC << endl;
+  }
+
+  /////////////////////////////////////Fake////////////////////////////////////////////
+  TFile *f_Fake;
+  if(channel=="dimu") f_Fake = new TFile("/data6/Users/jihkim/SKFlatOutput/Run2UltraLegacy_v2/HNType1/2016preVFP/RunFake__/DATA/HNType1_SkimTree_Dilepton_DoubleMuon.root");
+  if(channel=="diel") f_Fake = new TFile("/data6/Users/jihkim/SKFlatOutput/Run2UltraLegacy_v2/HNType1/2016preVFP/RunFake__/DATA/HNType1_SkimTree_Dilepton_DoubleEG.root");
+  TH1D *h_Fake;
+  h_Fake = (TH1D*)f_Fake->Get(channel+"/"+region+"/HToverPt1_HN");
+  int Nbin = 20; // Nbin of HToverPt1
+  if(h_Fake){
+    fake += h_Fake->Integral(0,Nbin+1);
+    if(details == "y"){
+      cout.width(27); cout << "fake"; cout << " : " << h_Fake->Integral(0,Nbin+1) << endl;
+    }
+  }
+  else{
+    if(details == "y"){
+      cout.width(27); cout << "fake"; cout << " : NULL;" << endl;
+    }
+  }
+
+  /////////////////////////////////////CF////////////////////////////////////////////
+  if(channel=="diel"){
+    TFile *f_CF = new TFile("/data6/Users/jihkim/SKFlatOutput/Run2UltraLegacy_v2/HNType1/2016preVFP/RunCF__/DATA/HNType1_SkimTree_Dilepton_DoubleEG.root");
+    TH1D *h_CF;
+    h_CF = (TH1D*)f_CF->Get(channel+"/"+region+"/HToverPt1_HN");
+    int Nbin = 20; // Nbin of HToverPt1
+    if(h_CF){
+      CF += h_CF->Integral(0,Nbin+1);
+      if(details == "y"){
+        cout.width(27); cout << "CF"; cout << " : " << h_CF->Integral(0,Nbin+1) << endl;
+      }
+    }
+    else{
+      if(details == "y"){
+        cout.width(27); cout << "CF"; cout << " : NULL;" << endl;
+      }
+    }
+  }
+
+  bkg = MC+fake+CF;
+  if(details == "y"){
+    cout << "===============================================" << endl;
+  }
+
+  cout.width(27); cout << "signal "+signal; cout.width(30); cout << " in "+region; cout << " : " << Nsignal << " --> S/sqrt(B) = ";
+  //cout.width(12); cout << Nsignal << "--> S/sqrt(S+B) = ";
+  cout.width(12); cout << Nsignal/sqrt(bkg);
+  //cout.width(12); cout << Nsignal/sqrt(Nsignal+bkg);
+  cout << ", full expansion = " << sqrt( 2.*((Nsignal+bkg)*log(1+(Nsignal/(bkg))) - Nsignal) ) << endl;
+}
+
+void compareSig(){
+  calcSig("dimu", "DYTypeI_NLO_SF_M100", "SR3_Central", "n");
+  calcSig("dimu", "DYTypeI_NLO_SF_M100", "SR3_forward", "n");
+  calcSig("dimu", "DYTypeI_NLO_SF_M100", "SR3_forward_mW", "n");
+  calcSig("dimu", "DYTypeI_NLO_SF_M100", "SR3_forward_mW_HToverPt1", "n");
+  calcSig("dimu", "DYTypeI_NLO_SF_M100", "SR3_forward_mW_HToverPt0p5", "n");
+  cout << "===============================================" << endl;
+  calcSig("dimu", "DYTypeI_NLO_SF_M1500", "SR3_Central", "n");
+  calcSig("dimu", "DYTypeI_NLO_SF_M1500", "SR3_forward", "n");
+  calcSig("dimu", "DYTypeI_NLO_SF_M1500", "SR3_forward_mW", "n");
+  calcSig("dimu", "DYTypeI_NLO_SF_M1500", "SR3_forward_mW_HToverPt1", "n");
+  calcSig("dimu", "DYTypeI_NLO_SF_M1500", "SR3_forward_mW_HToverPt0p5", "n");
+  cout << "===============================================" << endl;
+  calcSig("dimu", "VBFTypeI_NLO_SF_M1500", "SR3_Central", "n");
+  calcSig("dimu", "VBFTypeI_NLO_SF_M1500", "SR3_forward", "n");
+  calcSig("dimu", "VBFTypeI_NLO_SF_M1500", "SR3_forward_mW", "n");
+  calcSig("dimu", "VBFTypeI_NLO_SF_M1500", "SR3_forward_mW_HToverPt1", "n");
+  calcSig("dimu", "VBFTypeI_NLO_SF_M1500", "SR3_forward_mW_HToverPt0p5", "n");
+  cout << "===============================================" << endl;
+  calcSig("dimu", "SSWWTypeI_NLO_SF_M1500", "SR3_Central", "n");
+  calcSig("dimu", "SSWWTypeI_NLO_SF_M1500", "SR3_forward", "n");
+  calcSig("dimu", "SSWWTypeI_NLO_SF_M1500", "SR3_forward_mW", "n");
+  calcSig("dimu", "SSWWTypeI_NLO_SF_M1500", "SR3_forward_mW_HToverPt1", "n");
+  calcSig("dimu", "SSWWTypeI_NLO_SF_M1500", "SR3_forward_mW_HToverPt0p5", "n");
+  cout << "===============================================" << endl;
+  calcSig("dimu", "HNTypeI_NLO_SF_M500", "SR3_Central", "n");
+  calcSig("dimu", "HNTypeI_NLO_SF_M500", "SR3_forward", "n");
+  calcSig("dimu", "HNTypeI_NLO_SF_M500", "SR3_forward_mW", "n");
+  calcSig("dimu", "HNTypeI_NLO_SF_M500", "SR3_forward_mW_HToverPt1", "n");
+  calcSig("dimu", "HNTypeI_NLO_SF_M500", "SR3_forward_mW_HToverPt0p5", "n");
+  cout << "===============================================" << endl;
+  calcSig("dimu", "HNTypeI_NLO_SF_M1000", "SR3_Central", "n");
+  calcSig("dimu", "HNTypeI_NLO_SF_M1000", "SR3_forward", "n");
+  calcSig("dimu", "HNTypeI_NLO_SF_M1000", "SR3_forward_mW", "n");
+  calcSig("dimu", "HNTypeI_NLO_SF_M1000", "SR3_forward_mW_HToverPt1", "n");
+  calcSig("dimu", "HNTypeI_NLO_SF_M1000", "SR3_forward_mW_HToverPt0p5", "n");
+  cout << "===============================================" << endl;
+  calcSig("dimu", "HNTypeI_NLO_SF_M1500", "SR3_Central", "n");
+  calcSig("dimu", "HNTypeI_NLO_SF_M1500", "SR3_forward", "n");
+  calcSig("dimu", "HNTypeI_NLO_SF_M1500", "SR3_forward_mW", "n");
+  calcSig("dimu", "HNTypeI_NLO_SF_M1500", "SR3_forward_mW_HToverPt1", "n");
+  calcSig("dimu", "HNTypeI_NLO_SF_M1500", "SR3_forward_mW_HToverPt0p5", "n");
+  cout << "===============================================" << endl;
+  calcSig("dimu", "SSWWTypeI_NLO_SF_M15000", "SR3_Central", "n");
+  calcSig("dimu", "SSWWTypeI_NLO_SF_M15000", "SR3_forward", "n");
+  calcSig("dimu", "SSWWTypeI_NLO_SF_M15000", "SR3_forward_mW", "n");
+  calcSig("dimu", "SSWWTypeI_NLO_SF_M15000", "SR3_forward_mW_HToverPt1", "n");
+  calcSig("dimu", "SSWWTypeI_NLO_SF_M15000", "SR3_forward_mW_HToverPt0p5", "n");
 }

@@ -16,7 +16,7 @@ MC	WZTo3LNu_mllmin4p0_powheg	skimmed
 MC	WGToLNuG	skimmed
 #MC	ZZTo4L_powheg	skimmed
 MC	ZZTo4L_m_1toInf_powheg	skimmed
-MC	ZGTo2LG_01J	skimmed
+MC	ZGToLLG_01J	skimmed
 MC	WGJJToLNu	skimmed
 MC	WZJJToLNu	skimmed
 MC	WWG	skimmed
