@@ -747,6 +747,48 @@ void HNType1::executeEventFromParameter(AnalyzerParameter param){
         FillHist(channels.at(it_ch)+"/fakeCR2/"+LepCategory+"/MET2ST_unweighted_"+IDsuffix, MET2ST, 1., 1000, 0., 1000.);
       }
     }
+    // what if we just require no central jets?
+    if(jets.size()+fatjets.size()==0 && Nbjet_medium==0){
+      FillHistLabel(channels.at(it_ch)+"/fakeCR3/Nevents_"+IDsuffix, fakeCR2_labels, "Njet", weight);
+      FillHistLabel(channels.at(it_ch)+"/fakeCR3/Nevents_unweighted_"+IDsuffix, fakeCR2_labels, "Njet", 1.);
+
+      if(!(leptons.at(0)->DeltaR(*leptons.at(1)) > 2.5)) continue;
+      FillHistLabel(channels.at(it_ch)+"/fakeCR3/Nevents_"+IDsuffix, fakeCR2_labels, "dRll", weight);
+      FillHistLabel(channels.at(it_ch)+"/fakeCR3/Nevents_unweighted_"+IDsuffix, fakeCR2_labels, "dRll", 1.);
+      FillHist(channels.at(it_ch)+"/fakeCR3/Njets_"+IDsuffix, jets.size(), weight, 10, 0., 10.);
+      FillHist(channels.at(it_ch)+"/fakeCR3/Nbjets_Loose_"+IDsuffix, Nbjet_loose, weight, 10, 0., 10.);
+      FillHist(channels.at(it_ch)+"/fakeCR3/Nbjets_Medium_"+IDsuffix, Nbjet_medium, weight, 10, 0., 10.);
+      FillHist(channels.at(it_ch)+"/fakeCR3/Nfatjets_"+IDsuffix, fatjets.size(), weight, 10, 0., 10.);
+      FillHist(channels.at(it_ch)+"/fakeCR3/DiLep_Mass_"+IDsuffix, DiLep.M(), weight, 1000, 0., 1000.);
+      FillHist(channels.at(it_ch)+"/fakeCR3/Lep1_Pt_"+IDsuffix, leptons.at(0)->Pt(), weight, 1000, 0., 1000.);
+      FillHist(channels.at(it_ch)+"/fakeCR3/Lep2_Pt_"+IDsuffix, leptons.at(1)->Pt(), weight, 1000, 0., 1000.);
+      FillHist(channels.at(it_ch)+"/fakeCR3/Lep1_Eta_"+IDsuffix, leptons.at(0)->Eta(), weight, 50, -2.5, 2.5);
+      FillHist(channels.at(it_ch)+"/fakeCR3/Lep2_Eta_"+IDsuffix, leptons.at(1)->Eta(), weight, 50, -2.5, 2.5);
+      FillHist(channels.at(it_ch)+"/fakeCR3/MET_"+IDsuffix, MET, weight, 1000, 0., 1000.);
+      FillHist(channels.at(it_ch)+"/fakeCR3/MET2ST_"+IDsuffix, MET2ST, weight, 1000, 0., 1000.);
+
+      if(RunFake){
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/Nevents_"+IDsuffix, 0.5, weight, cutflow_bin, 0., cutflow_max);
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/Njets_"+IDsuffix, jets.size(), weight, 10, 0., 10.);
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/DiLep_Mass_"+IDsuffix, DiLep.M(), weight, 1000, 0., 1000.);
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/Lep1_Pt_"+IDsuffix, leptons.at(0)->Pt(), weight, 1000, 0., 1000.);
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/Lep2_Pt_"+IDsuffix, leptons.at(1)->Pt(), weight, 1000, 0., 1000.);
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/Lep1_Eta_"+IDsuffix, leptons.at(0)->Eta(), weight, 50, -2.5, 2.5);
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/Lep2_Eta_"+IDsuffix, leptons.at(1)->Eta(), weight, 50, -2.5, 2.5);
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/MET_"+IDsuffix, MET, weight, 1000, 0., 1000.);
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/MET2ST_"+IDsuffix, MET2ST, weight, 1000, 0., 1000.);
+
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/Nevents_unweighted_"+IDsuffix, 0.5, 1., cutflow_bin, 0., cutflow_max);
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/Njets_unweighted_"+IDsuffix, jets.size(), 1., 10, 0., 10.);
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/DiLep_Mass_unweighted_"+IDsuffix, DiLep.M(), 1., 1000, 0., 1000.);
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/Lep1_Pt_unweighted_"+IDsuffix, leptons.at(0)->Pt(), 1., 1000, 0., 1000.);
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/Lep2_Pt_unweighted_"+IDsuffix, leptons.at(1)->Pt(), 1., 1000, 0., 1000.);
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/Lep1_Eta_unweighted_"+IDsuffix, leptons.at(0)->Eta(), 1., 50, -2.5, 2.5);
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/Lep2_Eta_unweighted_"+IDsuffix, leptons.at(1)->Eta(), 1., 50, -2.5, 2.5);
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/MET_unweighted_"+IDsuffix, MET, 1., 1000, 0., 1000.);
+        FillHist(channels.at(it_ch)+"/fakeCR3/"+LepCategory+"/MET2ST_unweighted_"+IDsuffix, MET2ST, 1., 1000, 0., 1000.);
+      }
+    }
 
     if(!( fatjets.size()>0 || jets_forward.size()>0 )) continue; //JH : new preselection
 

@@ -29,7 +29,7 @@ void Control::initializeAnalyzer(){
   ElectronVetoIDs  = {"ISRVeto"};
   if(HasFlag("FR_ex")) MuonFRNames = {"HNRun2"};
   else MuonFRNames = {"HN"};
-  ElectronFRNames  = {"HNRun2"};
+  ElectronFRNames  = {"HN"};
 
   //==== At this point, sample informations (e.g., IsDATA, DataStream, MCSample, or DataYear) are all set
   //==== You can define sample-dependent or year-dependent variables here
@@ -164,7 +164,7 @@ void Control::executeEvent(){
     else param.Muon_FR_Key = "FR_2D"; // histname
     //param.Muon_ID_SF_Key = "NUM_TightID_DEN_genTracks";
     //param.Muon_ISO_SF_Key = "NUM_TightRelIso_DEN_TightIDandIPCut";
-    param.Muon_ID_SF_Key = "";
+    param.Muon_ID_SF_Key = "HNTightV1";
     param.Muon_ISO_SF_Key = "";
     param.Muon_Trigger_SF_Key = "";
     param.Muon_UsePtCone = true;
@@ -586,7 +586,6 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
     //==== DY, TT control region
     //=====================================
     if(it_rg2<6 && leptons.size()==2){ //JH : DYmm, DYee, DYemu, TTmm, TTee, TTemu
-      //if(muons.size()!=2) continue; //JH : only for now!!!!!!!!!! only muons.
 
       trigger_lumi = 1., dimu_trig_weight = 0., emu_trig_weight = 0.;
       // Passing triggers & ptcut
@@ -661,7 +660,7 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
           //  muon_isosf  = 1.;
           //}
           muon_recosf = 1.;
-          muon_idsf   = mcCorr->MuonID_SF(param.Muon_Tight_ID, muons.at(i).Eta(), muons.at(i).MiniAODPt(), 0); //JH
+          muon_idsf   = mcCorr->MuonID_SF(param.Muon_ID_SF_Key, muons.at(i).Eta(), muons.at(i).MiniAODPt(), 0); //JH
           muon_isosf  = 1.;
           weight *= muon_recosf*muon_idsf*muon_isosf;
         }
@@ -696,11 +695,18 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
       FillHist(regionsSM.at(it_rg2)+"/Number_Events_"+IDsuffix, 3.5, weight, cutflow_bin, 0., cutflow_max);
       FillHist(regionsSM.at(it_rg2)+"/Number_Events_unweighted_"+IDsuffix, 3.5, 1., cutflow_bin, 0., cutflow_max);
 
-      if(lepton_veto_size > 0) continue;
+      HasFlag("nolepveto"){
+        // Cutflow : do nothing
+        FillHist(regionsSM.at(it_rg2)+"/Number_Events_"+IDsuffix, 4.5, weight, cutflow_bin, 0., cutflow_max);
+        FillHist(regionsSM.at(it_rg2)+"/Number_Events_unweighted_"+IDsuffix, 4.5, 1., cutflow_bin, 0., cutflow_max);
+      }
+      else{
+        if(lepton_veto_size > 0) continue;
 
-      // Cutflow : veto additional leptons using veto ID
-      FillHist(regionsSM.at(it_rg2)+"/Number_Events_"+IDsuffix, 4.5, weight, cutflow_bin, 0., cutflow_max);
-      FillHist(regionsSM.at(it_rg2)+"/Number_Events_unweighted_"+IDsuffix, 4.5, 1., cutflow_bin, 0., cutflow_max);
+        // Cutflow : veto additional leptons using veto ID
+        FillHist(regionsSM.at(it_rg2)+"/Number_Events_"+IDsuffix, 4.5, weight, cutflow_bin, 0., cutflow_max);
+        FillHist(regionsSM.at(it_rg2)+"/Number_Events_unweighted_"+IDsuffix, 4.5, 1., cutflow_bin, 0., cutflow_max);
+      }
 
       if(!(ZCand.M() > 10.)) continue;
 
@@ -763,6 +769,12 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
         //  FillHist(regionsSM.at(it_rg2)+"/MET2ST_NoLooseBJet_"+IDsuffix, MET2ST, weight, 1000, 0., 1000.);
         //}
 
+        if(!(60. < ZCand.M() && ZCand.M() < 120.)) continue;
+
+        // Cutflow : 60 < m(ll) < 120 GeV
+        FillHist(regionsSM.at(it_rg2)+"/Number_Events_"+IDsuffix, 8.5, weight, cutflow_bin, 0., cutflow_max);
+        FillHist(regionsSM.at(it_rg2)+"/Number_Events_unweighted_"+IDsuffix, 8.5, 1., cutflow_bin, 0., cutflow_max);
+
         //FillHist(regionsSM.at(it_rg2)+"/Number_Jets_"+IDsuffix, jets.size(), weight, 10, 0., 10.);
         //FillHist(regionsSM.at(it_rg2)+"/Number_BJets_Loose_"+IDsuffix, Nbjet_loose, weight, 10, 0., 10.);
         //FillHist(regionsSM.at(it_rg2)+"/Number_BJets_Medium_"+IDsuffix, Nbjet_medium, weight, 10, 0., 10.);
@@ -775,19 +787,6 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
         FillHist(regionsSM.at(it_rg2)+"/Lep2_Eta_"+IDsuffix, leptons.at(1)->Eta(), weight, 50, -2.5, 2.5);
         FillHist(regionsSM.at(it_rg2)+"/MET_"+IDsuffix, MET, weight, 1000, 0., 1000.);
         FillHist(regionsSM.at(it_rg2)+"/MET2ST_"+IDsuffix, MET2ST, weight, 1000, 0., 1000.);
-
-        if(ZCand.M()>100.){
-
-          FillHist(regionsSM.at(it_rg2)+"/Mass100_ZCand_Mass_"+IDsuffix, ZCand.M(), weight, 1000, 0., 1000.);
-          FillHist(regionsSM.at(it_rg2)+"/Mass100_ZCand_Pt_"+IDsuffix, ZCand.Pt(), weight, 1000, 0., 1000.);
-          FillHist(regionsSM.at(it_rg2)+"/Mass100_Lep1_Pt_"+IDsuffix, leptons.at(0)->Pt(), weight, 1000, 0., 1000.);
-          FillHist(regionsSM.at(it_rg2)+"/Mass100_Lep2_Pt_"+IDsuffix, leptons.at(1)->Pt(), weight, 1000, 0., 1000.);
-          FillHist(regionsSM.at(it_rg2)+"/Mass100_Lep1_Eta_"+IDsuffix, leptons.at(0)->Eta(), weight, 50, -2.5, 2.5);
-          FillHist(regionsSM.at(it_rg2)+"/Mass100_Lep2_Eta_"+IDsuffix, leptons.at(1)->Eta(), weight, 50, -2.5, 2.5);
-          FillHist(regionsSM.at(it_rg2)+"/Mass100_MET_"+IDsuffix, MET, weight, 1000, 0., 1000.);
-          FillHist(regionsSM.at(it_rg2)+"/Mass100_MET2ST_"+IDsuffix, MET2ST, weight, 1000, 0., 1000.);
-
-        }
 
       } //JH : DYmm, DYee, DYemu done
       else{
@@ -826,7 +825,6 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
     //==== WZ, ZG, WG control region
     //=====================================
     if(it_rg2>5 && it_rg2<9 && leptons.size()==3){ //JH : WZ, ZG, WG, 3 tight leptons
-      if(muons.size()!=3) continue; //JH : only for now!!!! only mu channel
   
       // Passing triggers & ptcut
       if(muons.size() >= 2){
@@ -894,7 +892,7 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
           //  muon_isosf    = 1.;
           //}
           muon_recosf = 1.;
-          muon_idsf     = mcCorr->MuonID_SF(param.Muon_Tight_ID, muons.at(i).Eta(), muons.at(i).MiniAODPt(), 0);
+          muon_idsf     = mcCorr->MuonID_SF(param.Muon_ID_SF_Key, muons.at(i).Eta(), muons.at(i).MiniAODPt(), 0);
           muon_isosf    = 1.;
           weight *= muon_recosf*muon_idsf*muon_isosf; //JH
         }
@@ -1159,7 +1157,6 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
     //==== ZZ control region
     //=====================================
     if(it_rg2==9 && leptons.size()==4){
-      if(muons.size()!=4) continue; //JH : only for now!!!! only mu channel
       if((muons.size()==1 && electrons.size()==3) || (muons.size()==3 && electrons.size()==1)) continue;
 
       // Passing triggers & ptcut
@@ -1202,7 +1199,7 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
             else dimu_trig_weight = ev.GetTriggerLumi("Full");
             trigger_lumi = dimu_trig_weight;
           }
-          if(electrons.size() >= 2) trigger_lumi = ev.GetTriggerLumi("Full");
+          else if(electrons.size() == 4) trigger_lumi = ev.GetTriggerLumi("Full");
         }
         else{
           trigger_lumi = ev.GetTriggerLumi("Full");
@@ -1226,7 +1223,7 @@ void Control::executeEventFromParameter(AnalyzerParameter param){
           //  muon_isosf    = 1.;
           //}
           muon_recosf = 1.;
-          muon_idsf     = mcCorr->MuonID_SF(param.Muon_Tight_ID, muons.at(i).Eta(), muons.at(i).MiniAODPt(), 0);
+          muon_idsf     = mcCorr->MuonID_SF(param.Muon_ID_SF_Key, muons.at(i).Eta(), muons.at(i).MiniAODPt(), 0);
           muon_isosf    = 1.;
           weight *= muon_recosf*muon_idsf*muon_isosf; //JH
         }

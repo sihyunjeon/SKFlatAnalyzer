@@ -1,12 +1,12 @@
 DYJets
 TTLL_powheg
-WW_pythia
+WWTo2L2Nu_powheg
 WZTo3LNu_mll0p1_powheg
 WZTo3LNu_mllmin4p0_powheg
 WGToLNuG
 ZZTo4L_m_1toInf_powheg
 #ZZTo4L_powheg #JH NOT for 2016UL yet
-ZGTo2LG_01J
+ZGToLLG_01J
 TTG
 #ttHToNonbb
 ttWToLNu

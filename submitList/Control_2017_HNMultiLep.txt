@@ -8,7 +8,7 @@ WZTo3LNu_mllmin4p0_powheg
 WGToLNuG
 ZZTo4L_m_1toInf_powheg
 ZZTo4L_powheg
-ZGTo2LG_01J
+ZGToLLG_01J
 TTG
 TG
 VBF_HToZZTo4L

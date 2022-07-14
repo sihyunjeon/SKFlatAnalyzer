@@ -1504,15 +1504,24 @@ std::vector<Electron> AnalyzerCore::ShiftElectronEnergy(const std::vector<Electr
 
   for(unsigned int i=0; i<electrons.size(); i++){
     Electron this_electron = electrons.at(i);
-    if(!param.Electron_Tight_ID.Contains("HNTight")){ out.push_back(this_electron); continue; }
+    //if(!param.Electron_Tight_ID.Contains("HNTight")){ out.push_back(this_electron); continue; }
     if(!applyshift){ out.push_back(this_electron); continue; }
 
     double shiftrate = 1.;
 //    if(electrons.size() == 1) TODO : add shift rate
     if(electrons.size() == 2){
-      if(param.Electron_Tight_ID == "HNTight") shiftrate = 0.987;       // 1.3%
-      else if(param.Electron_Tight_ID == "HNTightV2") shiftrate = 0.99; // 1.0%
-      else shiftrate = 0.988;                                           // 1.2%
+      if(DataEra=="2016preVFP"){
+        if(param.Electron_Tight_ID == "HNTightV1") shiftrate = 0.992;       // 0.8%
+      }
+      else if(DataEra=="2016postVFP"){
+        if(param.Electron_Tight_ID == "HNTightV1") shiftrate = 0.992;       // 0.8%
+      }
+      else if(DataEra=="2017"){
+        if(param.Electron_Tight_ID == "HNTightV1") shiftrate = 0.991;       // 0.9%
+      }
+      else if(DataEra=="2018"){
+        if(param.Electron_Tight_ID == "HNTightV1") shiftrate = 0.991;       // 0.9%
+      }
     }
 
     this_electron.SetPtEtaPhiM( electrons.at(i).Pt()*shiftrate, electrons.at(i).Eta(), electrons.at(i).Phi(), electrons.at(i).M() ); // M = 0.511e-03

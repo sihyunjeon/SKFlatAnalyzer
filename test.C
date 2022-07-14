@@ -5,9 +5,9 @@ void test(TString era, TString isdata, TString stream){ // test("2016preVFP","da
   //Fake m;
   //SSWW m;
   //Signal m;
-  //Control m;
+  Control m;
   //Test m;
-  HNType1 m;
+  //HNType1 m;
 
   m.SetTreeName("recoTree/SKFlat");
 
@@ -105,6 +105,14 @@ void test(TString era, TString isdata, TString stream){ // test("2016preVFP","da
     m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/WZTo3LNu_mllmin4p0_TuneCP5_13TeV-powheg-pythia8/210921_013131/0000/SKFlatNtuple_2016preVFP_MC_4.root");
     m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/WZTo3LNu_mllmin4p0_TuneCP5_13TeV-powheg-pythia8/210921_013131/0000/SKFlatNtuple_2016preVFP_MC_5.root");
     m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/WZTo3LNu_mllmin4p0_TuneCP5_13TeV-powheg-pythia8/210921_013131/0000/SKFlatNtuple_2016preVFP_MC_6.root");
+  }
+  else if(era=="2016preVFP" && isdata=="mc" && stream=="ZZ"){
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/ZZTo4L_M-1toInf_TuneCP5_13TeV_powheg_pythia8/210909_121754/0000/SKFlatNtuple_2016preVFP_MC_1.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/ZZTo4L_M-1toInf_TuneCP5_13TeV_powheg_pythia8/210909_121754/0000/SKFlatNtuple_2016preVFP_MC_2.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/ZZTo4L_M-1toInf_TuneCP5_13TeV_powheg_pythia8/210909_121754/0000/SKFlatNtuple_2016preVFP_MC_3.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/ZZTo4L_M-1toInf_TuneCP5_13TeV_powheg_pythia8/210909_121754/0000/SKFlatNtuple_2016preVFP_MC_4.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/ZZTo4L_M-1toInf_TuneCP5_13TeV_powheg_pythia8/210909_121754/0000/SKFlatNtuple_2016preVFP_MC_5.root");
+    m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016preVFP/MC/ZZTo4L_M-1toInf_TuneCP5_13TeV_powheg_pythia8/210909_121754/0000/SKFlatNtuple_2016preVFP_MC_6.root");
   }
   else if(era=="2016postVFP" && isdata=="mc" && stream=="DY"){
     m.AddFile("/gv0/DATA/SKFlat/Run2UltraLegacy_v2/2016postVFP/MC/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/210915_033906/0000/SKFlatNtuple_2016postVFP_MC_1.root");

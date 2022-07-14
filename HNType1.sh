@@ -47,13 +47,13 @@
 
 ### Event selections (CR, SR) ###
 #! 2016a !#
-python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
-python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
-python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
-python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
-python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --userflags RunCF --batchname auto &
-python python/SKFlat.py -a HNType1 -e 2016a -l submitList/HNType1_2016_HNMultiLep.txt -n 50 --skim SkimTree_HNMultiLep --batchname auto &
-python python/SKFlat.py -a HNType1 -e 2016a -l submitList/signals_Mproxy.txt -n 50 --batchname auto &
+#python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
+#python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
+#python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
+#python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
+#python python/SKFlat.py -a HNType1 -e 2016a -l submitList/2016a_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --userflags RunCF --batchname auto &
+#python python/SKFlat.py -a HNType1 -e 2016a -l submitList/HNType1_2016_HNMultiLep.txt -n 50 --skim SkimTree_HNMultiLep --batchname auto &
+#python python/SKFlat.py -a HNType1 -e 2016a -l submitList/signals_Mproxy.txt -n 50 --batchname auto &
 #python python/SKFlat.py -a HNType1 -e 2016a -l submitList/signals.txt -n 50 --batchname auto &
 #python python/SKFlat.py -a HNType1 -e 2016a -l submitList/signals_M1500.txt -n 50 --batchname auto &
 #python python/SKFlat.py -a HNType1 -e 2016a -l submitList/signals_test.txt -n 50 --batchname auto &
@@ -103,10 +103,14 @@ python python/SKFlat.py -a HNType1 -e 2016a -l submitList/signals_Mproxy.txt -n 
 #python python/SKFlat.py -a Control -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
 #python python/SKFlat.py -a Control -e 2016b -l submitList/2016b_DoubleMuon_FtoG.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
 #python python/SKFlat.py -a Control -e 2016b -l submitList/2016b_DoubleMuon_H.txt -n 50 --skim SkimTree_Dilepton --userflags PeriodH --batchname auto &
+#python python/SKFlat.py -a Control -e 2016a -l submitList/2016a_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
+#python python/SKFlat.py -a Control -e 2016b -l submitList/2016b_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
 #! fake background !#
 #python python/SKFlat.py -a Control -e 2016a -l submitList/2016a_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
 #python python/SKFlat.py -a Control -e 2016b -l submitList/2016b_DoubleMuon_FtoG.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
 #python python/SKFlat.py -a Control -e 2016b -l submitList/2016b_DoubleMuon_H.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake,PeriodH --batchname auto &
+#python python/SKFlat.py -a Control -e 2016a -l submitList/2016a_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
+#python python/SKFlat.py -a Control -e 2016b -l submitList/2016b_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
 #! SM background !#
 #python python/SKFlat.py -a Control -e 2016a -l submitList/Control_2016_HNMultiLep.txt -n 80 --batchname auto &
 #python python/SKFlat.py -a Control -e 2016b -l submitList/Control_2016_HNMultiLep.txt -n 80 --batchname auto &
@@ -115,12 +119,24 @@ python python/SKFlat.py -a HNType1 -e 2016a -l submitList/signals_Mproxy.txt -n 
 ##!! 2017 !!##
 #python python/SKFlat.py -a Control -e 2017 -l submitList/2017_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
 #python python/SKFlat.py -a Control -e 2017 -l submitList/2017_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
+#python python/SKFlat.py -a Control -e 2017 -l submitList/2017_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
+#python python/SKFlat.py -a Control -e 2017 -l submitList/2017_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
 #python python/SKFlat.py -a Control -e 2017 -l submitList/Control_2017_HNMultiLep.txt -n 80 --batchname auto &
 #JH : Don't use HNMultiLep skim if to see DY, TT CR
+
+###To test no 3rd lepton veto in DY CR###
+python python/SKFlat.py -a Control -e 2017 -l submitList/2017_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags nolepveto --batchname auto &
+python python/SKFlat.py -a Control -e 2017 -l submitList/2017_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake,nolepveto --batchname auto &
+python python/SKFlat.py -a Control -e 2017 -l submitList/2017_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --userflags nolepveto --batchname auto &
+python python/SKFlat.py -a Control -e 2017 -l submitList/2017_DoubleEG.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake,nolepveto --batchname auto &
+python python/SKFlat.py -a Control -e 2017 -i DYJets -n 80 --userflags nolepveeto --batchname auto &
+
 
 ##!! 2018 !!##
 #python python/SKFlat.py -a Control -e 2018 -l submitList/2018_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
 #python python/SKFlat.py -a Control -e 2018 -l submitList/2018_DoubleMuon.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
+#python python/SKFlat.py -a Control -e 2018 -l submitList/2018_EGamma.txt -n 50 --skim SkimTree_Dilepton --batchname auto &
+#python python/SKFlat.py -a Control -e 2018 -l submitList/2018_EGamma.txt -n 50 --skim SkimTree_Dilepton --userflags RunFake --batchname auto &
 #python python/SKFlat.py -a Control -e 2018 -l submitList/Control_2018_HNMultiLep.txt -n 80 --batchname auto &
 #JH : Don't use HNMultiLep skim if to see DY, TT CR
 
