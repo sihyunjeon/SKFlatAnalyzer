@@ -76,6 +76,17 @@ void SkimTree_HighPt1LJets::executeEvent(){
     int n_electrons = electrons.size();
     if (n_muons + n_electrons == 0) return;
 
+    if (!IsDATA){
+        if (MCSample.Contains("QCD")){
+            if (MCSample.Contains("MuEnriched")){
+                if (n_muons == 0) return;
+            }
+            if (MCSample.Contains("EMEnriched")){
+                if (n_electrons == 0) return;
+            }
+        }
+    }
+
     //==== Skim 3) Jets
     vector<FatJet> fatjets = puppiCorr->Correct( GetFatJets("tight", AK8JetPtCut, 2.4) ); //==== corret SDMass
     vector<Jet> jets = GetJets("tightLepVeto", AK4JetPtCut, 2.4);

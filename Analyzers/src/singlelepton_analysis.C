@@ -16,8 +16,10 @@ void singlelepton_analysis::initializeAnalyzer(){
     muonTightIDs.push_back("POGTight");
     muonLooseIDs.push_back("POGMedium");
 
-    electronTightIDs.push_back("passMediumID");
-    electronLooseIDs.push_back("passLooseID");
+//    electronTightIDs.push_back("passMediumID");
+//    electronLooseIDs.push_back("passLooseID");
+    electronTightIDs.push_back("passMVAID_iso_WP80");
+    electronLooseIDs.push_back("passMVAID_iso_WP90");
 
     fatjetIDs.push_back("tight");
     jetIDs.push_back("tightLepVeto");
@@ -89,7 +91,7 @@ void singlelepton_analysis::executeEvent(){
     param.Jet_ID = jetIDs.at(0);
     param.FatJet_ID = fatjetIDs.at(0);
 
-    param.Muon_ID_SF_Key = "NUM_MediumID_DEN_TrackerMuons";
+    param.Muon_ID_SF_Key = "NUM_TightID_DEN_TrackerMuons";
     param.Muon_ISO_SF_Key = "NUM_TightRelIso_DEN_TightIDandIPCut";
     if (DataYear == 2016){
         param.Muon_Trigger_SF_Key = "IsoMu24";
@@ -101,7 +103,7 @@ void singlelepton_analysis::executeEvent(){
         param.Muon_Trigger_SF_Key = "IsoMu24";
     }
 
-    param.Electron_ID_SF_Key = "passMediumID";
+    param.Electron_ID_SF_Key = "passMVAID_iso_WP80";
     param.Electron_Trigger_SF_Key = "";
 
     executeEventFromParameter(param);
@@ -267,11 +269,13 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     bool hasTwoBJet = (hasObject && hasResolvedJet) ? ((jets.at(0).GetTaggerResult(bTaggingWPMedium.j_Tagger) >= bTaggingWP) + (jets.at(1).GetTaggerResult(bTaggingWPMedium.j_Tagger) >= bTaggingWP) == 2) : false;
 
     // signal region selection
-    bool hasSecondaryBosonMass = hasObject ? ((signalSecondaryBosonMass >= 60.) && (signalSecondaryBosonMass <= 145.)) : false;
+    bool hasSecondaryBosonMassInclH = hasObject ? ((signalSecondaryBosonMass >= 70.) && (signalSecondaryBosonMass <= 145.)) : false;
+    bool hasSecondaryBosonMassExclH = hasObject ? ((signalSecondaryBosonMass >= 60.) && (signalSecondaryBosonMass <= 110.)) : false;
+
 
     // others
     bool hasImaginarySolution = (signalNeutrinoDet == 0);
-    
+    bool hasZeroBJet = (bjets.size() == 0);   
 
     std::map<TString, bool> eventRegions;
 
@@ -279,9 +283,18 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     eventRegions["Signal_ElectronPreselection"] = passElectronTrigger && hasZeroMuon && hasOneElectron && hasMtLeptonMissingEtAbove150 && hasJet;
 
     eventRegions["Signal_MuonBoostedPreselection"] = eventRegions["Signal_MuonPreselection"] && hasBoostedJet;
-    eventRegions["Signal_MuonResolvedPreselection"] = eventRegions["Signal_MuonPreselection"] && hasResolvedJet;
     eventRegions["Signal_ElectronBoostedPreselection"] = eventRegions["Signal_ElectronPreselection"] && hasBoostedJet;
+    eventRegions["Signal_MuonBoostedSR1"] = eventRegions["Signal_MuonBoostedPreselection"] && hasBoostedXbb && hasSecondaryBosonMassInclH && hasZeroBJet;
+    eventRegions["Signal_ElectronBoostedSR1"] = eventRegions["Signal_ElectronBoostedPreselection"] && hasBoostedXbb && hasSecondaryBosonMassInclH && hasZeroBJet;
+    eventRegions["Signal_MuonBoostedSR2"] = eventRegions["Signal_MuonBoostedPreselection"] && hasBoostedXqq && hasSecondaryBosonMassExclH && hasZeroBJet;
+    eventRegions["Signal_ElectronBoostedSR2"] = eventRegions["Signal_ElectronBoostedPreselection"] && hasBoostedXqq && hasSecondaryBosonMassExclH && hasZeroBJet;
+
+    eventRegions["Signal_MuonResolvedPreselection"] = eventRegions["Signal_MuonPreselection"] && hasResolvedJet;
     eventRegions["Signal_ElectronResolvedPreselection"] = eventRegions["Signal_ElectronPreselection"] && hasResolvedJet;
+    eventRegions["Signal_MuonResolvedSR1"] = eventRegions["Signal_MuonResolvedPreselection"] && hasTwoBJet && hasSecondaryBosonMassInclH;
+    eventRegions["Signal_ElectronResolvedSR1"] = eventRegions["Signal_ElectronResolvedPreselection"] && hasTwoBJet && hasSecondaryBosonMassInclH;
+    eventRegions["Signal_MuonResolvedSR2"] = eventRegions["Signal_MuonResolvedPreselection"] && hasOneBJet && hasSecondaryBosonMassInclH;
+    eventRegions["Signal_ElectronResolvedSR2"] = eventRegions["Signal_ElectronResolvedPreselection"] && hasOneBJet && hasSecondaryBosonMassInclH;
 
 
     std::map<TString, bool>::iterator itEventRegions;
@@ -304,9 +317,10 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
                 FillHist(eventRegion + "_pt_secondaryboson", signalSecondaryBoson.Pt(), weight, 5000, 0., 5000.);
 
                 FillHist(eventRegion + "_met", missingEt.Pt(), weight, 5000,0., 5000.);
-
-                FillHist(eventRegion + "_pnetscorexbbmd_fatjet", pNetScoreXbbMD, weight, 50, 0., 1.);
-                FillHist(eventRegion + "_pnetscorexqqmd_fatjet", pNetScoreXqqMD, weight, 50, 0., 1.);
+                if (hasBoostedJet){
+                    FillHist(eventRegion + "_pnetscorexbbmd_fatjet", pNetScoreXbbMD, weight, 50, 0., 1.);
+                    FillHist(eventRegion + "_pnetscorexqqmd_fatjet", pNetScoreXqqMD, weight, 50, 0., 1.);
+                }
             }
 
 
