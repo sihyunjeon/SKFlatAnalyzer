@@ -257,7 +257,6 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     }
 
     // preselection
-    bool hasMtLeptonMissingEtAbove150 = hasObject ? ((signalLepton + missingEt).Mt() > 150) : false; // preselection
 
     // boosted signal region definitions
     bool hasBoostedXbb = hasBoostedJet ? (pNetScoreXbbMD > 0.94) : false;
@@ -274,10 +273,17 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
 
 
     // others
+    bool hasMtLeptonMissingEtAbove150 = hasObject ? ((signalLepton + missingEt).Mt() > 150) : false; // preselection
+    bool hasMissingEtAbove80 = (missingEt.Pt() > 80.);
     bool hasImaginarySolution = (signalNeutrinoDet == 0);
     bool hasZeroBJet = (bjets.size() == 0);   
 
     std::map<TString, bool> eventRegions;
+
+    eventRegions["Signal_MuonBoostedSignalStudy"] = passMuonTrigger && hasOneMuon && hasZeroElectron && hasBoostedJet;
+    eventRegions["Signal_ElectronBoostedSignalStudy"] = passElectronTrigger && hasZeroMuon && hasOneElectron && hasBoostedJet;
+    eventRegions["Signal_MuonResolvedSignalStudy"] = passMuonTrigger && hasOneMuon && hasZeroElectron && hasResolvedJet;
+    eventRegions["Signal_ElectronResolvedSignalStudy"] = passElectronTrigger && hasZeroMuon && hasOneElectron && hasResolvedJet;
 
     eventRegions["Signal_MuonPreselection"] = passMuonTrigger && hasOneMuon && hasZeroElectron && hasMtLeptonMissingEtAbove150 && hasJet;
     eventRegions["Signal_ElectronPreselection"] = passElectronTrigger && hasZeroMuon && hasOneElectron && hasMtLeptonMissingEtAbove150 && hasJet;
@@ -295,6 +301,11 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     eventRegions["Signal_ElectronResolvedSR1"] = eventRegions["Signal_ElectronResolvedPreselection"] && hasTwoBJet && hasSecondaryBosonMassInclH;
     eventRegions["Signal_MuonResolvedSR2"] = eventRegions["Signal_MuonResolvedPreselection"] && hasOneBJet && hasSecondaryBosonMassInclH;
     eventRegions["Signal_ElectronResolvedSR2"] = eventRegions["Signal_ElectronResolvedPreselection"] && hasOneBJet && hasSecondaryBosonMassInclH;
+
+    eventRegions["Control_MuonBoostedSR1"] = eventRegions["Control_MuonBoostedPreselection"] && hasBoostedXbb && hasSecondaryBosonMassInclH && hasZeroBJet;
+    eventRegions["Control_ElectronBoostedSR1"] = eventRegions["Control_ElectronBoostedPreselection"] && hasBoostedXbb && hasSecondaryBosonMassInclH && hasZeroBJet;
+    eventRegions["Control_MuonBoostedSR2"] = eventRegions["Control_MuonBoostedPreselection"] && hasBoostedXqq && hasSecondaryBosonMassExclH && hasZeroBJet;
+    eventRegions["Control_ElectronBoostedSR2"] = eventRegions["Control_ElectronBoostedPreselection"] && hasBoostedXqq && hasSecondaryBosonMassExclH && hasZeroBJet;
 
 
     std::map<TString, bool>::iterator itEventRegions;
