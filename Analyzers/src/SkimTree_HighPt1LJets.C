@@ -79,10 +79,10 @@ void SkimTree_HighPt1LJets::executeEvent(){
     if (!IsDATA){
         if (MCSample.Contains("QCD")){
             if (MCSample.Contains("MuEnriched")){
-                if (n_muons == 0) return;
+                if (n_electrons != 0) return;
             }
             if (MCSample.Contains("EMEnriched")){
-                if (n_electrons == 0) return;
+                if (n_muons != 0) return;
             }
         }
     }
