@@ -58,7 +58,7 @@ void SkimTree_HighPt1LJets::initializeAnalyzer(){
 
   LeptonPtCut = 18.;
   AK4JetPtCut = 20.;
-  AK8JetPtCut = 170.;
+  AK8JetPtCut = 150.;
 
 }
 
@@ -72,9 +72,15 @@ void SkimTree_HighPt1LJets::executeEvent(){
     //==== Skim 2) Leptons
     vector<Muon> muons = GetMuons("NOCUT", LeptonPtCut, 2.4);
     vector<Electron> electrons = GetElectrons("NOCUT", LeptonPtCut, 2.5);
+    vector<Muon> tunep_muons = UseTunePMuon( GetAllMuons() );
+    int n_tunep_muons = 0;
+    for(unsigned int i=0; i<tunep_muons.size(); i++){
+        if( tunep_muons.at(i).Pt() > LeptonPtCut ) n_tunep_muons++;
+    }
+
     int n_muons = muons.size();
     int n_electrons = electrons.size();
-    if (n_muons + n_electrons == 0) return;
+    if (n_tunep_muons + n_muons + n_electrons == 0) return;
 
     if (!IsDATA){
         if (MCSample.Contains("QCD")){
@@ -83,16 +89,15 @@ void SkimTree_HighPt1LJets::executeEvent(){
             }
             if (MCSample.Contains("EMEnriched")){
                 if (n_muons != 0) return;
+                if (n_tunep_muons != 0) return;
             }
         }
     }
 
     //==== Skim 3) Jets
-    vector<FatJet> fatjets = puppiCorr->Correct( GetFatJets("tight", AK8JetPtCut, 2.4) ); //==== corret SDMass
-    vector<Jet> jets = GetJets("tightLepVeto", AK4JetPtCut, 2.4);
+    vector<FatJet> fatjets = puppiCorr->Correct( GetFatJets("tight", AK8JetPtCut, 2.4) );
     int n_fatjets = fatjets.size();
-    int n_jets = jets.size();
-    if ((n_fatjets == 0) && (n_jets <= 1)) return;
+    if (n_fatjets == 0) return;
 
     //==== Skim 4) Only fill in the survived events
     newtree->Fill();

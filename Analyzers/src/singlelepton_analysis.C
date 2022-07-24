@@ -57,9 +57,9 @@ void singlelepton_analysis::initializeAnalyzer(){
 
     jetPtCut = 30.; fatjetPtCut = 200.;
 
-    bTaggingWPMedium = JetTagging::Parameters(JetTagging::DeepCSV, JetTagging::Medium, JetTagging::incl, JetTagging::comb);
+    bTaggingWP = JetTagging::Parameters(JetTagging::DeepCSV, JetTagging::Medium, JetTagging::incl, JetTagging::comb);
 
-    mcCorr->SetJetTaggingParameters({bTaggingWPMedium});
+    mcCorr->SetJetTaggingParameters({bTaggingWP});
 
     pNetXbbMD = JetTagging::particleNetMD_Xbb;
     pNetXccMD = JetTagging::particleNetMD_Xcc;
@@ -120,13 +120,14 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
 
     // define leptons
     std::vector<Muon> muonsLoose = SelectMuons(allMuons, param.Muon_Loose_ID, leptonPtCut, 2.1);
-    std::vector<Muon> muonsNoIso = SelectMuons(muonsLoose, param.Muon_Tight_ID, leptonPtCut, 2.1);
-    std::vector<Muon> muons;
-    for (unsigned int i=0 ; i < muonsNoIso.size(); i++){
-        if (muonsNoIso.at(i).RelIso() < 0.15){
-            muons.push_back(muonsNoIso.at(i));
+    std::vector<Muon> muonsLooseIso;
+    for (unsigned int i=0 ; i < muonsLoose.size(); i++){
+        if (muonsLoose.at(i).RelIso() < 0.15){
+            muonsLooseIso.push_back(muonsLoose.at(i));
         }
     }
+    std::vector<Muon> muons = SelectMuons(muonsLooseIso, param.Muon_Tight_ID, leptonPtCut, 2.1);
+
     std::sort(muons.begin(), muons.end(), PtComparing);
     std::vector<Electron> electronsLoose = SelectElectrons(allElectrons, param.Electron_Loose_ID, leptonPtCut, 2.1, true);
     std::vector<Electron> electrons = SelectElectrons(electronsLoose, param.Electron_Tight_ID, leptonPtCut, 2.1);
@@ -153,9 +154,10 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     jets = JetsVetoLeptonInside(jets, electronsLoose, muonsLoose, 0.4);
     std::sort(jets.begin(), jets.end(), PtComparing);
 
+    double bTaggingWPMedium = mcCorr->GetJetTaggingCutValue(bTaggingWP.j_Tagger, bTaggingWP.j_WP);
     std::vector<Jet> bjets;
     for (unsigned int i=0; i < jets.size(); i++){
-        if( jets.at(i).GetTaggerResult(bTaggingWPMedium.j_Tagger) >= mcCorr->GetJetTaggingCutValue(bTaggingWPMedium.j_Tagger, bTaggingWPMedium.j_WP) ) bjets.push_back(jets.at(i));
+        if( jets.at(i).GetTaggerResult(bTaggingWP.j_Tagger) >= bTaggingWPMedium ) bjets.push_back(jets.at(i));
     }
 
     // define missing et
@@ -172,7 +174,7 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
         weight = weight * GetPrefireWeight(0);
         weight = weight * GetPileUpWeight(nPileUp,0); 
         weight = weight * event.GetTriggerLumi("Full");
-        weight = weight * mcCorr->GetBTaggingReweight_1a(jets, bTaggingWPMedium);
+        weight = weight * mcCorr->GetBTaggingReweight_1a(jets, bTaggingWP);
         for (unsigned int i=0; i < electrons.size(); i++){
             weight = weight * mcCorr->ElectronReco_SF(electrons.at(i).scEta(), electrons.at(i).UncorrPt(), 0.);
             weight = weight * mcCorr->ElectronID_SF(param.Electron_ID_SF_Key, electrons.at(i).scEta(), electrons.at(i).Pt(), 0.);
@@ -196,106 +198,89 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     bool passElectronTrigger = (event.PassTrigger(electronTriggers) && electrons.size() >= 1) ? electrons.at(0).Pt() > electronPtCut : false;
 
     // lepton related selections
-    bool hasOneMuon = (muons.size() == 1 && muonsLoose.size() == 1);
-    bool hasOneElectron = (electrons.size() == 1 && electronsLoose.size() == 1);
-    bool hasZeroMuon = (muons.size() == 0 && muonsLoose.size() == 0);
-    bool hasZeroElectron = (electrons.size() == 0 && electronsLoose.size() == 0);
+    bool hasAtLeastOneLepton = (leptons.size() >= 1);
+    bool hasOneMuon = hasAtLeastOneLepton ? (muons.size() == 1 && muonsLoose.size() == 1) : false;
+    bool hasOneElectron = hasAtLeastOneLepton ? (electrons.size() == 1 && electronsLoose.size() == 1) : false;
+    bool hasZeroMuon = (muonsLoose.size() == 0);
+    bool hasZeroElectron = (electronsLoose.size() == 0);
+    bool hasTwoLepton = (hasOneMuon && hasOneElectron);
 
     // jet related selections
     bool hasAtLeastOneFatjet = (fatjets.size() >= 1);
-    bool hasAtLeastTwoJet = (jets.size() >= 2);
 
-    // signal region specific selections
-    // preselection
-    bool hasLepton = ((hasOneMuon && hasZeroElectron) || (hasOneElectron && hasZeroMuon)); // preselection
-    bool hasBoostedJet = hasAtLeastOneFatjet; // preselection
-    bool hasResolvedJet = (!hasBoostedJet && hasAtLeastTwoJet); // preselection
-    bool hasJet = (hasBoostedJet || hasResolvedJet); // preselection
-    bool hasObject = hasLepton && hasJet; // preselection
+    // signal preselection
+    bool hasSignalObject = (hasAtLeastOneLepton && hasAtLeastOneFatjet);
+    bool hasMissingEtAbove50 = (missingEt.Pt() > 50.);
+    bool hasMissingEtAbove100 = (missingEt.Pt() > 100.);
 
-    Lepton signalLepton;
-    Particle signalSecondaryBoson;
-    Particle signalPrimaryBoson;
-    Particle signalNeutrino;
+    if (!hasSignalObject) return;
 
-    int signalNeutrinoDet = -1.;
-    double signalSecondaryBosonMass = -1.;
-    double pNetScoreXbbMD = -1., pNetScoreXqqMD = -1.;
-
-    if (hasObject){
-
-        signalLepton = leptons.at(0);
-
-        if (hasBoostedJet){
-
-            signalSecondaryBosonMass = fatjets.at(0).SDMass();
-            signalSecondaryBoson = fatjets.at(0);
-
-            double pNetProbXbbMD = fatjets.at(0).GetTaggerResult(pNetXbbMD);
-            double pNetProbXccMD = fatjets.at(0).GetTaggerResult(pNetXccMD);
-            double pNetProbXqqMD = fatjets.at(0).GetTaggerResult(pNetXqqMD);
-            double pNetProbQCDMD = fatjets.at(0).GetTaggerResult(pNetQCDMD);
-            pNetScoreXbbMD = pNetProbXbbMD / (pNetProbXbbMD + pNetProbQCDMD);
-            pNetScoreXqqMD = (pNetProbXccMD + pNetProbXqqMD) / (pNetProbXccMD + pNetProbXqqMD + pNetProbQCDMD);
-
-        }
-        if (hasResolvedJet) {
-
-            if (!IsDATA){
-                weight = weight * top_pt_weight;
-            }
-
-            signalSecondaryBosonMass = (jets.at(0) + jets.at(1)).M();
-            signalSecondaryBoson = jets.at(0) + jets.at(1);
-
-        }
-
-        signalPrimaryBoson = signalLepton + signalSecondaryBoson;
-        signalNeutrino = GetReconstructedNeutrino(signalLepton, missingEt);
-        signalNeutrinoDet = GetReconstructedNeutrinoDet(signalLepton, missingEt);
-
-    }
-
-    // preselection
-    bool hasMtLeptonMissingEtAbove150 = hasObject ? ((signalLepton + missingEt).Mt() > 150) : false; // preselection
+    Lepton signalLepton = leptons.at(0);
+    FatJet signalFatjet = fatjets.at(0);
+    Particle signalPrimaryBoson = (signalLepton + signalFatjet + missingEt);
 
     // boosted signal region definitions
-    bool hasBoostedXbb = hasBoostedJet ? (pNetScoreXbbMD > 0.94) : false;
-    bool hasBoostedXqq = hasBoostedJet ? (!hasBoostedXbb && pNetScoreXqqMD > 0.82) : false;
+    bool hasFatjetMassIncl = ((fatjets.at(0).SDMass() >= 50.) && (fatjets.at(0).SDMass() <= 160.));
+    bool hasFatjetMassHigh = ((fatjets.at(0).SDMass() >= 100.) && (fatjets.at(0).SDMass() <= 150.));
+    bool hasFatjetMassLow = ((fatjets.at(0).SDMass() >= 60.) && (fatjets.at(0).SDMass() <= 100.));
 
-    // resolved signal region definitions
-    double bTaggingWP = mcCorr->GetJetTaggingCutValue(bTaggingWPMedium.j_Tagger, bTaggingWPMedium.j_WP);
-    bool hasOneBJet = (hasObject && hasResolvedJet) ? ((jets.at(0).GetTaggerResult(bTaggingWPMedium.j_Tagger) >= bTaggingWP) + (jets.at(1).GetTaggerResult(bTaggingWPMedium.j_Tagger) >= bTaggingWP) == 1) : false;
-    bool hasTwoBJet = (hasObject && hasResolvedJet) ? ((jets.at(0).GetTaggerResult(bTaggingWPMedium.j_Tagger) >= bTaggingWP) + (jets.at(1).GetTaggerResult(bTaggingWPMedium.j_Tagger) >= bTaggingWP) == 2) : false;
+    double pNetScoreXbbMD = GetParticleNetScore(signalFatjet, "XbbMD");
+    double pNetScoreXqqMD = GetParticleNetScore(signalFatjet, "XqqMD");
 
-    // signal region selection
-    bool hasSecondaryBosonMassInclH = hasObject ? ((signalSecondaryBosonMass >= 70.) && (signalSecondaryBosonMass <= 145.)) : false;
-    bool hasSecondaryBosonMassExclH = hasObject ? ((signalSecondaryBosonMass >= 60.) && (signalSecondaryBosonMass <= 110.)) : false;
-
+    bool hasBoostedXbb = (pNetScoreXbbMD > 0.94);
+    bool hasBoostedXqq = (!hasBoostedXbb) ? (pNetScoreXqqMD > 0.82) : false;
 
     // others
-    bool hasImaginarySolution = (signalNeutrinoDet == 0);
-    bool hasZeroBJet = (bjets.size() == 0);   
+    bool hasZeroBJet = (bjets.size() == 0);
+    bool hasMtLeptonMissingEtAbove200 = (signalLepton + missingEt).Mt() > 200.;
+    bool hasPositiveCharge = (signalLepton.Charge() > 0);
+
+    Particle signalNeutrino = GetReconstructedNeutrino(signalLepton, missingEt);
+    int signalNeutrinoDet = GetReconstructedNeutrinoDet(signalLepton, missingEt);
+
+    double ST = missingEt.Pt();
+    Particle signalEff = missingEt;
+    for (unsigned int i=0; i < leptons.size(); i++){
+        Particle ptl = leptons.at(i);
+        ST = ST + ptl.Pt();
+        signalEff = signalEff + ptl;
+    }
+    for (unsigned int i=0; i < fatjets.size(); i++){
+        Particle ptl = fatjets.at(i);
+        ST = ST + ptl.Pt();
+        signalEff = signalEff + ptl;
+    }
+    for (unsigned int i=0; i < jets.size(); i++){
+        Particle ptl = jets.at(i);
+        ST = ST + ptl.Pt();
+        signalEff = signalEff + ptl;
+    }
+
+    bool hasStBelow500 = (ST < 500.0);
 
     std::map<TString, bool> eventRegions;
 
-    eventRegions["Signal_MuonPreselection"] = passMuonTrigger && hasOneMuon && hasZeroElectron && hasMtLeptonMissingEtAbove150 && hasJet;
-    eventRegions["Signal_ElectronPreselection"] = passElectronTrigger && hasZeroMuon && hasOneElectron && hasMtLeptonMissingEtAbove150 && hasJet;
+    eventRegions["MuonPreselection"] = passMuonTrigger && hasOneMuon && hasZeroElectron && hasMissingEtAbove50 && hasFatjetMassIncl;
+    eventRegions["ElectronPreselection"] = passElectronTrigger && hasZeroMuon && hasOneElectron && hasMissingEtAbove50 && hasFatjetMassIncl;
 
-    eventRegions["Signal_MuonBoostedPreselection"] = eventRegions["Signal_MuonPreselection"] && hasBoostedJet;
-    eventRegions["Signal_ElectronBoostedPreselection"] = eventRegions["Signal_ElectronPreselection"] && hasBoostedJet;
-    eventRegions["Signal_MuonBoostedSR1"] = eventRegions["Signal_MuonBoostedPreselection"] && hasBoostedXbb && hasSecondaryBosonMassInclH && hasZeroBJet;
-    eventRegions["Signal_ElectronBoostedSR1"] = eventRegions["Signal_ElectronBoostedPreselection"] && hasBoostedXbb && hasSecondaryBosonMassInclH && hasZeroBJet;
-    eventRegions["Signal_MuonBoostedSR2"] = eventRegions["Signal_MuonBoostedPreselection"] && hasBoostedXqq && hasSecondaryBosonMassExclH && hasZeroBJet;
-    eventRegions["Signal_ElectronBoostedSR2"] = eventRegions["Signal_ElectronBoostedPreselection"] && hasBoostedXqq && hasSecondaryBosonMassExclH && hasZeroBJet;
+    eventRegions["Signal_MuonSignalRegionXbb-HighMassJ"] = eventRegions["MuonPreselection"] && hasZeroBJet && hasMtLeptonMissingEtAbove200 && hasBoostedXbb && hasFatjetMassHigh;
+    eventRegions["Signal_MuonSignalRegionXbb-LowMassJ"] = eventRegions["MuonPreselection"] && hasZeroBJet && hasMtLeptonMissingEtAbove200 && hasBoostedXbb && hasFatjetMassLow;
+    eventRegions["Signal_MuonSignalRegionXqq-LowMassJ"] = eventRegions["MuonPreselection"] && hasZeroBJet && hasMtLeptonMissingEtAbove200 && hasBoostedXqq && hasFatjetMassLow && hasMissingEtAbove100;
+    eventRegions["Signal_ElectronSignalRegionXbb-HighMassJ"] = eventRegions["ElectronPreselection"] && hasZeroBJet && hasMtLeptonMissingEtAbove200 && hasBoostedXbb && hasFatjetMassHigh;
+    eventRegions["Signal_ElectronSignalRegionXbb-LowMassJ"] = eventRegions["ElectronPreselection"] && hasZeroBJet && hasMtLeptonMissingEtAbove200 && hasBoostedXbb && hasFatjetMassLow;
+    eventRegions["Signal_ElectronSignalRegionXqq-LowMassJ"] = eventRegions["ElectronPreselection"] && hasZeroBJet && hasMtLeptonMissingEtAbove200 && hasBoostedXqq && hasFatjetMassLow && hasMissingEtAbove100;
 
-    eventRegions["Signal_MuonResolvedPreselection"] = eventRegions["Signal_MuonPreselection"] && hasResolvedJet;
-    eventRegions["Signal_ElectronResolvedPreselection"] = eventRegions["Signal_ElectronPreselection"] && hasResolvedJet;
-    eventRegions["Signal_MuonResolvedSR1"] = eventRegions["Signal_MuonResolvedPreselection"] && hasTwoBJet && hasSecondaryBosonMassInclH;
-    eventRegions["Signal_ElectronResolvedSR1"] = eventRegions["Signal_ElectronResolvedPreselection"] && hasTwoBJet && hasSecondaryBosonMassInclH;
-    eventRegions["Signal_MuonResolvedSR2"] = eventRegions["Signal_MuonResolvedPreselection"] && hasOneBJet && hasSecondaryBosonMassInclH;
-    eventRegions["Signal_ElectronResolvedSR2"] = eventRegions["Signal_ElectronResolvedPreselection"] && hasOneBJet && hasSecondaryBosonMassInclH;
+    eventRegions["Control_MuonControlRegionXbb-InvB"] = eventRegions["MuonPreselection"] && !hasZeroBJet && hasMtLeptonMissingEtAbove200 && hasBoostedXbb;
+    eventRegions["Control_MuonControlRegionXbb-InvMt"] = eventRegions["MuonPreselection"] && hasZeroBJet && !hasMtLeptonMissingEtAbove200 && hasBoostedXbb;
+    eventRegions["Control_MuonControlRegionXqq-InvB"] = eventRegions["MuonPreselection"] && !hasZeroBJet && hasMtLeptonMissingEtAbove200 && hasBoostedXqq;
+    eventRegions["Control_MuonControlRegionXqq-InvMt"] = eventRegions["MuonPreselection"] && hasZeroBJet && !hasMtLeptonMissingEtAbove200 && hasBoostedXqq;
+    eventRegions["Control_MuonControlRegion-InvXbbXqq"] = (passMuonTrigger && hasOneMuon && hasZeroElectron && hasMissingEtAbove50 && !hasFatjetMassIncl) && hasZeroBJet && (!hasBoostedXbb && !hasBoostedXqq);
 
+    eventRegions["Control_ElectronControlRegionXbb-InvB"] = eventRegions["ElectronPreselection"] && !hasZeroBJet && hasMtLeptonMissingEtAbove200 && hasBoostedXbb;
+    eventRegions["Control_ElectronControlRegionXbb-InvMt"] = eventRegions["ElectronPreselection"] && hasZeroBJet && !hasMtLeptonMissingEtAbove200 && hasBoostedXbb;
+    eventRegions["Control_ElectronControlRegionXqq-InvB"] = eventRegions["ElectronPreselection"] && !hasZeroBJet && hasMtLeptonMissingEtAbove200 && hasBoostedXqq;
+    eventRegions["Control_ElectronControlRegionXqq-InvMt"] = eventRegions["ElectronPreselection"] && hasZeroBJet && !hasMtLeptonMissingEtAbove200 && hasBoostedXqq;
+    eventRegions["Control_ElectronControlRegion-InvXbbXqq"] = (passElectronTrigger && hasZeroMuon && hasOneElectron && hasMissingEtAbove50 && !hasFatjetMassIncl) && hasZeroBJet && (!hasBoostedXbb && !hasBoostedXqq);
 
     std::map<TString, bool>::iterator itEventRegions;
 
@@ -304,25 +289,27 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
         if (itEventRegions->second){
             TString eventRegion = itEventRegions->first;
 
-            if (hasObject){
-                FillHist(eventRegion + "_dphi_leptonmet", signalLepton.DeltaPhi(missingEt), weight, 100, -5., 5.);
-                FillHist(eventRegion + "_masst_leptonmet", (signalLepton + missingEt).Mt(), weight, 5000, 0., 5000.);
+            FillHist(eventRegion + "_dphi_leptonmet", signalLepton.DeltaPhi(missingEt), weight, 100, -5., 5.);
+            FillHist(eventRegion + "_masst_leptonmet", (signalLepton + missingEt).Mt(), weight, 5000, 0., 5000.);
 
-                FillHist(eventRegion + "_eta_lepton", signalLepton.Eta(), weight, 100, -5., 5.);
-                FillHist(eventRegion + "_pt_lepton", signalLepton.Pt(), weight, 5000,0., 5000.);
-                FillHist(eventRegion + "_phi_lepton", signalLepton.Phi(), weight, 100, -5., 5.);
+            FillHist(eventRegion + "_eta_lepton", signalLepton.Eta(), weight, 100, -5., 5.);
+            FillHist(eventRegion + "_pt_lepton", signalLepton.Pt(), weight, 5000,0., 5000.);
+            FillHist(eventRegion + "_phi_lepton", signalLepton.Phi(), weight, 100, -5., 5.);
 
-                FillHist(eventRegion + "_eta_secondaryboson", signalSecondaryBoson.Eta(), weight, 100, -5., 5.);
-                FillHist(eventRegion + "_mass_secondaryboson", signalSecondaryBosonMass, weight, 5000, 0., 5000.);
-                FillHist(eventRegion + "_pt_secondaryboson", signalSecondaryBoson.Pt(), weight, 5000, 0., 5000.);
+            FillHist(eventRegion + "_eta_secondaryboson", signalFatjet.Eta(), weight, 100, -5., 5.);
+            FillHist(eventRegion + "_mass_secondaryboson", signalFatjet.SDMass(), weight, 5000, 0., 5000.);
+            FillHist(eventRegion + "_pt_secondaryboson", signalFatjet.Pt(), weight, 5000, 0., 5000.);
 
-                FillHist(eventRegion + "_met", missingEt.Pt(), weight, 5000,0., 5000.);
-                if (hasBoostedJet){
-                    FillHist(eventRegion + "_pnetscorexbbmd_fatjet", pNetScoreXbbMD, weight, 50, 0., 1.);
-                    FillHist(eventRegion + "_pnetscorexqqmd_fatjet", pNetScoreXqqMD, weight, 50, 0., 1.);
-                }
-            }
+            FillHist(eventRegion + "_met", missingEt.Pt(), weight, 5000,0., 5000.);
+            FillHist(eventRegion + "_st", ST, weight, 5000,0., 5000.);
 
+            FillHist(eventRegion + "_masst_primaryboson", signalPrimaryBoson.Mt(), weight, 5000,0., 5000.);
+
+            FillHist(eventRegion + "_mass_effective", signalEff.M(), weight, 5000,0., 5000.);
+            FillHist(eventRegion + "_masst_effective", signalEff.Mt(), weight, 5000,0., 5000.);
+
+            FillHist(eventRegion + "_pnetscorexbbmd_fatjet", pNetScoreXbbMD, weight, 50, 0., 1.);
+            FillHist(eventRegion + "_pnetscorexqqmd_fatjet", pNetScoreXqqMD, weight, 50, 0., 1.);
 
             FillHist(eventRegion + "_n_events_weighted", 0, weight, 1, 0., 1.);
             FillHist(eventRegion + "_n_events_unweighted", 0, 1., 1, 0., 1.);
@@ -375,5 +362,21 @@ Particle singlelepton_analysis::GetReconstructedNeutrino(Lepton lepton, Particle
     neutrino.SetPxPyPzE(missingEt.Px(), missingEt.Py(), pz, TMath::Sqrt(missingEt.E()*missingEt.E() + pz*pz));
 
     return neutrino;
+
+}
+
+double singlelepton_analysis::GetParticleNetScore(FatJet fatjet, TString tagger){
+
+     double pNetProbXbbMD = fatjet.GetTaggerResult(pNetXbbMD);
+     double pNetProbXccMD = fatjet.GetTaggerResult(pNetXccMD);
+     double pNetProbXqqMD = fatjet.GetTaggerResult(pNetXqqMD);
+     double pNetProbQCDMD = fatjet.GetTaggerResult(pNetQCDMD);
+     double pNetScoreXbbMD = pNetProbXbbMD / (pNetProbXbbMD + pNetProbQCDMD);
+     double pNetScoreXqqMD = (pNetProbXccMD + pNetProbXqqMD) / (pNetProbXccMD + pNetProbXqqMD + pNetProbQCDMD);
+
+     if (tagger == "XbbMD") return pNetScoreXbbMD;
+     if (tagger == "XqqMD") return pNetScoreXqqMD;
+
+     return -1.;
 
 }
