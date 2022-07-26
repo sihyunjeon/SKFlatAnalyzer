@@ -16,6 +16,8 @@ public:
     bool RunNewPDF;
     bool RunXSecSyst;
 
+    bool invertLeptonIsolation;
+
     std::vector<TString> muonTightIDs, muonLooseIDs;
     std::vector<TString> electronTightIDs, electronLooseIDs;
     std::vector<TString> jetIDs, fatjetIDs;
