@@ -18,6 +18,11 @@ public:
 
     std::vector<TString> muonIsoTriggers, muonHighPtTriggers, electronTriggers;
 
+    double GetParticleNetScore(FatJet fatjet, TString tagger);
+    JetTagging::Tagger pNetXbbMD, pNetXqqMD, pNetXccMD, pNetQCDMD;
+
+    JetTagging::Parameters bTaggingWP;
+
     sandbox();
     ~sandbox();
 
