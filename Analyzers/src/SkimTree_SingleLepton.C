@@ -65,6 +65,21 @@ void SkimTree_SingleLepton::executeEvent(){
     ev.SetTrigger(*HLT_TriggerName);
     if(! (ev.PassTrigger(triggers)) ) return;
 
+    //==== Skim 2) Leptons
+    vector<Muon> muons = GetMuons("NOCUT", 10., 2.4);
+    vector<Electron> electrons = GetElectrons("NOCUT", 10., 2.5);
+
+    if (!IsDATA){
+        if (MCSample.Contains("QCD")){
+            if (MCSample.Contains("MuEnriched")){
+                if (electrons.size() != 0) return;
+            }
+            if (MCSample.Contains("EMEnriched") || MCSample.Contains("bcToE")){
+                if (muons.size() != 0) return;
+            }
+        }
+    }
+
     //==== Skim 4) Only fill in the survived events
     newtree->Fill();
 

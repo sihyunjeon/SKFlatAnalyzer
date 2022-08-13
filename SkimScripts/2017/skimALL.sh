@@ -41,3 +41,10 @@ SKFlat.py -a SkimTree_SingleLepton -e 2017 -i ZZ_pythia -n 200 &
 
 SKFlat.py -a SkimTree_SingleLepton -e 2017 -i WJets_Sherpa -n 500 &
 
+SKFlat.py -a SkimTree_SingleLepton -e 2017 -i QCD_Pt_170to250_bcToE -n 20 &
+SKFlat.py -a SkimTree_SingleLepton -e 2017 -i QCD_Pt_20to30_bcToE -n 20 &
+SKFlat.py -a SkimTree_SingleLepton -e 2017 -i QCD_Pt_250toInf_bcToE -n 20 &
+SKFlat.py -a SkimTree_SingleLepton -e 2017 -i QCD_Pt_30to80_bcToE -n 20 &
+SKFlat.py -a SkimTree_SingleLepton -e 2017 -i QCD_Pt_80to170_bcToE -n 20 &
+
+
