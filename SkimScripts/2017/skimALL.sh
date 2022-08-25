@@ -5,6 +5,7 @@ SKFlat.py -a SkimTree_SingleLepton -e 2017 -i DYJetsToEE_MiNNLO -n 250 &
 SKFlat.py -a SkimTree_SingleLepton -e 2017 -i DYJetsToMuMu_MiNNLO -n 250 &
 SKFlat.py -a SkimTree_SingleLepton -e 2017 -i DYJetsToTauTau_MiNNLO -n 100 &
 
+SKFlat.py -a SkimTree_SingleLepton -e 2017 -i QCD_Pt-1000_MuEnriched -n 20 &
 SKFlat.py -a SkimTree_SingleLepton -e 2017 -i QCD_Pt-120To170_MuEnriched -n 20 &
 SKFlat.py -a SkimTree_SingleLepton -e 2017 -i QCD_Pt-120to170_EMEnriched -n 20 &
 SKFlat.py -a SkimTree_SingleLepton -e 2017 -i QCD_Pt-15To20_MuEnriched -n 20 &
@@ -40,6 +41,7 @@ SKFlat.py -a SkimTree_SingleLepton -e 2017 -i WZ_pythia -n 200 &
 SKFlat.py -a SkimTree_SingleLepton -e 2017 -i ZZ_pythia -n 200 &
 
 SKFlat.py -a SkimTree_SingleLepton -e 2017 -i WJets_Sherpa -n 500 &
+SKFlat.py -a SkimTree_SingleLepton -e 2017 -i WJets_MG -n 500 &
 
 SKFlat.py -a SkimTree_SingleLepton -e 2017 -i QCD_Pt_170to250_bcToE -n 20 &
 SKFlat.py -a SkimTree_SingleLepton -e 2017 -i QCD_Pt_20to30_bcToE -n 20 &
