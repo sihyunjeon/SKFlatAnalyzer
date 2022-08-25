@@ -17,12 +17,14 @@ public:
     bool RunXSecSyst;
 
     bool invertLeptonIsolation;
+    bool runSystematics;
 
     std::vector<TString> muonTightIDs, muonLooseIDs;
     std::vector<TString> electronTightIDs, electronLooseIDs;
     std::vector<TString> jetIDs, fatjetIDs;
 
     JetTagging::Parameters bTaggingWP;
+    double GetBTaggingScore(Jet jet);
     JetTagging::Tagger pNetXbbMD, pNetXqqMD, pNetXccMD, pNetQCDMD;
     double GetParticleNetScore(FatJet fatjet, TString tagger);
 
@@ -37,6 +39,26 @@ public:
 
     double GetReconstructedNeutrinoDet(Lepton lepton, Particle missingEt);
     Particle GetReconstructedNeutrino(Lepton lepton, Particle missingEt);
+
+    void InitializeVariables();
+
+    double varSecondaryBosonMass;
+    double varSecondaryBosonPt;
+    double varSecondaryBosonEta;
+    TString varSecondaryBosonTag;
+    double varPrimaryBosonMass;
+    double varLeptonPt;
+    double varLeptonEta;
+    double varHT;
+    double varMET;
+    double varMEToverHT;
+    double varMETPhi;
+    double varMETandLeptonDeltaPhi;
+    double varNeutrinoandLeptonDeltaR;
+    double varMETandLeptonMassT;
+    int varNJet;
+    int varNBJet;
+    int varSignalRegion;
 
     singlelepton_analysis();
     ~singlelepton_analysis();
