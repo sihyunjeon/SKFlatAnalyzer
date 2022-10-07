@@ -7,9 +7,6 @@ singlelepton_analysis::singlelepton_analysis(){
 
 void singlelepton_analysis::initializeAnalyzer(){
 
-    if (HasFlag("nonprompt")) invertLeptonIsolation = true;
-    else invertLeptonIsolation = false;
-
     if (HasFlag("syst") && !IsDATA)  runSystematics = true;
     else runSystematics = false;
 
@@ -23,8 +20,6 @@ void singlelepton_analysis::initializeAnalyzer(){
     muonTightIDs.push_back("POGTight");
     muonLooseIDs.push_back("POGMedium");
 
-//    electronTightIDs.push_back("passMediumID");
-//    electronLooseIDs.push_back("passLooseID");
     electronTightIDs.push_back("passMVAID_iso_WP80");
     electronLooseIDs.push_back("passMVAID_iso_WP90");
 
@@ -62,10 +57,10 @@ void singlelepton_analysis::initializeAnalyzer(){
         leptonPtCut = 10.;
     }
 
-    jetPtCut = 30.; fatjetPtCut = 250.;
+    jetPtCut = 30.; fatjetPtCut = 200.;
 
-    bTaggingWP = JetTagging::Parameters(JetTagging::DeepJet, JetTagging::Medium, JetTagging::incl, JetTagging::comb);
-
+    bTaggingWP = JetTagging::Parameters(JetTagging::DeepJet, JetTagging::Medium, JetTagging::incl, JetTagging::comb); // 1a
+//    bTaggingWP = JetTagging::Parameters(JetTagging::DeepJet, JetTagging::Medium, JetTagging::iterativefit, JetTagging::iterativefit); // check what JS did and muonisosf idsf not working properly
     mcCorr->SetJetTaggingParameters({bTaggingWP});
 
     pNetXbbMD = JetTagging::particleNetMD_Xbb;
@@ -126,12 +121,25 @@ void singlelepton_analysis::executeEvent(){
 
 void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
 
+    double weight = 1., weight_cutflow = 1.;
+    if(!IsDATA){
+        weight = MCweight(true, true);
+        weight_cutflow = weight;
+    }
+
+    InitializeVariables();
+
+    FillHist(param.Name + "/cutflow__preselction__no_cut", 0, weight, 1, 0., 1.);
+
     if(!PassMETFilter()) return;
+
+    FillHist(param.Name + "/cutflow__preselction__met_filter", 0, weight, 1, 0., 1.);
 
     Event event = GetEvent();
 
     if (!(event.PassTrigger(muonTriggers) || event.PassTrigger(electronTriggers))) return;
 
+    FillHist(param.Name + "/cutflow__preselction__pass_trigger", 0, weight, 1, 0., 1.);
 
     int syst_MuRecoSF = 0;
     int syst_MuIDSF = 0;
@@ -143,25 +151,45 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     int syst_PileUp = 0;
     int syst_Prefire = 0;
     TString syst_BTag = "central";
+    TString syst_TopPt = "weighted";
+
+    // define missing et
+    Particle missingEt = event.GetMETVector();
+    if (WrongMissingEt()) return;
 
     if(param.syst_ == AnalyzerParameter::Central){
-
     }
     else if(param.syst_ == AnalyzerParameter::JetResUp){
         allJets = SmearJets( allJets, +1 );
         allFatJets = SmearFatJets( allFatJets, +1 );
+        missingEt.SetPtEtaPhiM(PuppiMET_Type1_pt_shifts->at(0), 0., PuppiMET_Type1_phi_shifts->at(0), 0.);
     }
     else if(param.syst_ == AnalyzerParameter::JetResDown){
         allJets = SmearJets( allJets, -1 );
         allFatJets = SmearFatJets( allFatJets, -1 );
+        missingEt.SetPtEtaPhiM(PuppiMET_Type1_pt_shifts->at(1), 0., PuppiMET_Type1_phi_shifts->at(1), 0.);
     }
     else if(param.syst_ == AnalyzerParameter::JetEnUp){
         allJets = ScaleJets( allJets, +1 );
         allFatJets = ScaleFatJets( allFatJets, +1 );
+        missingEt.SetPtEtaPhiM(PuppiMET_Type1_pt_shifts->at(2), 0., PuppiMET_Type1_phi_shifts->at(2), 0.);
     }
     else if(param.syst_ == AnalyzerParameter::JetEnDown){
         allJets = ScaleJets( allJets, -1 );
         allFatJets = ScaleFatJets( allFatJets, -1 );
+        missingEt.SetPtEtaPhiM(PuppiMET_Type1_pt_shifts->at(3), 0., PuppiMET_Type1_phi_shifts->at(3), 0.);
+    }
+    else if(param.syst_ == AnalyzerParameter::JetMassUp){
+        allFatJets = ScaleSDMassFatJets( allFatJets, +1 );
+    }
+    else if(param.syst_ == AnalyzerParameter::JetMassDown){
+        allFatJets = ScaleSDMassFatJets( allFatJets, -1 );
+    }
+    else if(param.syst_ == AnalyzerParameter::UnclEnUp){
+        missingEt.SetPtEtaPhiM(PuppiMET_Type1_pt_shifts->at(10), 0., PuppiMET_Type1_phi_shifts->at(10), 0.);
+    }
+    else if(param.syst_ == AnalyzerParameter::UnclEnDown){
+        missingEt.SetPtEtaPhiM(PuppiMET_Type1_pt_shifts->at(11), 0., PuppiMET_Type1_phi_shifts->at(11), 0.);
     }
     else if(param.syst_ == AnalyzerParameter::MuonEnUp){
         allMuons = ScaleMuons(allMuons, +1);
@@ -235,14 +263,35 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     else if(param.syst_ == AnalyzerParameter::PrefireDown){
         syst_Prefire = -1;
     }
-    else if(param.syst_ == AnalyzerParameter::BTagUp){
-        syst_BTag = "Up";
+    else if(param.syst_ == AnalyzerParameter::BTagCorrHUp){
+        syst_BTag = "SystUpCorrHTag";
     }
-    else if(param.syst_ == AnalyzerParameter::BTagDown){
-        syst_BTag = "Down";
+    else if(param.syst_ == AnalyzerParameter::BTagCorrHDown){
+        syst_BTag = "SystDownCorrHTag";
+    }
+    else if(param.syst_ == AnalyzerParameter::BTagCorrLUp){
+        syst_BTag = "SystUpCorrLTag";
+    }
+    else if(param.syst_ == AnalyzerParameter::BTagCorrLDown){
+        syst_BTag = "SystDownCorrLTag";
+    }
+    else if(param.syst_ == AnalyzerParameter::BTagUnCorrHUp){
+        syst_BTag = "SystUpUnCorrHTag";
+    }
+    else if(param.syst_ == AnalyzerParameter::BTagUnCorrHDown){
+        syst_BTag = "SystDownUnCorrHTag";
+    }
+    else if(param.syst_ == AnalyzerParameter::BTagUnCorrLUp){
+        syst_BTag = "SystUpUnCorrLTag";
+    }
+    else if(param.syst_ == AnalyzerParameter::BTagUnCorrLDown){
+        syst_BTag = "SystDownUnCorrLTag";
+    }
+    else if(param.syst_ == AnalyzerParameter::TopPtReweight){
+        syst_TopPt = "weighted";
     }
     else{
-        // top pt
+        if(param.Name != "CENTRAL") return;
         // particlenet
     }// TODO
 
@@ -278,6 +327,7 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     bool isElectronTrigger = (event.PassTrigger(electronTriggers) && electrons.size() >= 1) ? electrons.at(0).Pt() > electronPtCut : false;
 
     if (!(isMuonTrigger || isElectronTrigger)) return;
+    FillHist(param.Name + "/cutflow__preselction__lepton", 0, weight, 1, 0., 1.);
 
     // define jets ak8
     std::vector<FatJet> fatjetsNoSDMass = SelectFatJets(allFatJets, param.FatJet_ID, fatjetPtCut, 2.4);
@@ -307,9 +357,6 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
         }
     }
 
-    // define missing et
-    Particle missingEt = event.GetMETVector();
-
     std::vector<Lepton> leptons; leptons.clear();
     for (unsigned int i=0; i < muons.size(); i++){
         leptons.push_back(muons.at(i));
@@ -319,9 +366,8 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     }
     std::sort(leptons.begin(), leptons.end(), PtComparing);
 
-    double weight = 1.; double top_pt_weight = 1.;
+    double top_pt_weight = 1.;
     if (!IsDATA){
-        weight = weight * MCweight(true, true) ;
         weight = weight * GetPrefireWeight(syst_Prefire);
         weight = weight * GetPileUpWeight(nPileUp, syst_PileUp); 
         weight = weight * event.GetTriggerLumi("Full");
@@ -337,11 +383,12 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
             weight = weight * mcCorr->MuonISO_SF(param.Muon_ISO_SF_Key, muons.at(i).Eta(), muonMiniAODpT, syst_MuIsoSF);
         }
         weight = weight * mcCorr->MuonTrigger_SF(param.Muon_Tight_ID, param.Muon_Trigger_SF_Key, muons, syst_MuTrigSF);
-/*        if(MCSample.Contains("TT") && MCSample.Contains("powheg")){
+        if(MCSample.Contains("TT") && MCSample.Contains("powheg")){
             std::vector<Gen> gens = GetGens();
-            top_pt_weight = mcCorr->GetTopPtReweight(gens);
-            FillHist("top_pt_weight", top_pt_weight, 1., 200, 0., 2.);
-        }*/
+            top_pt_weight = mcCorr->GetTopPtReweight(gens, syst_TopPt);
+//            FillHist("top_pt_weight", top_pt_weight, 1., 200, 0., 2.);
+            weight = weight * top_pt_weight;
+        }
     }
 
     bool isOneMuon = (muons.size() == 1) && (muonsLoose.size() == 1);
@@ -353,13 +400,11 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
 
     Particle neutrino = GetReconstructedNeutrino(leptons.at(0), missingEt);
 
-    InitializeVariables();
-
     varLeptonPt = leptons.at(0).Pt();
     varLeptonEta = leptons.at(0).Eta();
     varMET = missingEt.Pt();
     varMETPhi = missingEt.Phi();
-    varMETandLeptonDeltaPhi = missingEt.DeltaPhi(leptons.at(0));
+    varMETandLeptonDeltaPhi = fabs(missingEt.DeltaPhi(leptons.at(0)));
     varNeutrinoandLeptonDeltaR = neutrino.DeltaR(leptons.at(0));
     varMETandLeptonMassT = (leptons.at(0) + missingEt).Mt();
     varNJet = jets.size();
@@ -379,6 +424,11 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
         varSecondaryBosonMass = fatjets.at(0).SDMass();
         varSecondaryBosonPt = fatjets.at(0).Pt();
         varPrimaryBosonMass = (leptons.at(0) + fatjets.at(0) + missingEt).Mt();
+        varTopKillerMass = (leptons.at(0) + fatjets.at(0)).M();
+        varResonanceMass1 = (leptons.at(0) + fatjets.at(0)).M();
+        varResonanceMass2 = (fatjets.at(0) + missingEt).Mt();
+        varResonanceMinMass = min(varResonanceMass1, varResonanceMass2);
+        varResonanceMaxMass = max(varResonanceMass1, varResonanceMass2);
         varSecondaryBosonEta = fatjets.at(0).Eta();
 
         if (GetParticleNetScore(fatjets.at(0), "XbbMD") > 0.94) varSecondaryBosonTag = "MergedXbb";
@@ -391,6 +441,11 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
         varSecondaryBosonMass = (jets.at(0) + jets.at(1)).M();
         varSecondaryBosonPt = (jets.at(0) + jets.at(1)).Pt();
         varPrimaryBosonMass = (leptons.at(0) + jets.at(0) + jets.at(1) + missingEt).Mt();
+        varTopKillerMass = min((leptons.at(0) + jets.at(0)).M(), (leptons.at(0) + jets.at(1)).M());
+        varResonanceMass1 = (leptons.at(0) + jets.at(0) + jets.at(1)).M();
+        varResonanceMass2 = (missingEt + jets.at(0) + jets.at(1)).Mt();
+        varResonanceMinMass = min(varResonanceMass1, varResonanceMass2);
+        varResonanceMaxMass = max(varResonanceMass1, varResonanceMass2);
         varSecondaryBosonEta = (jets.at(0) + jets.at(1)).Eta();
 
         if (((GetBTaggingScore(jets.at(0)) > bTaggingWPCutValue) + (GetBTaggingScore(jets.at(1)) > bTaggingWPCutValue)) == 2) varSecondaryBosonTag = "ResolvedXbb";
@@ -405,120 +460,88 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
 
     }
 
+    FillHist(param.Name + "/cutflow__preselction__jets", 0, weight, 1, 0., 1.);
+
     std::map<TString, bool> eventRegions;
+
     bool isBarrelLepton = (std::fabs(varLeptonEta) < 0.9);
-
-    bool isSecondaryBosonMassIncl = (varSecondaryBosonMass >= 70.0) && (varSecondaryBosonMass < 140.0);
-    bool isSecondaryBosonMassHigh = isSecondaryBosonMassIncl && (varSecondaryBosonMass >= 110.0);
-    bool isSecondaryBosonMassLow = isSecondaryBosonMassIncl && (varSecondaryBosonMass < 110.0);
-
-    bool isSecondaryBosonPtIncl = (varSecondaryBosonPt >= 250.0);
-    bool isSecondaryBosonPtHigh = isSecondaryBosonPtIncl && (varSecondaryBosonPt >= 350.0);
-    bool isSecondaryBosonPtLow = isSecondaryBosonPtIncl && (varSecondaryBosonPt < 350.0);
-
-    bool isSecondaryBosonTagged = (!(varSecondaryBosonTag.Contains("Xxx")));
 
     bool isEffectiveMassAbove500 = (varPrimaryBosonMass > 500.0);
 
-    bool isNoMoreBJet = (isMergedRegion ? (varNBJet == 0) : (isResolvedRegion ? (varNBJet <= 2) : false));
-    bool isMETAbove100 = (varMET > 100.0);
-    bool isMtLeptonMETAbove250 = (varMETandLeptonMassT > 250.0);
-    bool isDPhiLeptonMETAbove0p5Pi = (fabs(varMETandLeptonDeltaPhi) > 0.5 * TMath::Pi());
-    bool isMtAndDPhiLeptonMET = isMtLeptonMETAbove250 && isDPhiLeptonMETAbove0p5Pi;
-    bool isMEToverHTAbove0p25 = (varMEToverHT > 0.25);
+    bool isSecondaryBosonMassIncl = (varSecondaryBosonMass >= 65.0) && (varSecondaryBosonMass < 145.0);
+    bool isSecondaryBosonPtIncl = (varSecondaryBosonPt >= 100.0);
 
-    bool isSecondaryBosonMassAndPt = isSecondaryBosonMassIncl && isSecondaryBosonPtIncl;
+    bool isZeroBJet = (varNBJet == 0);
+    bool isMETAbove100 = (varMET > 150.0);
+    bool isMtLeptonMETAbove300 = (varMETandLeptonMassT > 300.0);
+    bool isDPhiLeptonMETAbovePiOver3 = (fabs(varMETandLeptonDeltaPhi) > 1./3 * TMath::Pi());
+    bool isMtAndDPhiLeptonMET = isMtLeptonMETAbove300 && isDPhiLeptonMETAbovePiOver3;
+    bool isMassTopKillerAbove200 = (varTopKillerMass > 200.0);
 
-    bool Preselection_Muon = isMuonTrigger && isOneMuon && isZeroElectron && isEffectiveMassAbove500;
-    bool Preselection_Electron = isElectronTrigger && isOneElectron && isZeroMuon && isEffectiveMassAbove500;
+    // define how leptons are selected
+    bool Preselection_Muon = isMuonTrigger && isOneMuon && isZeroElectron;
+    bool Preselection_Electron = isElectronTrigger && isOneElectron && isZeroMuon;
 
-    bool Preselection_Merged = isMergedRegion && isSecondaryBosonMassAndPt;
-    bool Preselection_Resolved = isResolvedRegion && isSecondaryBosonMassAndPt;
+    // define how to ensure the searche range for mN
+    bool Preselection = isEffectiveMassAbove500 && isMETAbove100 && isSecondaryBosonPtIncl;
+    bool Preselection_Merged = Preselection && isMergedRegion;
+    bool Preselection_Resolved = Preselection && isResolvedRegion;
 
-    bool SignalSelection_Merged = isMtAndDPhiLeptonMET && isNoMoreBJet && isMEToverHTAbove0p25;
-    bool SignalSelection_Resolved = isMtAndDPhiLeptonMET && isMEToverHTAbove0p25;
-    bool ControlSelection_MergedInvMTDPhi = !isMtAndDPhiLeptonMET && isNoMoreBJet && isMEToverHTAbove0p25;
-    bool ControlSelection_ResolvedInvMTDPhi = !isMtAndDPhiLeptonMET && isSecondaryBosonMassIncl && isMEToverHTAbove0p25;
-    bool ControlSelection_MergedInvB = isMtAndDPhiLeptonMET && !isNoMoreBJet && isMEToverHTAbove0p25;
-    bool ControlSelection_MergedInvMETHT = isMtAndDPhiLeptonMET && isNoMoreBJet && !isMEToverHTAbove0p25;
-    bool ControlSelection_ResolvedInvMETHT = isMtAndDPhiLeptonMET && isSecondaryBosonMassIncl && !isMEToverHTAbove0p25;
+    bool SignalSelection_Merged = isSecondaryBosonMassIncl && isMtAndDPhiLeptonMET && isMassTopKillerAbove200 && isZeroBJet;
+    bool SignalSelection_Resolved = isSecondaryBosonMassIncl && isMtAndDPhiLeptonMET && isMassTopKillerAbove200;
 
-//    if (invertLeptonIsolation){
-//        eventRegions["DataDriven_NonIsolatedMuon-Inclusive"] = passMuonTrigger && hasOneMuon && hasZeroElectron && hasFatjetMassIncl;
-/*
-        eventRegions["DataDriven_NonIsolatedMuon-Barrel"] = eventRegions["DataDriven_NonIsolatedMuon-Inclusive"] && isBarrelLepton;
-        eventRegions["DataDriven_NonIsolatedMuon-Endcap"] = eventRegions["DataDriven_NonIsolatedMuon-Inclusive"] && !isBarrelLepton;
+    bool ControlSelection_MergedInvMTDPhi = isSecondaryBosonMassIncl && !isMtAndDPhiLeptonMET && isZeroBJet;
+    bool ControlSelection_ResolvedInvMTDPhi = isSecondaryBosonMassIncl && !isMtAndDPhiLeptonMET;
+    bool ControlSelection_MergedDomW = !isSecondaryBosonMassIncl && isZeroBJet; // W dedicated
+    bool ControlSelection_ResolvedDomW = !isSecondaryBosonMassIncl && isZeroBJet; // W dedicated
+    bool ControlSelection_MergedDomTT = isSecondaryBosonMassIncl && !isZeroBJet; // TT dedicated
+    bool ControlSelection_ResolvedDomTT = !isSecondaryBosonMassIncl && !isZeroBJet; // TT dedicated
 
-        eventRegions["DataDriven_NonIsolatedMuon-BarrelHighMissingEt"] = eventRegions["DataDriven_NonIsolatedMuon-Barrel"] && hasMissingEtAbove50;
-        eventRegions["DataDriven_NonIsolatedMuon-EndcapHighMissingEt"] = eventRegions["DataDriven_NonIsolatedMuon-Endcap"] && hasMissingEtAbove50;
-        eventRegions["DataDriven_NonIsolatedMuon-BarrelLowMissingEt"] = eventRegions["DataDriven_NonIsolatedMuon-Barrel"] && !hasMissingEtAbove50;
-        eventRegions["DataDriven_NonIsolatedMuon-EndcapLowMissingEt"] = eventRegions["DataDriven_NonIsolatedMuon-Endcap"] && !hasMissingEtAbove50;
-*/
-//    }
+    eventRegions["Preselection_ElectronMergedXbb"] = Preselection_Electron && Preselection_Merged && varSecondaryBosonTag.Contains("Xbb");
+    eventRegions["Preselection_ElectronMergedXbbPtHigh"] = Preselection_Electron && Preselection_Merged && varSecondaryBosonTag.Contains("Xbb") && (varSecondaryBosonPt >= 300.0);
+    eventRegions["Preselection_ElectronMergedXbbPtLow"] = Preselection_Electron && Preselection_Merged && varSecondaryBosonTag.Contains("Xbb") && (varSecondaryBosonPt < 300.0);
 
-    if (!invertLeptonIsolation){
+    eventRegions["SignalRegion_MuonMerged"] = Preselection_Muon && Preselection_Merged && SignalSelection_Merged;
+    eventRegions["SignalRegion_MuonResolved"] = Preselection_Muon && Preselection_Resolved && SignalSelection_Resolved;
+    eventRegions["SignalRegion_ElectronMerged"] = Preselection_Electron && Preselection_Merged && SignalSelection_Merged;
+    eventRegions["SignalRegion_ElectronResolved"] = Preselection_Electron && Preselection_Resolved && SignalSelection_Resolved;
 
-        eventRegions["Preselection_MuonMergedHighPt"] = Preselection_Muon && Preselection_Merged && isSecondaryBosonPtHigh;
-        eventRegions["Preselection_MuonMergedLowPt"] = Preselection_Muon && Preselection_Merged && isSecondaryBosonPtLow;
+    eventRegions["SignalRegion_MuonMergedXbbSelection"] = Preselection_Muon && Preselection_Merged && SignalSelection_Merged && varSecondaryBosonTag.Contains("Xbb");
+    eventRegions["SignalRegion_MuonMergedXqqSelection"] = Preselection_Muon && Preselection_Merged && SignalSelection_Merged && varSecondaryBosonTag.Contains("Xqq");
+    eventRegions["SignalRegion_MuonResolvedXbbSelection"] = Preselection_Muon && Preselection_Resolved && SignalSelection_Resolved && varSecondaryBosonTag.Contains("Xbb");
+    eventRegions["SignalRegion_MuonResolvedXbqSelection"] = Preselection_Muon && Preselection_Resolved && SignalSelection_Resolved && varSecondaryBosonTag.Contains("Xbq");
+    eventRegions["SignalRegion_MuonResolvedXqqSelection"] = Preselection_Muon && Preselection_Resolved && SignalSelection_Resolved && varSecondaryBosonTag.Contains("Xqq");
 
-        eventRegions["Preselection_MuonMergedXbbHighPt"] = Preselection_Muon && Preselection_Merged && SignalSelection_Merged && isSecondaryBosonPtHigh && varSecondaryBosonTag.Contains("Xbb");
-        eventRegions["Preselection_MuonMergedXbbLowPt"] = Preselection_Muon && Preselection_Merged && SignalSelection_Merged && isSecondaryBosonPtLow && varSecondaryBosonTag.Contains("Xbb");
+    eventRegions["ControlRegion_MuonMergedXbbInvMTDPhiSelection"] = Preselection_Muon && Preselection_Merged && ControlSelection_MergedInvMTDPhi && varSecondaryBosonTag.Contains("Xbb");
+    eventRegions["ControlRegion_MuonMergedXqqInvMTDPhiSelection"] = Preselection_Muon && Preselection_Merged && ControlSelection_MergedInvMTDPhi && varSecondaryBosonTag.Contains("Xqq");
+    eventRegions["ControlRegion_MuonMergedDomWSelection"] = Preselection_Muon && Preselection_Merged && ControlSelection_MergedDomW;
+    eventRegions["ControlRegion_MuonMergedDomTTSelection"] = Preselection_Muon && Preselection_Merged && ControlSelection_MergedDomTT;
+
+    eventRegions["ControlRegion_MuonResolvedXbbInvMTDPhiSelection"] = Preselection_Muon && Preselection_Resolved && ControlSelection_ResolvedInvMTDPhi && varSecondaryBosonTag.Contains("Xbb");
+    eventRegions["ControlRegion_MuonResolvedXbqInvMTDPhiSelection"] = Preselection_Muon && Preselection_Resolved && ControlSelection_ResolvedInvMTDPhi && varSecondaryBosonTag.Contains("Xbq");
+    eventRegions["ControlRegion_MuonResolvedXqqInvMTDPhiSelection"] = Preselection_Muon && Preselection_Resolved && ControlSelection_ResolvedInvMTDPhi && varSecondaryBosonTag.Contains("Xqq");
+    eventRegions["ControlRegion_MuonResolvedDomWSelection"] = Preselection_Muon && Preselection_Resolved && ControlSelection_ResolvedDomW;
+    eventRegions["ControlRegion_MuonResolvedDomTTSelection"] = Preselection_Muon && Preselection_Resolved && ControlSelection_ResolvedDomTT;
 
 
-        eventRegions["SignalRegion_MuonMergedXbb"] = Preselection_Muon && Preselection_Merged && SignalSelection_Merged && varSecondaryBosonTag.Contains("Xbb");
-        eventRegions["SignalRegion_MuonMergedXqq"] = Preselection_Muon && Preselection_Merged && SignalSelection_Merged && varSecondaryBosonTag.Contains("Xqq");
-        eventRegions["SignalRegion_MuonResolvedXbb"] = Preselection_Muon && Preselection_Resolved && SignalSelection_Resolved && varSecondaryBosonTag.Contains("Xbb");
-        eventRegions["SignalRegion_MuonResolvedXbq"] = Preselection_Muon && Preselection_Resolved && SignalSelection_Resolved && varSecondaryBosonTag.Contains("Xbq");
-        eventRegions["SignalRegion_MuonResolvedXqq"] = Preselection_Muon && Preselection_Resolved && SignalSelection_Resolved && varSecondaryBosonTag.Contains("Xqq");
+    eventRegions["SignalRegion_ElectronMergedXbbSelection"] = Preselection_Electron && Preselection_Merged && SignalSelection_Merged && varSecondaryBosonTag.Contains("Xbb");
+    eventRegions["SignalRegion_ElectronMergedXqqSelection"] = Preselection_Electron && Preselection_Merged && SignalSelection_Merged && varSecondaryBosonTag.Contains("Xqq");
+    eventRegions["SignalRegion_ElectronResolvedXbbSelection"] = Preselection_Electron && Preselection_Resolved && SignalSelection_Resolved && varSecondaryBosonTag.Contains("Xbb");
+    eventRegions["SignalRegion_ElectronResolvedXbqSelection"] = Preselection_Electron && Preselection_Resolved && SignalSelection_Resolved && varSecondaryBosonTag.Contains("Xbq");
+    eventRegions["SignalRegion_ElectronResolvedXqqSelection"] = Preselection_Electron && Preselection_Resolved && SignalSelection_Resolved && varSecondaryBosonTag.Contains("Xqq");
 
-        eventRegions["SignalRegion_ElectronMergedXbb"] = Preselection_Electron && Preselection_Merged && SignalSelection_Merged && varSecondaryBosonTag.Contains("Xbb");
-        eventRegions["SignalRegion_ElectronMergedXqq"] = Preselection_Electron && Preselection_Merged && SignalSelection_Merged && varSecondaryBosonTag.Contains("Xqq");
-        eventRegions["SignalRegion_ElectronResolvedXbb"] = Preselection_Electron && Preselection_Resolved && SignalSelection_Resolved && varSecondaryBosonTag.Contains("Xbb");
-        eventRegions["SignalRegion_ElectronResolvedXbq"] = Preselection_Electron && Preselection_Resolved && SignalSelection_Resolved && varSecondaryBosonTag.Contains("Xbq");
-        eventRegions["SignalRegion_ElectronResolvedXqq"] = Preselection_Electron && Preselection_Resolved && SignalSelection_Resolved && varSecondaryBosonTag.Contains("Xqq");
+    eventRegions["ControlRegion_ElectronMergedXbbInvMTDPhiSelection"] = Preselection_Electron && Preselection_Merged && ControlSelection_MergedInvMTDPhi && varSecondaryBosonTag.Contains("Xbb");
+    eventRegions["ControlRegion_ElectronMergedXqqInvMTDPhiSelection"] = Preselection_Electron && Preselection_Merged && ControlSelection_MergedInvMTDPhi && varSecondaryBosonTag.Contains("Xqq");
+    eventRegions["ControlRegion_ElectronMergedDomWSelection"] = Preselection_Electron && Preselection_Merged && ControlSelection_MergedDomW;
+    eventRegions["ControlRegion_ElectronMergedDomTTSelection"] = Preselection_Electron && Preselection_Merged && ControlSelection_MergedDomTT;
 
-        eventRegions["ControlRegion_MuonMergedInvMTDPhi"] = Preselection_Muon && Preselection_Merged && ControlSelection_MergedInvMTDPhi;
-        eventRegions["ControlRegion_MuonMergedInvB"] = Preselection_Muon && Preselection_Merged && ControlSelection_MergedInvB;
-        eventRegions["ControlRegion_MuonMergedInvMETHT"] = Preselection_Muon && Preselection_Merged && ControlSelection_MergedInvMETHT;
-        eventRegions["ControlRegion_MuonResolvedInvMTDPhi"] = Preselection_Muon && Preselection_Resolved && ControlSelection_ResolvedInvMTDPhi;
-        eventRegions["ControlRegion_MuonResolvedInvMETHT"] = Preselection_Muon && Preselection_Resolved && ControlSelection_ResolvedInvMETHT;
-        eventRegions["ControlRegion_MuonResolvedTT"] = isMuonTrigger && isOneMuon && isOneElectron && Preselection_Resolved ? (muons.at(0).Pt() > electrons.at(0).Pt()) : false;
+    eventRegions["ControlRegion_ElectronResolvedXbbInvMTDPhiSelection"] = Preselection_Electron && Preselection_Resolved && ControlSelection_ResolvedInvMTDPhi && varSecondaryBosonTag.Contains("Xbb");
+    eventRegions["ControlRegion_ElectronResolvedXbqInvMTDPhiSelection"] = Preselection_Electron && Preselection_Resolved && ControlSelection_ResolvedInvMTDPhi && varSecondaryBosonTag.Contains("Xbq");
+    eventRegions["ControlRegion_ElectronResolvedXqqInvMTDPhiSelection"] = Preselection_Electron && Preselection_Resolved && ControlSelection_ResolvedInvMTDPhi && varSecondaryBosonTag.Contains("Xqq");
+    eventRegions["ControlRegion_ElectronResolvedDomWSelection"] = Preselection_Electron && Preselection_Resolved && ControlSelection_ResolvedDomW;
+    eventRegions["ControlRegion_ElectronResolvedDomTTSelection"] = Preselection_Electron && Preselection_Resolved && ControlSelection_ResolvedDomTT;
 
-        eventRegions["ControlRegion_ElectronMergedInvMTDPhi"] = Preselection_Electron && Preselection_Merged && ControlSelection_MergedInvMTDPhi;
-        eventRegions["ControlRegion_ElectronMergedInvB"] = Preselection_Electron && Preselection_Merged && ControlSelection_MergedInvB;
-        eventRegions["ControlRegion_ElectronMergedInvMETHT"] = Preselection_Electron && Preselection_Merged && ControlSelection_MergedInvMETHT;
-        eventRegions["ControlRegion_ElectronResolvedInvMTDPhi"] = Preselection_Electron && Preselection_Resolved && ControlSelection_ResolvedInvMTDPhi;
-        eventRegions["ControlRegion_ElectronResolvedInvMETHT"] = Preselection_Electron && Preselection_Resolved && ControlSelection_ResolvedInvMETHT;
-        eventRegions["ControlRegion_ElectronResolvedTT"] = isElectronTrigger && isOneMuon && isOneElectron && Preselection_Resolved ? (muons.at(0).Pt() < electrons.at(0).Pt()) : false;
 
-    }
-
-    if (Preselection_Merged){
-        if (varSecondaryBosonTag.Contains("Xbb")){
-            if (isSecondaryBosonPtHigh && isSecondaryBosonMassHigh) varSignalRegion = 1;
-            else if (isSecondaryBosonPtHigh && isSecondaryBosonMassLow) varSignalRegion = 2;
-            else if (isSecondaryBosonPtLow && isSecondaryBosonMassHigh) varSignalRegion = 3;
-            else if (isSecondaryBosonPtLow && isSecondaryBosonMassLow) varSignalRegion = 4;
-            else varSignalRegion = -1;
-        }
-        else if (varSecondaryBosonTag.Contains("Xqq")){
-            if (isSecondaryBosonPtHigh) varSignalRegion = 5;
-            else if (isSecondaryBosonPtLow) varSignalRegion = 6;
-            else varSignalRegion = -1;
-        }
-        else varSignalRegion = -1;
-    }
-    else if (Preselection_Resolved){
-        if (varSecondaryBosonTag.Contains("Xbb")){
-            if (isSecondaryBosonMassHigh) varSignalRegion = 7;
-            else if (isSecondaryBosonMassLow) varSignalRegion = 8;
-            else varSignalRegion = -1;
-        }
-        else if (varSecondaryBosonTag.Contains("Xbq")) varSignalRegion = 9;
-        else if (varSecondaryBosonTag.Contains("Xqq")) varSignalRegion = 10;
-        else varSignalRegion = -1;
-    }
-    else varSignalRegion = -1;
 
     std::map<TString, bool>::iterator itEventRegions;
 
@@ -528,23 +551,28 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
 
             TString eventRegion = itEventRegions->first;
 
-            if (eventRegion.Contains("SignalRegion_Muon")){
-                FillHist(param.Name + "/SignalRegion_MuonCombined_signalregion", varSignalRegion, weight, 12, -1, 11);
-                FillHist(param.Name + "/SignalRegion_MuonCombined_signalregion", 0, weight, 12, -1, 11);
+            varSignalRegion = GetSignalRegion(eventRegion, varSecondaryBosonPt, varSecondaryBosonMass);
+
+            if (eventRegion.Contains("Muon")){
+                FillHist(param.Name + "/CombinedRegion_MuonSelection_bins", varSignalRegion, weight, 21, 1, 22);
+                if (varSignalRegion>0) FillHist(param.Name + "/CombinedRegion_MuonSelection_bin" + Form("%d", varSignalRegion), 0, weight, 1, 0., 1.);
             }
-            if (eventRegion.Contains("SignalRegion_Electron")){
-                FillHist(param.Name + "/SignalRegion_ElectronCombined_signalregion", varSignalRegion, weight, 12, -1, 11);
-                FillHist(param.Name + "/SignalRegion_ElectronCombined_signalregion", 0, weight, 12, -1, 11);
+            if (eventRegion.Contains("Electron")){
+                FillHist(param.Name + "/CombinedRegion_ElectronSelection_bins", varSignalRegion, weight, 21, 1, 22);
+                if (varSignalRegion>0) FillHist(param.Name + "/CombinedRegion_ElectronSelection_bin" + Form("%d", varSignalRegion), 0, weight, 21, 1, 22);
             }
 
-            FillHist(param.Name + "/" + eventRegion + "_dphi_leptonmet", varMETandLeptonDeltaPhi, weight, 100, -5., 5.);
+            FillHist(param.Name + "/" + eventRegion + "_dphi_leptonmet", varMETandLeptonDeltaPhi, weight, 100, 0., 5.);
             FillHist(param.Name + "/" + eventRegion + "_masst_leptonmet", varMETandLeptonMassT, weight, 5000, 0., 5000.);
             FillHist(param.Name + "/" + eventRegion + "_masst_recopriboson", varPrimaryBosonMass, weight, 5000, 0., 5000.);
             FillHist(param.Name + "/" + eventRegion + "_mass_recosecboson", varSecondaryBosonMass, weight, 5000, 0., 5000.);
+            FillHist(param.Name + "/" + eventRegion + "_minmass_heavyncand", varResonanceMinMass, weight, 5000, 0., 5000.);
+            FillHist(param.Name + "/" + eventRegion + "_maxmass_heavyncand", varResonanceMaxMass, weight, 5000, 0., 5000.);
+            FillHist(param.Name + "/" + eventRegion + "_mass_heavyncand1", varResonanceMass1, weight, 5000, 0., 5000.);
+            FillHist(param.Name + "/" + eventRegion + "_mass_heavyncand2", varResonanceMass2, weight, 5000, 0., 5000.);
+            FillHist(param.Name + "/" + eventRegion + "_mass_topkiller", varTopKillerMass, weight, 5000, 0., 5000.);
             FillHist(param.Name + "/" + eventRegion + "_pt_recosecboson", varSecondaryBosonPt, weight, 5000, 0., 5000.);
-            FillHist(param.Name + "/" + eventRegion + "_eta_recosecboson", varSecondaryBosonEta, weight, 100, -5., 5.);
 
-            FillHist(param.Name + "/" + eventRegion + "_eta_lepton", varLeptonEta, weight, 100, -5., 5.);
             FillHist(param.Name + "/" + eventRegion + "_pt_lepton", varLeptonPt, weight, 5000,0., 5000.);
 
             FillHist(param.Name + "/" + eventRegion + "_n_events_weighted", 0, weight, 1, 0., 1.);
@@ -552,19 +580,18 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
             FillHist(param.Name + "/" + eventRegion + "_n_jet", varNJet, weight, 5, 0., 5.);
             FillHist(param.Name + "/" + eventRegion + "_n_bjet", varNBJet, weight, 5, 0., 5.);
 
-            FillHist(param.Name + "/" + eventRegion + "_masst_leptonmet_vs_dphi_leptonmet", varMETandLeptonMassT, varMETandLeptonDeltaPhi, weight, 5000, 0., 5000., 100, -5., 5.);
-            FillHist(param.Name + "/" + eventRegion + "_masst_leptonmet_vs_dr_leptonmet", varMETandLeptonMassT, varNeutrinoandLeptonDeltaR, weight, 5000, 0., 5000., 100, 0., 5.);
+            FillHist(param.Name + "/" + eventRegion + "_masst_leptonmet_vs_dphi_leptonmet", varMETandLeptonMassT, fabs(varMETandLeptonDeltaPhi), weight, 5000, 0., 5000., 100, 0., 5.);
+            FillHist(param.Name + "/" + eventRegion + "_masst_leptonmet_vs_cosdphi_leptonmet", varMETandLeptonMassT, TMath::Cos(fabs(varMETandLeptonDeltaPhi)), weight, 5000, 0., 5000., 100, -2., 2.);
 
             FillHist(param.Name + "/" + eventRegion + "_met", varMET, weight, 5000,0., 5000.);
             FillHist(param.Name + "/" + eventRegion + "_met_phi", varMETPhi, weight, 100, -5., 5.);
-            FillHist(param.Name + "/" + eventRegion + "_met_over_ht", varMEToverHT, weight, 100, 0., 5.);
 
-            if(eventRegion.Contains("Merged")){
+            if (eventRegion.Contains("Merged")){
                 FillHist(param.Name + "/" + eventRegion + "_pnetxbb", GetParticleNetScore(fatjets.at(0), "XbbMD"), weight, 100,  0., 1.);
                 FillHist(param.Name + "/" + eventRegion + "_pnetxqq", GetParticleNetScore(fatjets.at(0), "XqqMD"), weight, 100,  0., 1.);
             }
             if(eventRegion.Contains("Resolved")){
-                FillHist(param.Name + "/" + eventRegion + "_deltar_jetjet", jets.at(0).DeltaR(jets.at(1)), weight, 50, 0., 5.);
+                FillHist(param.Name + "/" + eventRegion + "_dr_jetjet", jets.at(0).DeltaR(jets.at(1)), weight, 50, 0., 5.);
                 FillHist(param.Name + "/" + eventRegion + "_eta_jet", jets.at(0).Eta(), weight, 100, -5., 5.);
                 FillHist(param.Name + "/" + eventRegion + "_eta_jet", jets.at(1).Eta(), weight, 100, -5., 5.);
                 FillHist(param.Name + "/" + eventRegion + "_pt_jet0", jets.at(0).Pt(), weight, 5000, 0., 5000.);
@@ -573,10 +600,6 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
                 FillHist(param.Name + "/" + eventRegion + "_pt_jet", jets.at(1).Pt(), weight, 5000, 0., 5000.);
             }
 
-//            FillHist(eventRegion + "_signal_region", signalRegionBin, weight, 5, 0., 5.);
-
-//            if(hasMergedXbb) FillHist(eventRegion + "_pnetxbb", pNetScoreXbbMD, weight, 100, 0., 1.);
-//            if(hasMergedXqq) FillHist(eventRegion + "_pnetxqq", pNetScoreXqqMD, weight, 100, 0., 1.);
 
         }
     }
@@ -651,6 +674,8 @@ double singlelepton_analysis::GetParticleNetScore(FatJet fatjet, TString tagger)
 
 void singlelepton_analysis::InitializeVariables(void){
 
+    cutFlowIndicator = 0;
+
     varSecondaryBosonMass = 0.;
     varSecondaryBosonPt = 0.;
     varSecondaryBosonEta = 0.;
@@ -658,6 +683,11 @@ void singlelepton_analysis::InitializeVariables(void){
     varSecondaryBosonTag = "";
 
     varPrimaryBosonMass = 0.;
+    varResonanceMass1 = 0.;
+    varResonanceMass2 = 0.;
+    varResonanceMinMass = 0.;
+    varResonanceMaxMass = 0.;
+    varTopKillerMass = 0.;
 
     varLeptonPt = 0.;
     varLeptonEta = 0.;
@@ -675,5 +705,180 @@ void singlelepton_analysis::InitializeVariables(void){
     varSignalRegion =0;
 
     return;
+
+}
+
+int singlelepton_analysis::GetSignalRegion(TString eventRegion, double varSecondaryBosonPt, double varSecondaryBosonMass){
+
+    int signalRegion = 0;
+
+    if (eventRegion.Contains("Preselection") || eventRegion.Contains("Check")) return -1;
+    if (!(eventRegion.Contains("SignalRegion") || eventRegion.Contains("ControlRegion"))) return -1;
+    if (!(eventRegion.Contains("Merged") || eventRegion.Contains("Resolved"))) return -1;
+    if (!eventRegion.Contains("Selection")) return -1;
+
+    double varSecondaryBosonPtCut = 300.;
+    double varSecondaryBosonMassCut = 105.;
+
+    if (eventRegion.Contains("SignalRegion")){
+        if (eventRegion.Contains("Merged")){
+            if (eventRegion.Contains("Xbb")) {
+                if (varSecondaryBosonPt >= varSecondaryBosonPtCut){
+                    if (varSecondaryBosonMass >= varSecondaryBosonMassCut) signalRegion = 1;
+                    else signalRegion = 2;
+                }
+                else signalRegion = 3;
+            }
+            else if (eventRegion.Contains("Xqq")){
+                if (varSecondaryBosonPt >= varSecondaryBosonPtCut){ 
+                    if (varSecondaryBosonMass >= varSecondaryBosonMassCut) signalRegion = 4;
+                    else signalRegion = 5;
+                }
+                else signalRegion = 6;
+            }
+            else signalRegion = -1;
+        }
+        else if (eventRegion.Contains("Resolved")){
+            if (eventRegion.Contains("Xbb")) {
+                if (varSecondaryBosonMass >= varSecondaryBosonMassCut) signalRegion = 7;
+                else signalRegion = 8;
+            }
+            else if (eventRegion.Contains("Xbq")) {
+                if (varSecondaryBosonMass >= varSecondaryBosonMassCut) signalRegion = 9;
+                else signalRegion = 10;
+            }
+            else if (eventRegion.Contains("Xqq")) {
+                if (varSecondaryBosonMass >= varSecondaryBosonMassCut) signalRegion = 11;
+                else signalRegion = 12;
+            }
+            else signalRegion = -1;
+        }
+        else signalRegion = -1;
+
+        if (IsDATA) signalRegion = -1;
+    }
+
+
+    else if (eventRegion.Contains("ControlRegion")){
+        if (eventRegion.Contains("Merged")){
+            if (eventRegion.Contains("XbbInvMTDPhi")) signalRegion = 13;
+            else if (eventRegion.Contains("XqqInvMTDPhi")) signalRegion = 14;
+            else if (eventRegion.Contains("DomW")) signalRegion = 15;
+            else if (eventRegion.Contains("DomTT")) signalRegion = 16;
+            else signalRegion = -1;
+        }
+        else if (eventRegion.Contains("Resolved")){
+            if (eventRegion.Contains("XbbInvMTDPhi")) signalRegion = 17;
+            else if (eventRegion.Contains("XbqInvMTDPhi")) signalRegion = 18;
+            else if (eventRegion.Contains("XqqInvMTDPhi")) signalRegion = 19;
+            else if (eventRegion.Contains("DomW")) signalRegion = 20;
+            else if (eventRegion.Contains("DomTT")) signalRegion = 21;
+            else signalRegion = -1;
+        }
+        else signalRegion = -1;
+    }
+    else signalRegion = -1;
+
+    return signalRegion;
+
+}
+
+int singlelepton_analysis::GetCutFlowHistogram(TString cutLabel, double weight_cutflow, TString systName, int cutFlowIndicator){
+
+//    FillHist(systName + "/cutflow_" + cutLabel, cutFlowIndicator, weight_cutflow, 1, cutFlowIndicator, cutFlowIndicator + 1);
+    cutFlowIndicator = cutFlowIndicator + 1;
+
+    return cutFlowIndicator;
+}
+
+Particle singlelepton_analysis::GetPOGCorrMET(Particle UncorrMET, bool IsPuppiMET){
+
+    int npv = min(nPV,100);
+
+    TString runera = "";
+
+    double METxcorr = 0., METycorr = 0.;
+    double uncormet = UncorrMET.Pt();
+    double uncormet_phi = UncorrMET.Phi();
+
+    if (!IsPuppiMET){
+        if (DataYear == 2016){
+
+            if (IsDATA){
+                if (GetDataPeriod() == "B") { METxcorr = -(-0.0214894*npv +-0.188255); METycorr = -(0.0876624*npv +0.812885); }
+                else if (GetDataPeriod() == "C") { METxcorr = -(-0.032209*npv +0.067288); METycorr = -(0.113917*npv +0.743906); }
+                else if (GetDataPeriod() == "D") { METxcorr = -(-0.0293663*npv +0.21106); METycorr = -(0.11331*npv +0.815787); }
+                else if (GetDataPeriod() == "E") { METxcorr = -(-0.0132046*npv +0.20073); METycorr = -(0.134809*npv +0.679068); }
+                else if (GetDataPeriod() == "F") {
+                    if (GetEraShort()=="2016a") { METxcorr = -(-0.0543566*npv +0.816597); METycorr = -(0.114225*npv +1.17266); }
+                    else if (GetEraShort() == "2016b") { METxcorr = -(0.134616*npv +-0.89965); METycorr = -(0.0397736*npv +1.0385); }
+                }
+                else if (GetDataPeriod() == "G"){ METxcorr = -(0.121809*npv +-0.584893); METycorr = -(0.0558974*npv +0.891234); }
+                else if (GetDataPeriod() == "H"){ METxcorr = -(0.0868828*npv +-0.703489); METycorr = -(0.0888774*npv +0.902632); }
+            }
+            else{
+                if (GetEraShort()=="2016a") { METxcorr = -(-0.188743*npv +0.136539); METycorr = -(0.0127927*npv +0.117747); }
+                else if (GetEraShort() == "2016b") { METxcorr = -(-0.153497*npv +-0.231751); METycorr = -(0.00731978*npv +0.243323); }
+            }
+
+        }
+        else if (DataYear == 2017){
+
+            if (IsDATA){
+                if (GetDataPeriod() == "B") { METxcorr = -(-0.211161*npv +0.419333); METycorr = -(0.251789*npv +-1.28089); }
+                else if (GetDataPeriod() == "C") { METxcorr = -(-0.185184*npv +-0.164009); METycorr = -(0.200941*npv +-0.56853); }
+                else if (GetDataPeriod() == "D") { METxcorr = -(-0.201606*npv +0.426502); METycorr = -(0.188208*npv +-0.58313); }
+                else if (GetDataPeriod() == "E") { METxcorr = -(-0.162472*npv +0.176329); METycorr = -(0.138076*npv +-0.250239); }
+                else if (GetDataPeriod() == "F") { METxcorr = -(-0.210639*npv +0.72934); METycorr = -(0.198626*npv +1.028); }
+            }
+            else{
+                METxcorr = -(-0.300155*npv +1.90608); METycorr = -(0.300213*npv +-2.02232);
+            }
+
+        }
+        else if (DataYear == 2018){
+
+            if (IsDATA){
+                if (GetDataPeriod() == "A") { METxcorr = -(0.263733*npv +-1.91115); METycorr = -(0.0431304*npv +-0.112043); }
+                else if (GetDataPeriod() == "B"){ METxcorr = -(0.400466*npv +-3.05914); METycorr = -(0.146125*npv +-0.533233); }
+                else if (GetDataPeriod() == "C"){ METxcorr = -(0.430911*npv +-1.42865); METycorr = -(0.0620083*npv +-1.46021); }
+                else if (GetDataPeriod() == "D"){ METxcorr = -(0.457327*npv +-1.56856); METycorr = -(0.0684071*npv +-0.928372); }
+
+            }
+            else{
+                METxcorr = -(0.183518*npv +0.546754); METycorr = -(0.192263*npv +-0.42121);
+            }
+        }
+    }
+
+    double CorrectedMET_x = uncormet * TMath::Cos(uncormet_phi) + METxcorr;
+    double CorrectedMET_y = uncormet * TMath::Sin(uncormet_phi) + METycorr;
+    double CorrectedMET = TMath::Sqrt( CorrectedMET_x * CorrectedMET_x + CorrectedMET_y * CorrectedMET_y);
+    double CorrectedMETPhi = 0.;
+
+    if(CorrectedMET_x==0 && CorrectedMET_y > 0) CorrectedMETPhi = TMath::Pi();
+    else if (CorrectedMET_x==0 && CorrectedMET_y < 0 )CorrectedMETPhi = -TMath::Pi();
+    else if (CorrectedMET_x > 0) CorrectedMETPhi = TMath::ATan(CorrectedMET_y/CorrectedMET_x);
+    else if (CorrectedMET_x < 0 && CorrectedMET_y > 0) CorrectedMETPhi = TMath::ATan(CorrectedMET_y/CorrectedMET_x) + TMath::Pi();
+    else if (CorrectedMET_x < 0 && CorrectedMET_y < 0) CorrectedMETPhi = TMath::ATan(CorrectedMET_y/CorrectedMET_x) - TMath::Pi();
+    else CorrectedMETPhi =0;
+
+    Particle corrMET;
+    corrMET.SetPtEtaPhiM(CorrectedMET, 0., CorrectedMETPhi, 0.);
+
+    return corrMET;
+}
+
+bool singlelepton_analysis::WrongMissingEt(void){
+
+    if (!isfinite(PuppiMET_Type1_pt)) return true;
+    if (!isfinite(PuppiMET_Type1_pt_shifts->at(0))) return true;
+    if (!isfinite(PuppiMET_Type1_pt_shifts->at(1))) return true;
+    if (!isfinite(PuppiMET_Type1_pt_shifts->at(2))) return true;
+    if (!isfinite(PuppiMET_Type1_pt_shifts->at(3))) return true;
+    if (!isfinite(PuppiMET_Type1_pt_shifts->at(10))) return true;
+    if (!isfinite(PuppiMET_Type1_pt_shifts->at(11))) return true;
+
+    return false;
 
 }

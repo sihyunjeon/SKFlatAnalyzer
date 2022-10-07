@@ -24,5 +24,5 @@
 #pragma link C++ class singlelepton_analysis_tree+;
 #pragma link C++ class signal_study+;
 #pragma link C++ class sandbox+;
-
+#pragma link C++ class SkimTree_boohft_calib+;
 #endif

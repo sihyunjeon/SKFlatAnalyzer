@@ -267,6 +267,8 @@ public:
   TFile *outfile=NULL;
   void SetOutfilePath(TString outname);
 
+  TString GetDataPeriod();
+
 };
 
 

@@ -6,11 +6,12 @@ void SkimTree_SingleLepton::initializeAnalyzer(){
   cout << "[SkimTree_SingleLepton::initializeAnalyzer()] gDirectory = " << gDirectory->GetName() << endl;
   newtree = fChain->CloneTree(0);
 
- 
-  if(!IsDATA){
-    newtree->SetBranchStatus("gen_*",0);
-    newtree->SetBranchStatus("LHE_*",0);
-    newtree->SetBranchStatus("gen_weight",1); // for MCweight()
+  if( !MCSample.Contains("TT") ){
+    if(!IsDATA){
+      newtree->SetBranchStatus("gen_*",0);
+      newtree->SetBranchStatus("LHE_*",0);
+      newtree->SetBranchStatus("gen_weight",1); // for MCweight()
+    }
   }
 
   triggers.clear();

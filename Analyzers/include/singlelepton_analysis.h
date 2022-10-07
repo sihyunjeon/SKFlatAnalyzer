@@ -40,6 +40,11 @@ public:
     double GetReconstructedNeutrinoDet(Lepton lepton, Particle missingEt);
     Particle GetReconstructedNeutrino(Lepton lepton, Particle missingEt);
 
+    int GetSignalRegion(TString eventRegion, double varSecondaryBosonPt, double varSecondaryBosonMass);
+    int GetCutFlowHistogram(TString cutLabel, double weight_cutflow, TString systName, int cutFlowIndicator);
+
+    int cutFlowIndicator;
+
     void InitializeVariables();
 
     double varSecondaryBosonMass;
@@ -47,6 +52,11 @@ public:
     double varSecondaryBosonEta;
     TString varSecondaryBosonTag;
     double varPrimaryBosonMass;
+    double varResonanceMass1;
+    double varResonanceMass2;
+    double varResonanceMinMass;
+    double varResonanceMaxMass;
+    double varTopKillerMass;
     double varLeptonPt;
     double varLeptonEta;
     double varHT;
@@ -59,6 +69,10 @@ public:
     int varNJet;
     int varNBJet;
     int varSignalRegion;
+
+    Particle GetPOGCorrMET(Particle UncorrMET, bool IsPuppiMET);
+
+    bool WrongMissingEt(void);
 
     singlelepton_analysis();
     ~singlelepton_analysis();

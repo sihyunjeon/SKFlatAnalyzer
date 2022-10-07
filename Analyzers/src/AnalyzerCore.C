@@ -81,7 +81,7 @@ Event AnalyzerCore::GetEvent(){
 
   Event ev;
   ev.SetTrigger(*HLT_TriggerName);
-  ev.SetMET(pfMET_Type1_pt,pfMET_Type1_phi);
+  ev.SetMET(PuppiMET_Type1_pt, PuppiMET_Type1_phi); //pfMET_Type1_pt, pfMET_Type1_phi); // FIXME TODO without PhiCor
   ev.SetnPV(nPV);
   ev.SetEra(GetEra());
 
@@ -2263,6 +2263,38 @@ void AnalyzerCore::FillJetPlots(std::vector<Jet> jets, std::vector<FatJet> fatje
     FillHist(this_region+"/FatJet_"+this_itoa+"_PuppiTau31_"+this_region, fatjets.at(i).PuppiTau3()/fatjets.at(i).PuppiTau1(), weight, 100, 0., 1.);
     FillHist(this_region+"/FatJet_"+this_itoa+"_PuppiTau32_"+this_region, fatjets.at(i).PuppiTau3()/fatjets.at(i).PuppiTau2(), weight, 100, 0., 1.);
   }
+
+}
+
+TString AnalyzerCore::GetDataPeriod(){
+
+    TString Period = "";
+    if(!IsDATA) return Period;
+
+    if(DataYear==2016){
+        if     (run>=272007 && run<=275376) Period="B";
+        else if(run>=275657 && run<=276283) Period="C";
+        else if(run>=276315 && run<=276811) Period="D";
+        else if(run>=276831 && run<=277420) Period="E";
+        else if(run>=277772 && run<=278808) Period="F";
+        else if(run>=278820 && run<=280385) Period="G";
+        else if(run>=280919 && run<=284044) Period="H";
+    }
+    else if(DataYear==2017){
+        if     (run>=297020 && run<=299329) Period="B";
+        else if(run>=299337 && run<=302029) Period="C";
+        else if(run>=302030 && run<=303434) Period="D";
+        else if(run>=303435 && run<=304826) Period="E";
+        else if(run>=304911 && run<=306462) Period="F";
+    }
+    else if(DataYear==2018){
+        if     (run>=315252 && run<=316995) Period="A";
+        else if(run>=316998 && run<=319312) Period="B";
+        else if(run>=319313 && run<=320393) Period="C";
+        else if(run>=320394 && run<=325273) Period="D";
+    }
+
+    return Period;
 
 }
 

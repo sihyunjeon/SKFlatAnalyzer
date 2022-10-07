@@ -1,0 +1,11 @@
+SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2017 -i WWW -n 5 &
+SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2017 -i WWZ -n 5 &
+SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2017 -i WZZ -n 5 &
+SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2017 -i ZZZ -n 5 &
+SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2017 -i ttWToLNu -n 5 &
+SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2017 -i ttWToQQ -n 5 &
+SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2017 -i ttZToLLNuNu -n 5 &
+SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2017 -i ttZToQQ -n 5 &
+SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2017 -i ttZToQQ_ll -n 5 &
+SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2017 -i WplusH_HToBB_WToLNu -n 5 &
+SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2017 -i WminusH_HToBB_WToLNu -n 5 &
