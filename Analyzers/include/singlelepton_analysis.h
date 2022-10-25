@@ -12,6 +12,8 @@ public:
     void executeEventFromParameter(AnalyzerParameter param);
     void executeEvent();
 
+    void FillBinnedHist(TString hist_name, double hist_var, double weight, int hist_nbins, double *hist_bins);
+
     bool RunSyst;
     bool RunNewPDF;
     bool RunXSecSyst;
@@ -32,10 +34,10 @@ public:
 
     double muonPtCut, electronPtCut, jetPtCut, fatjetPtCut, leptonPtCut;
 
-    std::vector<Muon> allMuons;
-    std::vector<Electron> allElectrons;
-    std::vector<Jet> allJets;
-    std::vector<FatJet> allFatJets;
+    std::vector<Muon> centralAllMuons;
+    std::vector<Electron> centralAllElectrons;
+    std::vector<Jet> centralAllJets;
+    std::vector<FatJet> centralAllFatJets;
 
     double GetReconstructedNeutrinoDet(Lepton lepton, Particle missingEt);
     Particle GetReconstructedNeutrino(Lepton lepton, Particle missingEt);
