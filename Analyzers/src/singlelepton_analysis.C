@@ -9,6 +9,10 @@ void singlelepton_analysis::initializeAnalyzer(){
 
     if (HasFlag("syst") && !IsDATA)  runSystematics = true;
     else runSystematics = false;
+    if (HasFlag("hem")) runWithHEM = true;
+    else runWithHEM = false;
+    if (HasFlag("toppt")) runWithoutTopPtRwgt = true;
+    else runWithoutTopPtRwgt = false;
 
     muonTightIDs.clear();
     muonLooseIDs.clear();
@@ -116,6 +120,15 @@ void singlelepton_analysis::executeEvent(){
             executeEventFromParameter(param);
         }
     }
+    if (runWithHEM){
+        param.Name = "WithHEM";
+        executeEventFromParameter(param);
+    }
+    if (runWithoutTopPtRwgt){
+        param.Name = "WithoutTopPtRwgt";
+        executeEventFromParameter(param);
+    }
+
 }
 
 void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
@@ -153,7 +166,24 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     std::vector<Electron> allElectrons = centralAllElectrons;
 
     if (WrongMissingEt()) return;
+
+    bool RunSignalSyst = false;
     if(param.syst_ == AnalyzerParameter::Central){
+        if (MCSample.Contains("TypeI")){
+            RunSignalSyst = true;
+            double signal_weight = MCweight(true, true);
+            TString signal_region = "NoCut";
+            FillHist("SYST_Signal/DEN_" +signal_region + "_Nominal", 0, signal_weight, 1, 0., 1.);
+            for (unsigned int i=0; i<weight_Scale->size(); i++){
+                FillHist("SYST_Signal/DEN_" +signal_region + "_Scale" + TString::Itoa(i,10), 0, weight_Scale->at(i)*signal_weight, 1, 0., 1.);
+            }
+            for (unsigned int i=0; i<weight_PDF->size(); i++){
+                FillHist("SYST_Signal/DEN_" + signal_region + "_Error" + TString::Itoa(i,10), 0, weight_PDF->at(i)*signal_weight, 1, 0., 1.);
+            }
+            for (unsigned int i=0; i<weight_AlphaS->size(); i++){
+                FillHist("SYST_Signal/DEN_" + signal_region + "_AlphaS" + TString::Itoa(i,10), 0, weight_AlphaS->at(i)*signal_weight, 1, 0., 1.);
+            }
+        }
     }
     else if(param.syst_ == AnalyzerParameter::JetResUp){
         allJets = SmearJets( allJets, +1 );
@@ -175,11 +205,17 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
         allFatJets = ScaleFatJets( allFatJets, -1 );
         missingEt.SetPtEtaPhiM(PuppiMET_Type1_pt_shifts->at(3), 0., PuppiMET_Type1_phi_shifts->at(3), 0.);
     }
-    else if(param.syst_ == AnalyzerParameter::JetMassUp){
+    else if(param.syst_ == AnalyzerParameter::JetMassScaleUp){
         allFatJets = ScaleSDMassFatJets( allFatJets, +1 );
     }
-    else if(param.syst_ == AnalyzerParameter::JetMassDown){
+    else if(param.syst_ == AnalyzerParameter::JetMassScaleDown){
         allFatJets = ScaleSDMassFatJets( allFatJets, -1 );
+    }
+    else if(param.syst_ == AnalyzerParameter::JetMassResUp){
+        allFatJets = SmearSDMassFatJets( allFatJets, +1 );
+    }
+    else if(param.syst_ == AnalyzerParameter::JetMassResDown){
+        allFatJets = SmearSDMassFatJets( allFatJets, -1 );
     }
     else if(param.syst_ == AnalyzerParameter::UnclEnUp){
         missingEt.SetPtEtaPhiM(PuppiMET_Type1_pt_shifts->at(10), 0., PuppiMET_Type1_phi_shifts->at(10), 0.);
@@ -287,7 +323,8 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
         syst_TopPt = "weighted";
     }
     else{
-        if(param.Name != "CENTRAL") return;
+        std::cout << "[ERROR] Parameter not found" << std::endl;
+        return;
         // particlenet
     }// TODO
     InitializeVariables();
@@ -314,8 +351,8 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     std::sort(muons.begin(), muons.end(), PtComparing);
 
     // define electrons
-    std::vector<Electron> electronsLoose = SelectElectrons(allElectrons, param.Electron_Loose_ID, leptonPtCut, 2.5, true);
-    std::vector<Electron> electrons = SelectElectrons(electronsLoose, param.Electron_Tight_ID, leptonPtCut, 2.1);
+    std::vector<Electron> electronsLoose = SelectElectrons(allElectrons, param.Electron_Loose_ID, leptonPtCut, 2.5, !runWithHEM);
+    std::vector<Electron> electrons = SelectElectrons(electronsLoose, param.Electron_Tight_ID, leptonPtCut, 2.1, !runWithHEM);
     std::sort(electrons.begin(), electrons.end(), PtComparing);
 
     // trigger settings
@@ -378,9 +415,11 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
         }
         weight = weight * mcCorr->MuonTrigger_SF(param.Muon_Tight_ID, param.Muon_Trigger_SF_Key, muons, syst_MuTrigSF);
         if(MCSample.Contains("TT") && MCSample.Contains("powheg")){
-            std::vector<Gen> gens = GetGens();
-            top_pt_weight = mcCorr->GetTopPtReweight(gens, syst_TopPt);
-            weight = weight * top_pt_weight;
+            if (!runWithoutTopPtRwgt){
+                std::vector<Gen> gens = GetGens();
+                top_pt_weight = mcCorr->GetTopPtReweight(gens, syst_TopPt);
+                weight = weight * top_pt_weight;
+            }
         }
     }
     bool isOneMuon = (muons.size() == 1) && (muonsLoose.size() == 1);
@@ -541,6 +580,28 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     double bins_varNJet[6] = {0., 1., 2., 3., 4., 5.};
     double bins_varNBJet[6] = {0., 1., 2., 3., 4., 5.};
 
+    if (RunSignalSyst){
+        double signal_weight = MCweight(true, true);
+        TString signal_region = "NONE";
+        if (eventRegions["SignalRegion_MuonMerged"] || eventRegions["SignalRegion_ElectronMerged"]) signal_region = "Merged";
+        if (eventRegions["SignalRegion_MuonResolved"] || eventRegions["SignalRegion_ElectronResolved"]) signal_region = "Resolved";
+        if (eventRegions["SignalRegion_MuonMerged"] || eventRegions["SignalRegion_MuonResolved"]) signal_region = "Muon" + signal_region;
+        if (eventRegions["SignalRegion_ElectronMerged"] || eventRegions["SignalRegion_ElectronResolved"]) signal_region = "Electron" + signal_region;
+
+        if (signal_region != "NONE"){
+            FillHist("SYST_Signal/NUM_" +signal_region + "_Nominal", 0, signal_weight, 1, 0., 1.);
+            for (unsigned int i=0; i<weight_Scale->size(); i++){
+                FillHist("SYST_Signal/NUM_" +signal_region + "_Scale" + TString::Itoa(i,10), 0, weight_Scale->at(i)*signal_weight, 1, 0., 1.);
+            }
+            for (unsigned int i=0; i<weight_PDF->size(); i++){
+                FillHist("SYST_Signal/NUM_" + signal_region + "_Error" + TString::Itoa(i,10), 0, weight_PDF->at(i)*signal_weight, 1, 0., 1.);
+            }
+            for (unsigned int i=0; i<weight_AlphaS->size(); i++){
+                FillHist("SYST_Signal/NUM_" + signal_region + "_AlphaS" + TString::Itoa(i,10), 0, weight_AlphaS->at(i)*signal_weight, 1, 0., 1.);
+            }  
+        }
+    }
+
     std::map<TString, bool>::iterator itEventRegions;
 
     for (itEventRegions = eventRegions.begin(); itEventRegions != eventRegions.end(); ++itEventRegions){
@@ -550,6 +611,8 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
             TString eventRegion = itEventRegions->first;
             varSignalRegion = GetSignalRegion(eventRegion, varSecondaryBosonPt, varSecondaryBosonMass);
 
+            if (runWithHEM && eventRegion.Contains("Signal")) continue;
+            if (runWithoutTopPtRwgt && eventRegion.Contains("Signal")) continue;
 
             if (eventRegion.Contains("Merged")){
                 FillBinnedHist(param.Name + "/" + eventRegion + "_masst_recopriboson", varPrimaryBosonMass, weight, 6, bins_varPrimaryBosonMass_Merged);
@@ -575,6 +638,37 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
             FillHist(param.Name + "/" + eventRegion + "_masst_leptonmet_vs_dphi_leptonmet", varMETandLeptonMassT, fabs(varMETandLeptonDeltaPhi), weight, 5000, 0., 1000., 20, 0., 5.);
 
             FillHist(param.Name + "/" + eventRegion + "_phi_met", varMETPhi, weight, 100, -5., 5.);
+
+            if (runWithHEM || param.Name == "CENTRAL"){
+                FillHist(param.Name + "/" + eventRegion + "CheckHEM_eta_lepton", varLeptonEta, weight, 20, -2.5, 2.5);
+                FillHist(param.Name + "/" + eventRegion + "CheckHEM_phi_lepton", varLeptonPhi, weight, 40, -5.0, 5.0);
+                if (varLeptonEta < 0){
+                    FillHist(param.Name + "/" + eventRegion + "CheckEta1HEM_eta_lepton", varLeptonEta, weight, 20, -2.5, 2.5);
+                    FillHist(param.Name + "/" + eventRegion + "CheckEta1HEM_phi_lepton", varLeptonPhi, weight, 40, -5.0, 5.0);
+                }
+                else{
+                    FillHist(param.Name + "/" + eventRegion + "CheckEta2HEM_eta_lepton", varLeptonEta, weight, 20, -2.5, 2.5);
+                    FillHist(param.Name + "/" + eventRegion + "CheckEta2HEM_phi_lepton", varLeptonPhi, weight, 40, -5.0, 5.0);
+                }
+                if (varLeptonPhi < TMath::Pi() && TMath::Pi()/2. < varLeptonPhi){
+                    FillHist(param.Name + "/" + eventRegion + "CheckPhi1HEM_eta_lepton", varLeptonEta, weight, 20, -2.5, 2.5);
+                    FillHist(param.Name + "/" + eventRegion + "CheckPhi1HEM_phi_lepton", varLeptonPhi, weight, 40, -5.0, 5.0);
+                }
+                else if (varLeptonPhi <= TMath::Pi()/2. && 0. < varLeptonPhi){
+                    FillHist(param.Name + "/" + eventRegion + "CheckPhi2HEM_eta_lepton", varLeptonEta, weight, 20, -2.5, 2.5);
+                    FillHist(param.Name + "/" + eventRegion + "CheckPhi2HEM_phi_lepton", varLeptonPhi, weight, 40, -5.0, 5.0);
+                }
+                else if (varLeptonPhi <= 0. && (-1.*TMath::Pi()/2.) < varLeptonPhi){
+                    FillHist(param.Name + "/" + eventRegion + "CheckPhi3HEM_eta_lepton", varLeptonEta, weight, 20, -2.5, 2.5);
+                    FillHist(param.Name + "/" + eventRegion + "CheckPhi3HEM_phi_lepton", varLeptonPhi, weight, 40, -5.0, 5.0);
+                }
+                else{
+                    FillHist(param.Name + "/" + eventRegion + "CheckPhi4HEM_eta_lepton", varLeptonEta, weight, 20, -2.5, 2.5);
+                    FillHist(param.Name + "/" + eventRegion + "CheckPhi4HEM_phi_lepton", varLeptonPhi, weight, 40, -5.0, 5.0);
+                }
+
+            }
+
 
             if (!(eventRegion.Contains("SignalRegion") && eventRegion.Contains("Selection"))){
 
@@ -690,6 +784,7 @@ void singlelepton_analysis::InitializeVariables(void){
 
     varLeptonPt = 0.;
     varLeptonEta = 0.;
+    varLeptonPhi = 0.;
 
     varMET = 0.;
     varMETandLeptonDeltaPhi = 0.;

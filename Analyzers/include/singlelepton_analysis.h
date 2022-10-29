@@ -20,6 +20,8 @@ public:
 
     bool invertLeptonIsolation;
     bool runSystematics;
+    bool runWithHEM;
+    bool runWithoutTopPtRwgt;
 
     std::vector<TString> muonTightIDs, muonLooseIDs;
     std::vector<TString> electronTightIDs, electronLooseIDs;
@@ -61,6 +63,7 @@ public:
     double varTopKillerMass;
     double varLeptonPt;
     double varLeptonEta;
+    double varLeptonPhi;
     double varHT;
     double varMET;
     double varMEToverHT;
