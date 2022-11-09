@@ -22,6 +22,7 @@ public:
     bool runSystematics;
     bool runWithHEM;
     bool runWithoutTopPtRwgt;
+    bool runSystPropMET;
 
     std::vector<TString> muonTightIDs, muonLooseIDs;
     std::vector<TString> electronTightIDs, electronLooseIDs;
@@ -76,7 +77,8 @@ public:
     int varSignalRegion;
 
     Particle GetPOGCorrMET(Particle UncorrMET, bool IsPuppiMET);
-
+    template <typename T>
+    Particle ScaleLeptonMissingEtPropagation(Particle missingEt, T unscaled, T scaled);
     bool WrongMissingEt(void);
 
     singlelepton_analysis();

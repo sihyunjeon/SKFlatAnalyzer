@@ -316,6 +316,7 @@ double MCCorrection::MuonISO_SF(TString ID, double eta, double pt, int sys){
   error = this_hist->GetBinError(this_bin);
 
   //cout << "[MCCorrection::MuonISO_SF] value = " << value << endl;
+  //cout << "[MCCorrection::MuonISO_SF] error = " << error << endl;
 
   return value+double(sys)*error;
 
@@ -796,13 +797,17 @@ double MCCorrection::GetPileUpWeight(int N_pileup, int syst){
 
 }
 
-double MCCorrection::GetTopPtReweight(const std::vector<Gen>& gens){
+double MCCorrection::GetTopPtReweight(const std::vector<Gen>& gens, TString sys){
   //==== ref: https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting2017
   //==== Only top quarks in SM ttbar events must be reweighted, 
   //==== not single tops or tops from BSM production mechanisms.
   if(!MCSample.Contains("TT") || !MCSample.Contains("powheg")){
     return 1.;
   }
+  if (sys == "unweighted"){
+    return 1.;
+  }
+
   //==== initialize with large number
   double toppt1=10000, toppt2=10000;
   bool found_top = false, found_atop = false;
@@ -830,7 +835,9 @@ double MCCorrection::GetTopPtReweight(const std::vector<Gen>& gens){
     pt_reweight*=exp(0.0615-0.0005*toppt2);
     pt_reweight = sqrt(pt_reweight);
   }
+
   return pt_reweight;
+
 }
 
 double MCCorrection::GetOfficialDYReweight(const vector<Gen>& gens, int sys){

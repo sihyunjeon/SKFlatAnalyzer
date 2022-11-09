@@ -36,10 +36,12 @@ public:
     Central,
     JetResUp, JetResDown,
     JetEnUp, JetEnDown,
+    UnclEnUp, UnclEnDown,
     MuonEnUp, MuonEnDown,
     ElectronResUp, ElectronResDown,
     ElectronEnUp, ElectronEnDown,
-    JetMassUp, JetMassDown,
+    JetMassScaleUp, JetMassScaleDown,
+    JetMassResUp, JetMassResDown,
     MuonRecoSFUp, MuonRecoSFDown,
     MuonIDSFUp, MuonIDSFDown,
     MuonISOSFUp, MuonISOSFDown,
@@ -48,8 +50,12 @@ public:
     ElectronIDSFUp, ElectronIDSFDown,
     ElectronTriggerSFUp, ElectronTriggerSFDown,
     PileupUp, PileupDown,
-    BTagUp, BTagDown,
+    BTagCorrHUp, BTagCorrHDown,
+    BTagCorrLUp, BTagCorrLDown,
+    BTagUnCorrHUp, BTagUnCorrHDown,
+    BTagUnCorrLUp, BTagUnCorrLDown,
     PrefireUp, PrefireDown,
+    TopPtReweightUp, TopPtReweightDown,
     NSyst
   };
   Syst syst_;

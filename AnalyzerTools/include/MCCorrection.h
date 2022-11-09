@@ -87,7 +87,7 @@ public:
   double GetPileUpWeightBySampleName(int N_pileup, int syst);
   double GetPileUpWeight(int N_pileup, int syst);
 
-  double GetTopPtReweight(const std::vector<Gen>& gens);
+  double GetTopPtReweight(const std::vector<Gen>& gens, TString sys);
 
   TH2D *hist_DYPtReweight_2D;
   GenFinderForDY *genFinderDY;

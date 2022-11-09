@@ -91,6 +91,12 @@ TString AnalyzerParameter::GetSystType(){
   else if(syst_==Syst::JetEnDown){
     return "JetEnDown";
   }
+  else if(syst_==Syst::UnclEnUp){
+    return "UnclEnUp";
+  }
+  else if(syst_==Syst::UnclEnDown){
+    return "UnclEnDown";
+  }
   else if(syst_==Syst::MuonEnUp){
     return "MuonEnUp";
   }
@@ -109,11 +115,17 @@ TString AnalyzerParameter::GetSystType(){
   else if(syst_==Syst::ElectronEnDown){
     return "ElectronEnDown";
   }
-  else if(syst_==Syst::JetMassUp){
-    return "JetMassUp";
+  else if(syst_==Syst::JetMassScaleUp){
+    return "JetMassScaleUp";
   }
-  else if(syst_==Syst::JetMassDown){
-    return "JetMassDown";
+  else if(syst_==Syst::JetMassScaleDown){
+    return "JetMassScaleDown";
+  }
+  else if(syst_==Syst::JetMassResUp){
+    return "JetMassResUp";
+  }
+  else if(syst_==Syst::JetMassResDown){
+    return "JetMassResDown";
   }
   else if(syst_==Syst::MuonRecoSFUp){
     return "MuonRecoSFUp";
@@ -169,11 +181,35 @@ TString AnalyzerParameter::GetSystType(){
   else if(syst_==Syst::PrefireDown){
     return "PrefireDown";
   }
-  else if(syst_==Syst::BTagUp){
-    return "BTagUp";
+  else if(syst_==Syst::BTagCorrHUp){
+    return "BTagCorrHUp";
   }
-  else if(syst_==Syst::BTagDown){
-    return "BTagDown";
+  else if(syst_==Syst::BTagCorrHDown){
+    return "BTagCorrHDown";
+  }
+  else if(syst_==Syst::BTagCorrLUp){
+    return "BTagCorrLUp";
+  }
+  else if(syst_==Syst::BTagCorrLDown){
+    return "BTagCorrLDown";
+  }
+  else if(syst_==Syst::BTagUnCorrHUp){
+    return "BTagUnCorrHUp";
+  }
+  else if(syst_==Syst::BTagUnCorrHDown){
+    return "BTagUnCorrHDown";
+  }
+  else if(syst_==Syst::BTagUnCorrLUp){
+    return "BTagUnCorrLUp";
+  }
+  else if(syst_==Syst::BTagUnCorrLDown){
+    return "BTagUnCorrLDown";
+  }
+  else if(syst_==Syst::TopPtReweightUp){
+    return "TopPtReweightUp";
+  }
+  else if(syst_==Syst::TopPtReweightDown){
+    return "TopPtReweightDown";
   }
   else{
     cout << "[AnalyzerParameter::GetSystType] Wrong Syst" << endl;

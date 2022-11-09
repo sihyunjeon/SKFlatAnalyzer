@@ -13,6 +13,8 @@ void singlelepton_analysis::initializeAnalyzer(){
     else runWithHEM = false;
     if (HasFlag("toppt")) runWithoutTopPtRwgt = true;
     else runWithoutTopPtRwgt = false;
+    if (HasFlag("systpropmet")) runSystPropMET = true;
+    else runSystPropMET = false;
 
     muonTightIDs.clear();
     muonLooseIDs.clear();
@@ -128,6 +130,16 @@ void singlelepton_analysis::executeEvent(){
         param.Name = "WithoutTopPtRwgt";
         executeEventFromParameter(param);
     }
+    if (runSystPropMET){
+        param.Name = "WithMuonEnUpSystWithMET";
+        executeEventFromParameter(param);
+        param.Name = "WithMuonEnDownSystWithMET";
+        executeEventFromParameter(param);
+        param.Name = "WithElectronEnUpSystWithMET";
+        executeEventFromParameter(param);
+        param.Name = "WithElectronEnDownSystWithMET";
+        executeEventFromParameter(param);
+    }
 
 }
 
@@ -184,16 +196,41 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
                 FillHist("SYST_Signal/DEN_" + signal_region + "_AlphaS" + TString::Itoa(i,10), 0, weight_AlphaS->at(i)*signal_weight, 1, 0., 1.);
             }
         }
+        if(param.Name == "WithElectronEnUpSystWithMET"){
+            std::vector<Electron> unscaled = allElectrons;
+            allElectrons = ScaleElectrons(allElectrons, +1);
+            std::vector<Electron> scaled = allElectrons;
+            missingEt = ScaleLeptonMissingEtPropagation(missingEt, unscaled, scaled);
+        }
+        else if(param.Name == "WithElectronEnDownSystWithMET"){
+            std::vector<Electron> unscaled = allElectrons;
+            allElectrons = ScaleElectrons(allElectrons, -1);
+            std::vector<Electron> scaled = allElectrons;
+            missingEt = ScaleLeptonMissingEtPropagation(missingEt, unscaled, scaled);
+        }
+        else if(param.Name == "WithMuonEnUpSystWithMET"){
+            std::vector<Muon> unscaled = allMuons;
+            allMuons = ScaleMuons(allMuons, +1);
+            std::vector<Muon> scaled = allMuons;
+            missingEt = ScaleLeptonMissingEtPropagation(missingEt, unscaled, scaled);
+        }
+        else if(param.Name == "WithMuonEnDownSystWithMET"){
+            std::vector<Muon> unscaled = allMuons;
+            allMuons = ScaleMuons(allMuons, -1);
+            std::vector<Muon> scaled = allMuons;
+            missingEt = ScaleLeptonMissingEtPropagation(missingEt, unscaled, scaled);
+        }
+
     }
     else if(param.syst_ == AnalyzerParameter::JetResUp){
         allJets = SmearJets( allJets, +1 );
         allFatJets = SmearFatJets( allFatJets, +1 );
-//        missingEt.SetPtEtaPhiM(PuppiMET_Type1_pt_shifts->at(0), 0., PuppiMET_Type1_phi_shifts->at(0), 0.);
+        missingEt.SetPtEtaPhiM(PuppiMET_Type1_pt_shifts->at(0), 0., PuppiMET_Type1_phi_shifts->at(0), 0.);
     }
     else if(param.syst_ == AnalyzerParameter::JetResDown){
         allJets = SmearJets( allJets, -1 );
         allFatJets = SmearFatJets( allFatJets, -1 );
-//        missingEt.SetPtEtaPhiM(PuppiMET_Type1_pt_shifts->at(1), 0., PuppiMET_Type1_phi_shifts->at(1), 0.);
+        missingEt.SetPtEtaPhiM(PuppiMET_Type1_pt_shifts->at(1), 0., PuppiMET_Type1_phi_shifts->at(1), 0.);
     }
     else if(param.syst_ == AnalyzerParameter::JetEnUp){
         allJets = ScaleJets( allJets, +1 );
@@ -224,10 +261,20 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
         missingEt.SetPtEtaPhiM(PuppiMET_Type1_pt_shifts->at(11), 0., PuppiMET_Type1_phi_shifts->at(11), 0.);
     }
     else if(param.syst_ == AnalyzerParameter::MuonEnUp){
+
+        std::vector<Muon> unscaled = allMuons;
         allMuons = ScaleMuons(allMuons, +1);
+        std::vector<Muon> scaled = allMuons;
+//        missingEt = ScaleLeptonMissingEtPropagation(missingEt, unscaled, scaled);
+
     }
     else if(param.syst_ == AnalyzerParameter::MuonEnDown){
+
+        std::vector<Muon> unscaled = allMuons;
         allMuons = ScaleMuons(allMuons, -1);
+        std::vector<Muon> scaled = allMuons;
+//        missingEt = ScaleLeptonMissingEtPropagation(missingEt, unscaled, scaled);
+
     }
     else if(param.syst_ == AnalyzerParameter::ElectronResUp){
         allElectrons = SmearElectrons( allElectrons, +1 );
@@ -236,10 +283,20 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
         allElectrons = SmearElectrons( allElectrons, -1 );
     }
     else if(param.syst_ == AnalyzerParameter::ElectronEnUp){
-        allElectrons = ScaleElectrons( allElectrons, +1 );
+
+        std::vector<Electron> unscaled = allElectrons;
+        allElectrons = ScaleElectrons(allElectrons, +1);
+        std::vector<Electron> scaled = allElectrons;
+//        missingEt = ScaleLeptonMissingEtPropagation(missingEt, unscaled, scaled);
+        
     }
     else if(param.syst_ == AnalyzerParameter::ElectronEnDown){
-        allElectrons = ScaleElectrons( allElectrons, -1 );
+
+        std::vector<Electron> unscaled = allElectrons;
+        allElectrons = ScaleElectrons(allElectrons, -1);
+        std::vector<Electron> scaled = allElectrons;
+//        missingEt = ScaleLeptonMissingEtPropagation(missingEt, unscaled, scaled);
+
     }
     else if(param.syst_ == AnalyzerParameter::MuonRecoSFUp){
         syst_MuRecoSF = +1;
@@ -319,7 +376,10 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     else if(param.syst_ == AnalyzerParameter::BTagUnCorrLDown){
         syst_BTag = "SystDownUnCorrLTag";
     }
-    else if(param.syst_ == AnalyzerParameter::TopPtReweight){
+    else if(param.syst_ == AnalyzerParameter::TopPtReweightUp){
+        syst_TopPt = "unweighted";
+    }
+    else if(param.syst_ == AnalyzerParameter::TopPtReweightDown){
         syst_TopPt = "weighted";
     }
     else{
@@ -351,8 +411,8 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     std::sort(muons.begin(), muons.end(), PtComparing);
 
     // define electrons
-    std::vector<Electron> electronsLoose = SelectElectrons(allElectrons, param.Electron_Loose_ID, leptonPtCut, 2.5, !runWithHEM);
-    std::vector<Electron> electrons = SelectElectrons(electronsLoose, param.Electron_Tight_ID, leptonPtCut, 2.1, !runWithHEM);
+    std::vector<Electron> electronsLoose = SelectElectrons(allElectrons, param.Electron_Loose_ID, leptonPtCut, 2.5, !(param.Name == "WithHEM"));
+    std::vector<Electron> electrons = SelectElectrons(electronsLoose, param.Electron_Tight_ID, leptonPtCut, 2.1, !(param.Name == "WithHEM"));
     std::sort(electrons.begin(), electrons.end(), PtComparing);
 
     // trigger settings
@@ -415,7 +475,7 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
         }
         weight = weight * mcCorr->MuonTrigger_SF(param.Muon_Tight_ID, param.Muon_Trigger_SF_Key, muons, syst_MuTrigSF);
         if(MCSample.Contains("TT") && MCSample.Contains("powheg")){
-            if (!runWithoutTopPtRwgt){
+            if (!(param.Name == "WithoutTopPtRwgt")){
                 std::vector<Gen> gens = GetGens();
                 top_pt_weight = mcCorr->GetTopPtReweight(gens, syst_TopPt);
                 weight = weight * top_pt_weight;
@@ -433,6 +493,7 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
 
     varLeptonPt = leptons.at(0).Pt();
     varLeptonEta = leptons.at(0).Eta();
+    varLeptonPhi = leptons.at(0).Phi();
     varMET = missingEt.Pt();
     varMETPhi = missingEt.Phi();
     varMETandLeptonDeltaPhi = fabs(missingEt.DeltaPhi(leptons.at(0)));
@@ -527,14 +588,15 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     bool ControlSelection_MergedDomTT = isSecondaryBosonMassIncl && !isZeroBJet; // TT dedicated
     bool ControlSelection_ResolvedDomTT = !isSecondaryBosonMassIncl && !isZeroBJet; // TT dedicated
 
-    eventRegions["SignalRegion_MuonMergedPreselection"] = Preselection_Muon && Preselection_Merged;
-    eventRegions["SignalRegion_MuonResolvedPreselection"] = Preselection_Muon && Preselection_Resolved;
+    eventRegions["Preselection_MuonMerged"] = Preselection_Muon && Preselection_Merged;
+    eventRegions["Preselection_MuonResolved"] = Preselection_Muon && Preselection_Resolved;
+    eventRegions["Preselection_ElectronMerged"] = Preselection_Electron && Preselection_Merged;
+    eventRegions["Preselection_ElectronResolved"] = Preselection_Electron && Preselection_Resolved;
 
-
-    eventRegions["SignalRegion_MuonMerged"] = Preselection_Muon && Preselection_Merged && SignalSelection_Merged;
-    eventRegions["SignalRegion_MuonResolved"] = Preselection_Muon && Preselection_Resolved && SignalSelection_Resolved;
-    eventRegions["SignalRegion_ElectronMerged"] = Preselection_Electron && Preselection_Merged && SignalSelection_Merged;
-    eventRegions["SignalRegion_ElectronResolved"] = Preselection_Electron && Preselection_Resolved && SignalSelection_Resolved;
+    eventRegions["SignalRegion_MuonMergedInclusive"] = Preselection_Muon && Preselection_Merged && SignalSelection_Merged;
+    eventRegions["SignalRegion_MuonResolvedInclusive"] = Preselection_Muon && Preselection_Resolved && SignalSelection_Resolved;
+    eventRegions["SignalRegion_ElectronMergedInclusive"] = Preselection_Electron && Preselection_Merged && SignalSelection_Merged;
+    eventRegions["SignalRegion_ElectronResolvedInclusive"] = Preselection_Electron && Preselection_Resolved && SignalSelection_Resolved;
 
     eventRegions["SignalRegion_MuonMergedXbbSelection"] = Preselection_Muon && Preselection_Merged && SignalSelection_Merged && varSecondaryBosonTag.Contains("Xbb");
     eventRegions["SignalRegion_MuonMergedXqqSelection"] = Preselection_Muon && Preselection_Merged && SignalSelection_Merged && varSecondaryBosonTag.Contains("Xqq");
@@ -570,13 +632,13 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     eventRegions["ControlRegion_ElectronResolvedDomWSelection"] = Preselection_Electron && Preselection_Resolved && ControlSelection_ResolvedDomW;
     eventRegions["ControlRegion_ElectronResolvedDomTTSelection"] = Preselection_Electron && Preselection_Resolved && ControlSelection_ResolvedDomTT;
 
-    double bins_varPrimaryBosonMass_Merged[7] = {500., 600., 650., 700., 750., 900., 1200.};
-    double bins_varPrimaryBosonMass_Resolved[6] = {500., 600., 650., 700., 750., 1200.};
-    double bins_varMETandLeptonMassT[8] = {0., 200., 300., 325., 350., 375., 400., 500.};
-    double bins_varSecondaryBosonMass[9] = {0., 50., 65., 85., 105., 125., 145., 160., 300.};
-    double bins_varMETandLeptonDeltaPhi[10] = {0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.25*TMath::Pi(), 0.40*TMath::Pi(), 0.70*TMath::Pi(), TMath::Pi()};
-    double bins_varMET[8] = {0., 150., 175., 200., 225., 250., 300., 500.};
-    double bins_varLeptonPt[9] = {0., 50., 75., 100., 125., 150., 200., 300., 500.};
+    double bins_varPrimaryBosonMass_Merged[5] = {500., 600., 750., 900., 1300.};
+    double bins_varPrimaryBosonMass_Resolved[4] = {500., 600., 750., 1300.};
+    double bins_varMETandLeptonMassT[6] = {0., 250., 300., 350., 400., 850.};
+    double bins_varSecondaryBosonMass[7] = {0., 50., 65., 105., 145., 200., 450.};
+    double bins_varMETandLeptonDeltaPhi[7] = {0., 0.2, 0.5, 0.25*TMath::Pi(), 0.40*TMath::Pi(), 0.70*TMath::Pi(), TMath::Pi()};
+    double bins_varMET[5] = {100., 150., 200., 250., 650.};
+    double bins_varLeptonPt[5] = {50., 100., 150., 200., 650.};
     double bins_varNJet[6] = {0., 1., 2., 3., 4., 5.};
     double bins_varNBJet[6] = {0., 1., 2., 3., 4., 5.};
 
@@ -615,20 +677,20 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
             if (runWithoutTopPtRwgt && eventRegion.Contains("Signal")) continue;
 
             if (eventRegion.Contains("Merged")){
-                FillBinnedHist(param.Name + "/" + eventRegion + "_masst_recopriboson", varPrimaryBosonMass, weight, 6, bins_varPrimaryBosonMass_Merged);
+                FillBinnedHist(param.Name + "/" + eventRegion + "_masst_recopriboson", varPrimaryBosonMass, weight, 4, bins_varPrimaryBosonMass_Merged);
             }
             if (eventRegion.Contains("Resolved")){
-                FillBinnedHist(param.Name + "/" + eventRegion + "_masst_recopriboson", varPrimaryBosonMass, weight, 5, bins_varPrimaryBosonMass_Resolved);
+                FillBinnedHist(param.Name + "/" + eventRegion + "_masst_recopriboson", varPrimaryBosonMass, weight, 3, bins_varPrimaryBosonMass_Resolved);
             }
-            FillBinnedHist(param.Name + "/" + eventRegion + "_masst_leptonmet", varMETandLeptonMassT, weight, 7, bins_varMETandLeptonMassT);
+            FillBinnedHist(param.Name + "/" + eventRegion + "_masst_leptonmet", varMETandLeptonMassT, weight, 5, bins_varMETandLeptonMassT);
             FillHist(param.Name + "/" + eventRegion + "_masst_leptonmet_binned", varMETandLeptonMassT, weight, 1000, 0., 1000.);
 
-            FillBinnedHist(param.Name + "/" + eventRegion + "_mass_recosecboson", varSecondaryBosonMass, weight, 8, bins_varSecondaryBosonMass);
-            FillBinnedHist(param.Name + "/" + eventRegion + "_dphi_leptonmet", fabs(varMETandLeptonDeltaPhi), weight, 9, bins_varMETandLeptonDeltaPhi);
+            FillBinnedHist(param.Name + "/" + eventRegion + "_mass_recosecboson", varSecondaryBosonMass, weight, 6, bins_varSecondaryBosonMass);
+            FillBinnedHist(param.Name + "/" + eventRegion + "_dphi_leptonmet", fabs(varMETandLeptonDeltaPhi), weight, 6, bins_varMETandLeptonDeltaPhi);
             FillHist(param.Name + "/" + eventRegion + "_dphi_leptonmet_binned", fabs(varMETandLeptonDeltaPhi), weight, 50, 0., 5.);
 
-            FillBinnedHist(param.Name + "/" + eventRegion + "_met", varMET, weight, 7, bins_varMET);
-            FillBinnedHist(param.Name + "/" + eventRegion + "_pt_lepton", varLeptonPt, weight, 8, bins_varLeptonPt);
+            FillBinnedHist(param.Name + "/" + eventRegion + "_met", varMET, weight, 4, bins_varMET);
+            FillBinnedHist(param.Name + "/" + eventRegion + "_pt_lepton", varLeptonPt, weight, 4, bins_varLeptonPt);
             FillBinnedHist(param.Name + "/" + eventRegion + "_n_jet", varNJet, weight, 5, bins_varNJet);
             FillBinnedHist(param.Name + "/" + eventRegion + "_n_bjet", varNBJet, weight, 5, bins_varNBJet);
 
@@ -954,6 +1016,35 @@ Particle singlelepton_analysis::GetPOGCorrMET(Particle UncorrMET, bool IsPuppiME
     corrMET.SetPtEtaPhiM(CorrectedMET, 0., CorrectedMETPhi, 0.);
 
     return corrMET;
+}
+
+template <typename T>
+Particle singlelepton_analysis::ScaleLeptonMissingEtPropagation(Particle missingEt, T unscaled, T scaled){
+
+    Particle unscaledSum;
+    unscaledSum.SetPxPyPzE(0.,0.,0.,0.);
+    for (unsigned int i=0; i < unscaled.size(); i++){
+        Particle lepton = unscaled.at(i);
+        unscaledSum = unscaledSum + lepton;
+    }
+
+    Particle scaledSum;
+    scaledSum.SetPxPyPzE(0.,0.,0.,0.);
+    for (unsigned int i=0; i < scaled.size(); i++){
+        Particle lepton = scaled.at(i);
+        scaledSum = scaledSum + lepton;
+    }
+
+    Particle scaledMissingEt;
+
+    double scaledMissingEtPx = (missingEt + unscaledSum - scaledSum).Px();
+    double scaledMissingEtPy = (missingEt + unscaledSum - scaledSum).Py();
+    double scaledMissingEtPt = (missingEt + unscaledSum - scaledSum).Pt();
+
+    scaledMissingEt.SetPxPyPzE(scaledMissingEtPx, scaledMissingEtPy, 0., scaledMissingEtPt);
+
+    return scaledMissingEt;
+
 }
 
 bool singlelepton_analysis::WrongMissingEt(void){
