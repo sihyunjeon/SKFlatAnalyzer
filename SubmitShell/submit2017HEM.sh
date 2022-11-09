@@ -1,0 +1,10 @@
+source SubmitHEMScripts/2017/submitTT.sh
+sleept 30
+source SubmitHEMScripts/2017/submitDY.sh
+sleep 30
+source SubmitHEMScripts/2017/submitDATA.sh
+source SubmitHEMScripts/2017/submitQCD.sh
+source SubmitHEMScripts/2017/submitT.sh
+source SubmitHEMScripts/2017/submitVV.sh
+source SubmitHEMScripts/2017/submitW.sh
+source SubmitHEMScripts/2017/submitOTHERS.sh

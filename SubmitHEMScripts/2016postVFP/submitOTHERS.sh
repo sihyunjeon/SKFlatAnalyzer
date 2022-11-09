@@ -1,0 +1,11 @@
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags hem --skim SkimTree_SingleLepton -e 2016postVFP -i WWW -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags hem --skim SkimTree_SingleLepton -e 2016postVFP -i WWZ -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags hem --skim SkimTree_SingleLepton -e 2016postVFP -i WZZ -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags hem --skim SkimTree_SingleLepton -e 2016postVFP -i ZZZ -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags hem --skim SkimTree_SingleLepton -e 2016postVFP -i ttWToLNu -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags hem --skim SkimTree_SingleLepton -e 2016postVFP -i ttWToQQ -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags hem --skim SkimTree_SingleLepton -e 2016postVFP -i ttZToLLNuNu -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags hem --skim SkimTree_SingleLepton -e 2016postVFP -i ttZToQQ -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags hem --skim SkimTree_SingleLepton -e 2016postVFP -i ttZToQQ_ll -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags hem --skim SkimTree_SingleLepton -e 2016postVFP -i WplusH_HToBB_WToLNu -n 2 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags hem --skim SkimTree_SingleLepton -e 2016postVFP -i WminusH_HToBB_WToLNu -n 2 &

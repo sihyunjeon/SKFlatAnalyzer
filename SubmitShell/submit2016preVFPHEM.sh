@@ -1,0 +1,10 @@
+source SubmitHEMScripts/2016preVFP/submitTT.sh
+sleept 30
+source SubmitHEMScripts/2016preVFP/submitDY.sh
+sleep 30
+source SubmitHEMScripts/2016preVFP/submitDATA.sh
+source SubmitHEMScripts/2016preVFP/submitQCD.sh
+source SubmitHEMScripts/2016preVFP/submitT.sh
+source SubmitHEMScripts/2016preVFP/submitVV.sh
+source SubmitHEMScripts/2016preVFP/submitW.sh
+source SubmitHEMScripts/2016preVFP/submitOTHERS.sh
