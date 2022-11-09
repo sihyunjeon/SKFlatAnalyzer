@@ -1,11 +1,11 @@
-SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2018 -i WWW -n 5 &
-SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2018 -i WWZ -n 5 &
-SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2018 -i WZZ -n 5 &
-SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2018 -i ZZZ -n 5 &
-SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2018 -i ttWToLNu -n 5 &
-SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2018 -i ttWToQQ -n 5 &
-SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2018 -i ttZToLLNuNu -n 5 &
-SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2018 -i ttZToQQ -n 5 &
-SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2018 -i ttZToQQ_ll -n 5 &
-SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2018 -i WplusH_HToBB_WToLNu -n 5 &
-SKFlat.py -a singlelepton_analysis --userflags syst --skim SkimTree_SingleLepton -e 2018 -i WminusH_HToBB_WToLNu -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags syst --skim SkimTree_SingleLepton -e 2018 -i WWW -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags syst --skim SkimTree_SingleLepton -e 2018 -i WWZ -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags syst --skim SkimTree_SingleLepton -e 2018 -i WZZ -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags syst --skim SkimTree_SingleLepton -e 2018 -i ZZZ -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags syst --skim SkimTree_SingleLepton -e 2018 -i ttWToLNu -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags syst --skim SkimTree_SingleLepton -e 2018 -i ttWToQQ -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags syst --skim SkimTree_SingleLepton -e 2018 -i ttZToLLNuNu -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags syst --skim SkimTree_SingleLepton -e 2018 -i ttZToQQ -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags syst --skim SkimTree_SingleLepton -e 2018 -i ttZToQQ_ll -n 5 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags syst --skim SkimTree_SingleLepton -e 2018 -i WplusH_HToBB_WToLNu -n 2 &
+SKFlat.py -a singlelepton_analysis --memory 6000 --userflags syst --skim SkimTree_SingleLepton -e 2018 -i WminusH_HToBB_WToLNu -n 2 &
