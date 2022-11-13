@@ -15,6 +15,11 @@ void singlelepton_analysis::initializeAnalyzer(){
     else runWithoutTopPtRwgt = false;
     if (HasFlag("systpropmet")) runSystPropMET = true;
     else runSystPropMET = false;
+    if (HasFlag("triggeregm")) runTriggerEGM = true;
+    else runTriggerEGM = false;
+    if (HasFlag("signal")) runSignalStudies = true;
+    else runSignalStudies = false;
+
 
     muonTightIDs.clear();
     muonLooseIDs.clear();
@@ -140,15 +145,20 @@ void singlelepton_analysis::executeEvent(){
         param.Name = "WithElectronEnDownSystWithMET";
         executeEventFromParameter(param);
     }
+    if (runTriggerEGM){
+        param.Name = "WithPhotonTrigger";
+        executeEventFromParameter(param);
+        param.Name = "WithoutPhotonTrigger";
+        executeEventFromParameter(param);
+    }
 
 }
 
 void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
 
-    double weight = 1., weight_cutflow = 1.;
+    double weight = 1.;
     if(!IsDATA){
         weight = MCweight(true, true);
-        weight_cutflow = weight;
     }
 
     FillHist(param.Name + "/cutflow__preselction__no_cut", 0, weight, 1, 0., 1.);
@@ -157,6 +167,11 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     Event event = GetEvent();
 
     if (!(event.PassTrigger(muonTriggers) || event.PassTrigger(electronTriggers))) return;
+    if (param.Name == "WithoutPhotonTrigger"){
+        if (DataYear == 2016) if (!event.PassTrigger("HLT_Ele27_WPTight_Gsf_v")) return;
+        if (DataYear == 2017) if (!event.PassTrigger("HLT_Ele35_WPTight_Gsf_v")) return;
+        if (DataYear == 2018) if (!event.PassTrigger("HLT_Ele32_WPTight_Gsf_v")) return;
+    }
     FillHist(param.Name + "/cutflow__preselction__pass_trigger", 0, weight, 1, 0., 1.);
     int syst_MuRecoSF = 0;
     int syst_MuIDSF = 0;
@@ -387,7 +402,9 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
         return;
         // particlenet
     }// TODO
+
     InitializeVariables();
+
     // define muons
     std::vector<Muon> muonsLooseNoIso = SelectMuons(allMuons, param.Muon_Loose_ID, leptonPtCut, 2.4);
     std::vector<Muon> muons, muonsLoose;
@@ -407,7 +424,6 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
             }
         }
     }
-
     std::sort(muons.begin(), muons.end(), PtComparing);
 
     // define electrons
@@ -420,6 +436,7 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
     bool isElectronTrigger = (event.PassTrigger(electronTriggers) && electrons.size() >= 1) ? electrons.at(0).Pt() > electronPtCut : false;
     if (!(isMuonTrigger || isElectronTrigger)) return;
     FillHist(param.Name + "/cutflow__preselction__lepton", 0, weight, 1, 0., 1.);
+
     // define jets ak8
     std::vector<FatJet> fatjetsNoSDMass = SelectFatJets(allFatJets, param.FatJet_ID, fatjetPtCut, 2.4);
     std::vector<FatJet> fatjets;
@@ -510,6 +527,8 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
         varHT = varHT + jet.Pt();
     }
     varMEToverHT = varMET/varHT;
+
+    if (runSignalStudies) StudySignals(leptons, jets, fatjets, missingEt, MCweight(true, true));
 
     if (isMergedRegion){
 
@@ -634,13 +653,13 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
 
     double bins_varPrimaryBosonMass_Merged[5] = {500., 600., 750., 900., 1300.};
     double bins_varPrimaryBosonMass_Resolved[4] = {500., 600., 750., 1300.};
-    double bins_varMETandLeptonMassT[6] = {0., 250., 300., 350., 400., 850.};
+    double bins_varMETandLeptonMassT[5] = {250., 300., 350., 400., 850.};
     double bins_varSecondaryBosonMass[7] = {0., 50., 65., 105., 145., 200., 450.};
-    double bins_varMETandLeptonDeltaPhi[7] = {0., 0.2, 0.5, 0.25*TMath::Pi(), 0.40*TMath::Pi(), 0.70*TMath::Pi(), TMath::Pi()};
+    double bins_varMETandLeptonDeltaPhi[6] = {0., 0.2, 0.5, 0.25*TMath::Pi(), 0.40*TMath::Pi(), TMath::Pi()};
     double bins_varMET[5] = {100., 150., 200., 250., 650.};
     double bins_varLeptonPt[5] = {50., 100., 150., 200., 650.};
-    double bins_varNJet[6] = {0., 1., 2., 3., 4., 5.};
-    double bins_varNBJet[6] = {0., 1., 2., 3., 4., 5.};
+    double bins_varNJet[5] = {0., 1., 2., 3., 4.};
+    double bins_varNBJet[5] = {0., 1., 2., 3., 4.};
 
     if (RunSignalSyst){
         double signal_weight = MCweight(true, true);
@@ -675,6 +694,7 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
 
             if (runWithHEM && eventRegion.Contains("Signal")) continue;
             if (runWithoutTopPtRwgt && eventRegion.Contains("Signal")) continue;
+            if (runTriggerEGM && !(eventRegion.Contains("Electron") && eventRegion.Contains("Preselection"))) continue;
 
             if (eventRegion.Contains("Merged")){
                 FillBinnedHist(param.Name + "/" + eventRegion + "_masst_recopriboson", varPrimaryBosonMass, weight, 4, bins_varPrimaryBosonMass_Merged);
@@ -682,17 +702,17 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
             if (eventRegion.Contains("Resolved")){
                 FillBinnedHist(param.Name + "/" + eventRegion + "_masst_recopriboson", varPrimaryBosonMass, weight, 3, bins_varPrimaryBosonMass_Resolved);
             }
-            FillBinnedHist(param.Name + "/" + eventRegion + "_masst_leptonmet", varMETandLeptonMassT, weight, 5, bins_varMETandLeptonMassT);
+            FillBinnedHist(param.Name + "/" + eventRegion + "_masst_leptonmet", varMETandLeptonMassT, weight, 4, bins_varMETandLeptonMassT);
             FillHist(param.Name + "/" + eventRegion + "_masst_leptonmet_binned", varMETandLeptonMassT, weight, 1000, 0., 1000.);
 
             FillBinnedHist(param.Name + "/" + eventRegion + "_mass_recosecboson", varSecondaryBosonMass, weight, 6, bins_varSecondaryBosonMass);
-            FillBinnedHist(param.Name + "/" + eventRegion + "_dphi_leptonmet", fabs(varMETandLeptonDeltaPhi), weight, 6, bins_varMETandLeptonDeltaPhi);
+            FillBinnedHist(param.Name + "/" + eventRegion + "_dphi_leptonmet", fabs(varMETandLeptonDeltaPhi), weight, 5, bins_varMETandLeptonDeltaPhi);
             FillHist(param.Name + "/" + eventRegion + "_dphi_leptonmet_binned", fabs(varMETandLeptonDeltaPhi), weight, 50, 0., 5.);
 
             FillBinnedHist(param.Name + "/" + eventRegion + "_met", varMET, weight, 4, bins_varMET);
             FillBinnedHist(param.Name + "/" + eventRegion + "_pt_lepton", varLeptonPt, weight, 4, bins_varLeptonPt);
-            FillBinnedHist(param.Name + "/" + eventRegion + "_n_jet", varNJet, weight, 5, bins_varNJet);
-            FillBinnedHist(param.Name + "/" + eventRegion + "_n_bjet", varNBJet, weight, 5, bins_varNBJet);
+            FillBinnedHist(param.Name + "/" + eventRegion + "_n_jet", varNJet, weight, 4, bins_varNJet);
+            FillBinnedHist(param.Name + "/" + eventRegion + "_n_bjet", varNBJet, weight, 4, bins_varNBJet);
 
             FillHist(param.Name + "/" + eventRegion + "_pt_recosecboson", varSecondaryBosonPt, weight, 5000, 0., 5000.);
             FillHist(param.Name + "/" + eventRegion + "_n_events_weighted", 0, weight, 1, 0., 1.);
@@ -702,32 +722,30 @@ void singlelepton_analysis::executeEventFromParameter(AnalyzerParameter param){
             FillHist(param.Name + "/" + eventRegion + "_phi_met", varMETPhi, weight, 100, -5., 5.);
 
             if (runWithHEM || param.Name == "CENTRAL"){
-                FillHist(param.Name + "/" + eventRegion + "CheckHEM_eta_lepton", varLeptonEta, weight, 20, -2.5, 2.5);
-                FillHist(param.Name + "/" + eventRegion + "CheckHEM_phi_lepton", varLeptonPhi, weight, 40, -5.0, 5.0);
-                if (varLeptonEta < 0){
-                    FillHist(param.Name + "/" + eventRegion + "CheckEta1HEM_eta_lepton", varLeptonEta, weight, 20, -2.5, 2.5);
-                    FillHist(param.Name + "/" + eventRegion + "CheckEta1HEM_phi_lepton", varLeptonPhi, weight, 40, -5.0, 5.0);
-                }
-                else{
-                    FillHist(param.Name + "/" + eventRegion + "CheckEta2HEM_eta_lepton", varLeptonEta, weight, 20, -2.5, 2.5);
-                    FillHist(param.Name + "/" + eventRegion + "CheckEta2HEM_phi_lepton", varLeptonPhi, weight, 40, -5.0, 5.0);
-                }
-                if (varLeptonPhi < TMath::Pi() && TMath::Pi()/2. < varLeptonPhi){
-                    FillHist(param.Name + "/" + eventRegion + "CheckPhi1HEM_eta_lepton", varLeptonEta, weight, 20, -2.5, 2.5);
-                    FillHist(param.Name + "/" + eventRegion + "CheckPhi1HEM_phi_lepton", varLeptonPhi, weight, 40, -5.0, 5.0);
-                }
-                else if (varLeptonPhi <= TMath::Pi()/2. && 0. < varLeptonPhi){
-                    FillHist(param.Name + "/" + eventRegion + "CheckPhi2HEM_eta_lepton", varLeptonEta, weight, 20, -2.5, 2.5);
-                    FillHist(param.Name + "/" + eventRegion + "CheckPhi2HEM_phi_lepton", varLeptonPhi, weight, 40, -5.0, 5.0);
-                }
-                else if (varLeptonPhi <= 0. && (-1.*TMath::Pi()/2.) < varLeptonPhi){
-                    FillHist(param.Name + "/" + eventRegion + "CheckPhi3HEM_eta_lepton", varLeptonEta, weight, 20, -2.5, 2.5);
-                    FillHist(param.Name + "/" + eventRegion + "CheckPhi3HEM_phi_lepton", varLeptonPhi, weight, 40, -5.0, 5.0);
-                }
-                else{
-                    FillHist(param.Name + "/" + eventRegion + "CheckPhi4HEM_eta_lepton", varLeptonEta, weight, 20, -2.5, 2.5);
-                    FillHist(param.Name + "/" + eventRegion + "CheckPhi4HEM_phi_lepton", varLeptonPhi, weight, 40, -5.0, 5.0);
-                }
+                FillHist(param.Name + "/" + eventRegion + "CheckHEM_eta_lepton", varLeptonEta, weight, 21, -2.1, 2.1);
+                FillHist(param.Name + "/" + eventRegion + "CheckHEM_phi_lepton", varLeptonPhi, weight, 16, -1.*TMath::Pi(), TMath::Pi());
+                FillBinnedHist(param.Name + "/" + eventRegion + "CheckHEM_pt_lepton", varLeptonPt, weight, 4, bins_varLeptonPt);
+
+                TString checkEtaHEM = "";
+                TString checkPhiHEM = "";
+
+                if (-2.1 <= varLeptonEta && varLeptonEta < 0.0) checkEtaHEM = "EtaNeg";
+                else checkEtaHEM = "EtaPos";
+
+                if (0.0 < varLeptonPhi && varLeptonPhi <= TMath::Pi()/2.) checkPhiHEM = "PhiQuad1";
+                else if (TMath::Pi()/2. <= varLeptonPhi) checkPhiHEM = "PhiQuad2";
+                else if (varLeptonPhi <= -1.*TMath::Pi()/2.) checkPhiHEM = "PhiQuad3";
+                else checkPhiHEM = "PhiQuad4";
+
+                FillHist(param.Name + "/" + eventRegion + "CheckHEM" + checkEtaHEM + "_eta_lepton", varLeptonEta, weight, 21, -2.1, 2.1);
+                FillHist(param.Name + "/" + eventRegion + "CheckHEM" + checkEtaHEM + "_phi_lepton", varLeptonPhi, weight, 16, -1.*TMath::Pi(), TMath::Pi());
+                FillBinnedHist(param.Name + "/" + eventRegion + "CheckHEM" + checkEtaHEM + "_pt_lepton", varLeptonPt, weight, 4, bins_varLeptonPt);
+                FillHist(param.Name + "/" + eventRegion + "CheckHEM" + checkPhiHEM + "_eta_lepton", varLeptonEta, weight, 21, -2.1, 2.1);
+                FillHist(param.Name + "/" + eventRegion + "CheckHEM" + checkPhiHEM + "_phi_lepton", varLeptonPhi, weight, 16, -1.*TMath::Pi(), TMath::Pi());
+                FillBinnedHist(param.Name + "/" + eventRegion + "CheckHEM" + checkPhiHEM + "_pt_lepton", varLeptonPt, weight, 4, bins_varLeptonPt);
+                FillHist(param.Name + "/" + eventRegion + "CheckHEM" + checkEtaHEM + checkPhiHEM + "_eta_lepton", varLeptonEta, weight, 21, -2.1, 2.1);
+                FillHist(param.Name + "/" + eventRegion + "CheckHEM" + checkEtaHEM + checkPhiHEM + "_phi_lepton", varLeptonPhi, weight, 16, -1.*TMath::Pi(), TMath::Pi());
+                FillBinnedHist(param.Name + "/" + eventRegion + "CheckHEM" + checkEtaHEM + checkPhiHEM + "_pt_lepton", varLeptonPt, weight, 4, bins_varLeptonPt);
 
             }
 
@@ -932,14 +950,6 @@ int singlelepton_analysis::GetSignalRegion(TString eventRegion, double varSecond
 
 }
 
-int singlelepton_analysis::GetCutFlowHistogram(TString cutLabel, double weight_cutflow, TString systName, int cutFlowIndicator){
-
-//    FillHist(systName + "/cutflow_" + cutLabel, cutFlowIndicator, weight_cutflow, 1, cutFlowIndicator, cutFlowIndicator + 1);
-    cutFlowIndicator = cutFlowIndicator + 1;
-
-    return cutFlowIndicator;
-}
-
 Particle singlelepton_analysis::GetPOGCorrMET(Particle UncorrMET, bool IsPuppiMET){
 
     int npv = min(nPV,100);
@@ -1060,5 +1070,288 @@ bool singlelepton_analysis::WrongMissingEt(void){
     }
 
     return false;
+
+}
+
+void singlelepton_analysis::StudySignals(std::vector<Lepton> leptons, std::vector<Jet> jets, std::vector<FatJet> fatjets, Particle missingEt, double weight){
+
+    if (leptons.size() == 0) return;
+
+    Particle recoLepton = leptons.at(0);
+
+    std::vector<Particle> recoJets;
+    Particle recoFatJet;
+
+    bool isMerged = false;
+
+    if (fatjets.size() > 0){
+        recoFatJet = fatjets.at(0);
+        isMerged = true;
+    }
+    else{
+        if (jets.size() > 1){
+            recoJets.push_back(jets.at(0));
+            recoJets.push_back(jets.at(1));
+        }
+        else return;
+    }
+
+    std::vector<Gen> gens = GetGens();
+
+/*    for (unsigned int i =2; i < gens.size(); i++){
+
+        Gen this_gen = gens.at(i);
+        this_gen.Print();
+    }*/
+
+
+    Particle genLepton;
+    Particle genNeutrino;
+    std::vector<Particle> genJets;
+
+    int indexHardLepton = -1;
+    int indexHardHeavyNeutrino = -1;
+    int indexGenLepton = -1;
+    int indexGenNeutrino = -1;
+    std::vector <int> indexGenJets;
+
+    for (unsigned int i =2; i < gens.size(); i++){
+
+        Gen this_gen = gens.at(i);
+
+        int this_status = this_gen.Status();
+        int this_pid = abs(this_gen.PID());
+        int this_index = this_gen.Index();
+        int this_mother = this_gen.MotherIndex();
+        int this_mother_pid = abs(gens.at(this_mother).PID());
+
+        if (this_pid == 13 || this_pid == 11){
+            if (this_status == 23){
+                indexHardLepton = this_index;
+            }
+            else if (this_status == 1){
+                if (this_mother_pid == 9900012){
+                    indexHardLepton = this_index;
+                }
+            }
+
+        }
+    }
+
+    if (indexHardLepton < 0){
+        FillHist("indexHardLepton_NotFound", 0, weight, 1, 0., 1.);
+        return;
+    }
+
+
+    for (unsigned int i =2; i < gens.size(); i++){
+
+        Gen this_gen = gens.at(i);
+
+        int this_status = this_gen.Status();
+        int this_pid = abs(this_gen.PID());
+        int this_index = this_gen.Index();
+
+        if (this_pid == 9900012 && this_status == 22){
+            indexHardHeavyNeutrino = this_index;
+            break;
+        }
+    }
+
+    if (indexHardHeavyNeutrino < 0){
+        FillHist("indexHardHeavyNeutrino_NotFound", 0, weight, 1, 0., 1.);
+        return;
+    }
+
+
+
+    for (unsigned int i =2; i < gens.size(); i++){
+        
+        Gen this_gen = gens.at(i);
+        
+        int this_status = this_gen.Status();
+        int this_pid = abs(this_gen.PID());
+        int this_index = this_gen.Index();
+        int this_mother = this_gen.MotherIndex();
+        int this_mother_pid = abs(gens.at(this_mother).PID());
+
+        if (this_pid == 13 || this_pid == 11){
+            if (this_mother == indexHardLepton){
+                if (this_status == 44 || this_status == 51 || this_status == 52){
+                    indexHardLepton = this_index;
+                }
+                else if (this_status == 1){
+                    indexGenLepton = this_index;
+                    break;
+                }
+            }
+            else if (this_mother_pid == 9900012){
+                if (this_status == 1){
+                    indexGenLepton = this_index;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (indexGenLepton < 0){
+        FillHist("indexGenLepton_NotFound", 0, weight, 1, 0., 1.);
+        for (unsigned int i =2; i < gens.size(); i++){
+
+            Gen this_gen = gens.at(i);
+            this_gen.Print();
+        }
+        return;
+    }
+
+    genLepton = gens.at(indexGenLepton);
+
+    for (unsigned int i =2; i < gens.size(); i++){
+
+        Gen this_gen = gens.at(i);
+
+        int this_status = this_gen.Status();
+        int this_pid = abs(this_gen.PID());
+        int this_index = this_gen.Index();
+        int this_mother = this_gen.MotherIndex();
+        int this_mother_pid = abs(gens.at(this_mother).PID());
+        int this_sister = indexHardHeavyNeutrino;
+        int this_sister_mother = gens.at(indexHardHeavyNeutrino).MotherIndex();
+        if (this_pid == 14 || this_pid == 12){
+            if (this_mother_pid == 9900012 && this_status == 1){
+                indexGenNeutrino = this_index;
+                break;
+            }
+            else if (this_sister_mother == this_mother){
+                indexGenNeutrino = this_index;
+                break;
+            }
+        }
+    }
+
+    if (indexGenNeutrino < 0){
+        FillHist("indexGenNeutrino_NotFound", 0, weight, 1, 0., 1.);
+        return;
+    }
+
+    genNeutrino = gens.at(indexGenNeutrino);
+
+    for (unsigned int i =2; i < gens.size(); i++){
+
+        Gen this_gen = gens.at(i);
+
+        int this_status = this_gen.Status();
+        int this_pid = abs(this_gen.PID());
+        int this_index = this_gen.Index();
+        int this_mother = this_gen.MotherIndex();
+        int this_mother_pid = abs(gens.at(this_mother).PID());
+
+        if (this_pid < 6 && this_status == 23){
+            if (this_mother_pid == 23 || this_mother_pid == 24 || this_mother_pid == 25){
+                indexGenJets.push_back(this_index);
+            }
+        }
+    }
+
+    if (indexGenJets.size() != 2){
+        FillHist("indexGenJets_NotFound", 0, weight, 1, 0., 1.);
+        return;
+    }
+
+    genJets.push_back(gens.at(indexGenJets.at(0)));
+    genJets.push_back(gens.at(indexGenJets.at(1)));
+
+    FillHist("Study_Signal/Reco_pt_lepton", recoLepton.Pt(), weight, 5000,  0., 5000.);
+    FillHist("Study_Signal/Reco_eta_lepton", recoLepton.Eta(), weight, 100,  -5., 5.);
+    FillHist("Study_Signal/Reco_met", missingEt.Pt(), weight, 5000,  0., 5000.);
+
+    FillHist("Study_Signal/Gen_pt_lepton", genLepton.Pt(), weight, 5000,  0., 5000.);
+    FillHist("Study_Signal/Gen_eta_lepton", genLepton.Eta(), weight, 100,  -5., 5.);
+    FillHist("Study_Signal/Gen_met", genNeutrino.Pt(), weight, 5000,  0., 5000.);
+
+    FillHist("Study_Signal/Matching_pt_ratio_lepton", recoLepton.Pt()/genLepton.Pt(), weight, 100, 0., 2.);
+    FillHist("Study_Signal/Matching_met_ratio", missingEt.Pt()/genNeutrino.Pt(), weight, 100, 0., 2.);
+    FillHist("Study_Signal/Matching_n_events_weighted", 0., weight, 1, 0., 1.);
+
+    bool reco_and_gen_is_matched = false;
+
+    Particle recoBoson, genBoson;
+
+    if (isMerged){
+        FillHist("Study_Signal/MatchingMerged_deltar_genjetrecofatjet", recoFatJet.DeltaR(genJets.at(0)), weight, 50, 0., 5.);
+        FillHist("Study_Signal/MatchingMerged_deltar_genjetrecofatjet", recoFatJet.DeltaR(genJets.at(1)), weight, 50, 0., 5.);
+        FillHist("Study_Signal/MatchingMerged_pt_recojet", recoFatJet.Pt(), weight, 5000, 0., 5000.);
+        FillHist("Study_Signal/MatchingMerged_pt_genjets", (genJets.at(0)+genJets.at(1)).Pt(), weight, 5000, 0., 5000.);
+
+        double maxdeltar_genjetrecofatjet = max(recoFatJet.DeltaR(genJets.at(0)), recoFatJet.DeltaR(genJets.at(1)));
+        FillHist("Study_Signal/MatchingMerged_maxdeltar_genjetrecofatjet", maxdeltar_genjetrecofatjet, weight, 50, 0., 5.);
+        if (maxdeltar_genjetrecofatjet < 0.8){
+            FillHist("Study_Signal/MatchingMergedMatched_pt_ratio_genjetsrecofatjet", recoFatJet.Pt()/(genJets.at(0)+genJets.at(1)).Pt(), weight, 100, 0., 2.);
+            FillHist("Study_Signal/MatchingMergedMatched_pt_recojet", recoFatJet.Pt(), weight, 5000, 0., 5000.);
+            FillHist("Study_Signal/MatchingMergedMatched_pt_genjets", (genJets.at(0)+genJets.at(1)).Pt(), weight, 5000, 0., 5000.);
+            reco_and_gen_is_matched = true;
+            recoBoson = recoFatJet;
+            genBoson = genJets.at(0) + genJets.at(1);
+        }
+        else{
+            FillHist("Study_Signal/MatchingMergedUnmatched_pt_ratio_genjetsrecofatjet", recoFatJet.Pt()/(genJets.at(0)+genJets.at(1)).Pt(), weight, 100, 0., 2.);
+            FillHist("Study_Signal/MatchingMergedUnmatched_pt_recojet", recoFatJet.Pt(), weight, 5000, 0., 5000.);
+            FillHist("Study_Signal/MatchingMergedUnmatched_pt_genjets", (genJets.at(0)+genJets.at(1)).Pt(), weight, 5000, 0., 5000.);
+        }
+    }
+    else{
+        double deltar_00 = recoJets.at(0).DeltaR(genJets.at(0));
+        double deltar_01 = recoJets.at(0).DeltaR(genJets.at(1));
+        double deltar_10 = recoJets.at(1).DeltaR(genJets.at(0));
+        double deltar_11 = recoJets.at(1).DeltaR(genJets.at(1));
+
+        if ((deltar_00 < 0.4 && deltar_11 < 0.4) || (deltar_01 < 0.4 && deltar_10 < 0.4)){
+            FillHist("Study_Signal/MatchingResolvedMatched_pt_recojet", recoJets.at(0).Pt(), weight, 5000, 0., 5000.);
+            FillHist("Study_Signal/MatchingResolvedMatched_pt_recojet", recoJets.at(1).Pt(), weight, 5000, 0., 5000.);
+            FillHist("Study_Signal/MatchingResolvedMatched_pt_genjet", genJets.at(0).Pt(), weight, 5000, 0., 5000.);
+            FillHist("Study_Signal/MatchingResolvedMatched_pt_genjet", genJets.at(1).Pt(), weight, 5000, 0., 5000.);
+            if (deltar_00 < 0.4 && deltar_11 < 0.4){
+                FillHist("Study_Signal/MatchingResolvedMatched_deltar_genjetrecojet", deltar_00, weight, 50, 0., 5.);
+                FillHist("Study_Signal/MatchingResolvedMatched_deltar_genjetrecojet", deltar_11, weight, 50, 0., 5.);
+                FillHist("Study_Signal/MatchingResolvedMatched_pt_ratio_jet", recoJets.at(0).Pt()/genJets.at(0).Pt(), weight, 100, 0., 2.);
+                FillHist("Study_Signal/MatchingResolvedMatched_pt_ratio_jet", recoJets.at(1).Pt()/genJets.at(1).Pt(), weight, 100, 0., 2.);
+            }
+            if (deltar_01 < 0.4 && deltar_10 < 0.4){
+                FillHist("Study_Signal/MatchingResolvedMatched_deltar_genjetrecojet", deltar_01, weight, 50, 0., 5.);
+                FillHist("Study_Signal/MatchingResolvedMatched_deltar_genjetrecojet", deltar_10, weight, 50, 0., 5.);
+                FillHist("Study_Signal/MatchingResolvedMatched_pt_ratio_jet", recoJets.at(0).Pt()/genJets.at(1).Pt(), weight, 100, 0., 2.);
+                FillHist("Study_Signal/MatchingResolvedMatched_pt_ratio_jet", recoJets.at(1).Pt()/genJets.at(0).Pt(), weight, 100, 0., 2.);
+            }
+            reco_and_gen_is_matched = true;
+            recoBoson = recoJets.at(0) + recoJets.at(1);
+            genBoson = genJets.at(0) + genJets.at(1);
+        }
+        else{
+            FillHist("Study_Signal/MatchingResolvedUnmatched_pt_recojet", recoJets.at(0).Pt(), weight, 5000, 0., 5000.);
+            FillHist("Study_Signal/MatchingResolvedUnmatched_pt_recojet", recoJets.at(1).Pt(), weight, 5000, 0., 5000.);
+            FillHist("Study_Signal/MatchingResolvedUnmatched_pt_genjet", genJets.at(0).Pt(), weight, 5000, 0., 5000.);
+            FillHist("Study_Signal/MatchingResolvedUnmatched_pt_genjet", genJets.at(1).Pt(), weight, 5000, 0., 5000.);
+        }
+    }
+
+    if (reco_and_gen_is_matched){
+        FillHist("Study_Signal/MatchingMatched_mass_wto_bosongennu_recoheavyneutrino", (recoBoson + genNeutrino).M(), weight, 5000, 0., 5000.);
+        FillHist("Study_Signal/MatchingMatched_masst_wto_bosonmet_recoheavyneutrino", (recoBoson + missingEt).Mt(), weight, 5000, 0., 5000.);
+        FillHist("Study_Signal/MatchingMatched_mass_zto_bosonlep_recoheavyneutrino", (recoBoson + recoLepton).M(), weight, 5000, 0., 5000.);
+        FillHist("Study_Signal/MatchingMatched_n_events_weighted", 0., weight, 1, 0., 1.);
+
+        if (isMerged){
+            FillHist("Study_Signal/MatchingMergedMatched_mass_wto_bosongennu_recoheavyneutrino", (recoBoson + genNeutrino).M(), weight, 5000, 0., 5000.);
+            FillHist("Study_Signal/MatchingMergedMatched_masst_wto_bosonmet_recoheavyneutrino", (recoBoson + missingEt).Mt(), weight, 5000, 0., 5000.);
+            FillHist("Study_Signal/MatchingMergedMatched_mass_zto_bosonlep_recoheavyneutrino", (recoBoson + recoLepton).M(), weight, 5000, 0., 5000.);
+            FillHist("Study_Signal/MatchingMergedMatched_n_events_weighted", 0., weight, 1, 0., 1.);
+        }
+        else{
+            FillHist("Study_Signal/MatchingResolvedMatched_mass_wto_bosongennu_recoheavyneutrino", (recoBoson + genNeutrino).M(), weight, 5000, 0., 5000.);
+            FillHist("Study_Signal/MatchingResolvedMatched_masst_wto_bosonmet_recoheavyneutrino", (recoBoson + missingEt).Mt(), weight, 5000, 0., 5000.);
+            FillHist("Study_Signal/MatchingResolvedMatched_mass_zto_bosonlep_recoheavyneutrino", (recoBoson + recoLepton).M(), weight, 5000, 0., 5000.);
+            FillHist("Study_Signal/MatchingResolvedMatched_n_events_weighted", 0., weight, 1, 0., 1.);
+        }
+    }
 
 }

@@ -1,0 +1,2 @@
+# alias PD xsec nmc sumsign sumw
+WtoLNtoLNuHtoLNuBB_VBF_InverseHeavyN-Mu_MN600_TuneCP5_13TeV-amcatnlo-pythia8	WtoLNtoLNuHtoLNuBB_VBF_InverseHeavyN-Mu_MN600_TuneCP5_13TeV-amcatnlo-pythia8	1	50000	23154.0	1.356872831514e-02

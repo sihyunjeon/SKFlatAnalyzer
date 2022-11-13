@@ -23,6 +23,8 @@ public:
     bool runWithHEM;
     bool runWithoutTopPtRwgt;
     bool runSystPropMET;
+    bool runTriggerEGM;
+    bool runSignalStudies;
 
     std::vector<TString> muonTightIDs, muonLooseIDs;
     std::vector<TString> electronTightIDs, electronLooseIDs;
@@ -46,7 +48,6 @@ public:
     Particle GetReconstructedNeutrino(Lepton lepton, Particle missingEt);
 
     int GetSignalRegion(TString eventRegion, double varSecondaryBosonPt, double varSecondaryBosonMass);
-    int GetCutFlowHistogram(TString cutLabel, double weight_cutflow, TString systName, int cutFlowIndicator);
 
     int cutFlowIndicator;
 
@@ -80,6 +81,7 @@ public:
     template <typename T>
     Particle ScaleLeptonMissingEtPropagation(Particle missingEt, T unscaled, T scaled);
     bool WrongMissingEt(void);
+    void StudySignals(std::vector<Lepton> leptons, std::vector<Jet> jets, std::vector<FatJet> fatjets, Particle missingEt, double weight);
 
     singlelepton_analysis();
     ~singlelepton_analysis();
